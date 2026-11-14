@@ -1,0 +1,148 @@
+{
+  "EXIT_C_N": 43,
+  "EXIT_C_median_intent_advance_active_minutes": 26,
+  "Entry_N": 1600,
+  "Entry_changes": 0,
+  "State9_Path_full_reconstruction": 0,
+  "Winner_GE5_EXIT_C_N": 17,
+  "automatic_next_work": false,
+  "availability_assumption": "historical actual_known_at UNKNOWN; inherited bar_end availability assumption only",
+  "basis_head": "06ed4b6ae371aced35c4dbf2f3591d092a4698a1",
+  "blocker": null,
+  "budget_exposure": {
+    "Capital": 0,
+    "Entry_replay_refit": 0,
+    "Hard1": 0,
+    "M0_changes": 0,
+    "OOF_model": 0,
+    "Path_full_reconstruction": 0,
+    "Path_semantic_changes": 0,
+    "Portfolio": 0,
+    "Protected_Fresh_Validation_OOS_Prospective": 0,
+    "R50_R54_WPSD_Guard_CCMG_PRR": 0,
+    "Reentry": 0,
+    "State9_full_reconstruction": 0,
+    "State9_semantic_changes": 0,
+    "buffer_variants": 0,
+    "dwell_stop_count_threshold": 0,
+    "fixed_stop": 0,
+    "fixed_trailing": 0,
+    "force_push": 0,
+    "local_guard_variants": 1,
+    "main_merge": 0,
+    "model_variants": 0,
+    "new_EXIT_policies": 1,
+    "new_fits": 0,
+    "new_market_data": 0,
+    "new_teacher": 0,
+    "old_EXIT_replay": 0,
+    "orders": 0,
+    "pivot_threshold_variants": 0,
+    "probability_score_rank": 0,
+    "profile_changes": 0,
+    "profit_threshold": 0,
+    "provider_requests": 0,
+    "threshold_hyperparameter_feature_search": 0,
+    "v2_replay": 0
+  },
+  "completion_gate": [
+    {
+      "content": "v2 exact trace/hash reuse receipt",
+      "evidence": "V2_TRACE_REUSE_RECEIPT.json",
+      "item": 1,
+      "verified": true
+    },
+    {
+      "content": "one Local Guard contract fixed before outcomes",
+      "evidence": "CONTRACT_FREEZE_RECEIPT.json",
+      "item": 2,
+      "verified": true
+    },
+    {
+      "content": "v3-only1600 Entry replay",
+      "evidence": "REPLAY_RECEIPT.json",
+      "item": 3,
+      "verified": true
+    },
+    {
+      "content": "exclusive Entry→High primary v2/v3 table",
+      "evidence": "EXCLUSIVE_ENTRY_HIGH_PRIMARY.json",
+      "item": 4,
+      "verified": true
+    },
+    {
+      "content": ">=5 Winner protection table",
+      "evidence": "WINNER_GE5_PROTECTION.json",
+      "item": 5,
+      "verified": true
+    },
+    {
+      "content": "EXIT-C paired diagnosis, bucket and >=5 subgroup",
+      "evidence": "EXIT_C_PAIRED_DIAGNOSIS.json;EXIT_C_EXCLUSIVE.json;WINNER_GE5_EXIT_C.json",
+      "item": 6,
+      "verified": true
+    },
+    {
+      "content": "local guard mechanics",
+      "evidence": "LOCAL_GUARD_MECHANICS.json",
+      "item": 7,
+      "verified": true
+    },
+    {
+      "content": "all-entry economics",
+      "evidence": "ALL_ENTRY_ECONOMICS.json",
+      "item": 8,
+      "verified": true
+    },
+    {
+      "content": "independent mismatch0/future leakage0",
+      "evidence": "INDEPENDENT_AUDIT.json;AUDIT_GATE_MAP.json",
+      "item": 9,
+      "verified": true
+    },
+    {
+      "content": "GitHub FINAL checkpoint then actual result HEAD GET",
+      "evidence": "CHECKPOINTS/V3_FINAL_AUDIT_AND_EVIDENCE.json",
+      "item": 10,
+      "verified": "THIS_IS_THE_FINAL_CHECKPOINT_COMMIT; ACTUAL_GET_REQUIRED_AFTER_COMMIT"
+    }
+  ],
+  "document_id": "WORK_STATE9_STRUCTURAL_EXIT_V3_LOCAL_GUARD_FASTTRACK_20261003",
+  "exit_reason_N": {
+    "LOCAL_UP_STRUCTURE_GUARD_BROKEN": 43,
+    "SESSION_CLOSE": 1069,
+    "UNRESOLVED": 39,
+    "UP_STRUCTURE_RETIRED_BY_RANGE": 155,
+    "UP_STRUCTURE_REVERSED": 294
+  },
+  "formal_EXIT_adoption": false,
+  "future_causal_leakage_N": 0,
+  "guard_creation_N": 291,
+  "guard_positions_N": 245,
+  "guard_tighten_N": 78,
+  "independent_check_N": 1210542,
+  "mismatch_N": 0,
+  "next_step": "Actual GET confirms final result HEAD, then STOP; human chooses v2 maintain/v3 adopt/minimum later revision",
+  "performance_AUTO_PASS_threshold": null,
+  "performance_judgment": "human decision;3–4 modest group improvement from2 C cases,4–5 mean slight decline,>=5 mean slight gain/median and missed upside worse",
+  "policy": "STATE9_STRUCTURAL_EXIT_V3_LOCAL_GUARD",
+  "primary_v3_replay_executions": 1,
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "saved_at_jst": "2026-10-03T20:27:22.980871+09:00",
+  "sell_filled_N": 1561,
+  "status": "STATE9_STRUCTURAL_EXIT_V3_LOCAL_GUARD_EVIDENCE_READY",
+  "stop_here": true,
+  "unresolved_N": 39,
+  "v2_replay": 0
+}

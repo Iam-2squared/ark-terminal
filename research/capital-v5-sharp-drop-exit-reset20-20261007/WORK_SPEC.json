@@ -1,0 +1,253 @@
+{
+  "arms": [
+    "V5_OLD_EXIT_CONTROL",
+    "V5_SHARP_DROP_MAIN_EXIT"
+  ],
+  "budget": {
+    "formal_each_path": 1,
+    "formal_primary_paths_max": 18,
+    "formal_secondary_paths_max": 2,
+    "independent_each_path": 1,
+    "new_calibration": 0,
+    "new_fit": 0,
+    "new_teacher": 0,
+    "new_threshold_score_policy_search": 0,
+    "orders": 0,
+    "policy_candidates": 2,
+    "protected_opens": 0,
+    "provider_requests": 0,
+    "reproduction_campaign": 1,
+    "reuse_verified_C_allowed": true,
+    "technical_repair_cycles_max": 20
+  },
+  "capacityPolicy": "CAPITAL_MAX_CONCURRENT_3_RESEARCH_POLICY_V1",
+  "capital_fixed": {
+    "BUY": "1.0005",
+    "MAX": 3,
+    "SELL": "0.9995",
+    "breadth_increment": ".055",
+    "caps": {
+      "A": ".35",
+      "B": ".25",
+      "S": ".45"
+    },
+    "cash_only_LONG": true,
+    "commission": 0,
+    "liquidity_diagnostic_only": true,
+    "lot": 100,
+    "native_code": "710656491be06235901b45c50a8b5cbd714ba4eb",
+    "no_holdings_topup": true,
+    "no_same_batch_rescue": true,
+    "no_zero_share_backfill": true,
+    "original_block_mapping": true,
+    "saved_arrival_tables": true,
+    "saved_score_stream": true,
+    "target_max": ".92",
+    "targets": {
+      "A": ".56",
+      "B": ".44",
+      "S": ".68"
+    }
+  },
+  "checkpoints": [
+    "P0_SOURCE_BINDING",
+    "P1_SYNTHETIC_PARITY",
+    "P2_EACH_WINDOW",
+    "P3_PRIMARY_DIAGNOSTICS",
+    "P4_SECONDARY",
+    "P5_INDEPENDENT",
+    "P6_REPRODUCTION",
+    "P7_PUBLICATION_READBACK"
+  ],
+  "date": "2026-10-07",
+  "diagnostics": {
+    "R_bands": [
+      "L5_PLUS",
+      "L4_5",
+      "L3_4",
+      "L2_3",
+      "L1_2",
+      "L0_1",
+      "ZERO",
+      "P0_1",
+      "P1_2",
+      "P2_3",
+      "P3_4",
+      "P4_5",
+      "P5_PLUS",
+      "R_UNKNOWN"
+    ],
+    "cash_minutes": true,
+    "common_decomposition": [
+      "q_C*(u_E-u_C)",
+      "(q_E-q_C)*u_E"
+    ],
+    "daily_loss_and_MTM_DD": true,
+    "funding_sets": [
+      "COMMON",
+      "C_ONLY",
+      "E_ONLY",
+      "ALSO_NEITHER"
+    ],
+    "median_of_difference_and_difference_of_medians_both": true,
+    "null_final_on_unresolved": true,
+    "original_C_fixed_winner_loser_cohorts": true,
+    "paired_complete_mask_only": true,
+    "thresholds": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "unique_ID_and_overlapping_portfolio_counts_separate": true
+  },
+  "document_id": "ARK_V5_MAIN_CAPITAL_SHARP_DROP_EXIT_RESET20_WORK_20261007",
+  "exit_fixed": {
+    "PRE_and_ACTIVE": true,
+    "UP_arm_required": false,
+    "cash_slot_release": "FILL_ASSUMED_AVAILABLE_EVENT_ONLY",
+    "control_priority": "EARLIER_OR_SAME_CHECKPOINT",
+    "edge_required": false,
+    "fill_adapter": "S4_CORRECTED_DECIMAL_ADAPTER",
+    "full_quantity": true,
+    "latched": true,
+    "loss_only": false,
+    "no_trigger_fallback": "STRUCTURAL_V3_PLUS_CANONICAL_1520_EOD",
+    "pre_or_same_buy_state_reuse": false,
+    "same_signal_Close_fill": false,
+    "trigger": "FIRST_VALID_POST_BUY_FILL_STATE9_PRIMARY_SHARP_DROP"
+  },
+  "exposure": "ADAPTIVE_ITERATIVE_DEVELOPMENT_NOT_FRESH_OR_OOS",
+  "funding": {
+    "P1_activated": false,
+    "allow_funded_set_quantity_changes": true,
+    "arm_specific_cash_equity_positions_pending": true,
+    "extra_prebuy_filter": false,
+    "full_frozen_candidate_stream": true,
+    "future_execution_availability_buy_gate": false,
+    "partial_exit": false,
+    "reentry_added": false,
+    "refunding_skipped_entry": false
+  },
+  "mainCapital": "CAPITAL_MAX3_SLOT_RESERVE_V1",
+  "mainExit": "SHARP_DROP_FIRST_OBSERVED_EXIT_V0",
+  "primary": {
+    "W01_W12": "PRESERVE_COVERAGE_UNKNOWN_NO_RECOVERY",
+    "calendar": "S6_COVERAGE_AND_WINDOWS",
+    "fixed_N": 9,
+    "fixed_window_ids": [
+      "W13",
+      "W14",
+      "W15",
+      "W16",
+      "W17",
+      "W18",
+      "W19",
+      "W20",
+      "W21"
+    ],
+    "initial_cash": "1000000",
+    "planned_N": 21,
+    "portfolio_empty_at_start": true,
+    "reset_cash_each_day": false,
+    "reset_cash_each_window": true,
+    "session_N": 20
+  },
+  "publication": {
+    "branch": "research/capital-v5-sharp-drop-exit-reset20-20261007",
+    "directory": "research/capital-v5-sharp-drop-exit-reset20-20261007",
+    "dispatches": 0,
+    "force_push": 0,
+    "main_merge": 0,
+    "new_workflows": 0,
+    "per_window_commit_actual_GET": true,
+    "prior_overwrite": 0,
+    "private": "ROW_LEVEL_INPUTS_LEDGER_FAILURES_DEPENDENCIES",
+    "public": "AGGREGATES_CONTRACTS_HASHES_STATUS_RECEIPTS",
+    "receipt_no_self_hash": true,
+    "skip_ci": true
+  },
+  "required_final_state": {
+    "Safety9": {
+      "automaticPromotionAllowed": false,
+      "brokerWriteAllowed": false,
+      "excelOrderWriteAllowed": false,
+      "executionAllowed": false,
+      "liveTradingAllowed": false,
+      "paperTradingAllowed": false,
+      "productionUpdateAllowed": false,
+      "rssOrderFunctionAllowed": false,
+      "transmitted": false
+    },
+    "additionalPreBuyFilterActivated": false,
+    "freshValidation": "NOT_RUN",
+    "mainCapital": "CAPITAL_MAX3_SLOT_RESERVE_V1",
+    "mainExit": "SHARP_DROP_FIRST_OBSERVED_EXIT_V0",
+    "oldResultsRelabelled": false,
+    "priorCapitalAndExitArtifactsPreserved": true,
+    "productionReady": false,
+    "runtimeProductionConfigChanged": false,
+    "selectionPointersRewrittenByThisComparison": false
+  },
+  "required_outputs": [
+    "CURRENT_STATE.json",
+    "RESUME_NEXT_ACTION.txt",
+    "SOURCE_BINDING.json",
+    "WINDOW_ALLOWLIST.json",
+    "EXPOSURE_LEDGER.json",
+    "IMPLEMENTATION_AND_PARITY.json",
+    "SYNTHETIC_TEST_RESULTS.json",
+    "RESET20_WINDOW_RESULTS.csv",
+    "RESET20_SUMMARY.json",
+    "CHAIN38_AND_LEGACY20_RESULTS.json",
+    "LEGACY20_PAIRED_WINDOWS.csv",
+    "RETURN_SPECTRUM_BY_WINDOW.csv",
+    "TAIL_AND_LOSS_METRICS.csv",
+    "ORIGINAL_C_WINNER_LOSER_TRANSITIONS.csv",
+    "FUNDING_AND_PNL_DECOMPOSITION.csv",
+    "FIRST_DIVERGENCE.json",
+    "STATE_EVIDENCE_COVERAGE.json",
+    "UNRESOLVED_LEDGER.json",
+    "INDEPENDENT_AUDIT.json",
+    "REPRODUCTION_RECEIPT.json",
+    "TECHNICAL_REPAIR_LEDGER.jsonl",
+    "EXECUTION_RECEIPT.json",
+    "REPORT-ja.md",
+    "READBACK_RECEIPT_PUBLICATION.json"
+  ],
+  "reuse_control": {
+    "end_only_match_sufficient": false,
+    "reference_values_are_not_results": true,
+    "requires_exact_ID_quantity_money_time_ledgers": true,
+    "requires_window_initial_reset_parity": true
+  },
+  "secondary": {
+    "actual_reset": false,
+    "formula": "1000000 * ending_cash(last) / starting_cash(first)",
+    "initial_cash": "1000000",
+    "legacy_normalized20_N": 19,
+    "old_final_reference": "1477436.15",
+    "run_after_primary_checkpoint": true,
+    "session_N": 38
+  },
+  "selection_policy": "USER_SELECTED_CAPITAL_AND_EXIT_RETAINED_REGARDLESS_OF_COMPARISON_EFFECT",
+  "source_quality": [
+    "A_VALID_STATE",
+    "B_FROZEN_INITIALIZING_QUALITY_ABSTENTION",
+    "C_EVIDENCE_GAP",
+    "D_EXECUTION_UNRESOLVED"
+  ],
+  "stop": "AFTER_ALL_ARTIFACTS_READBACK_OR_PRESERVED_BLOCK_WITH_RESUMABLE_CHECKPOINT",
+  "verification": {
+    "byte_hash_payload_identity": true,
+    "deterministic_reproduction_campaigns": 1,
+    "float_summary_tolerance": "INHERIT_NATIVE_FIXED_1e-12_1e-8_WHERE_APPLICABLE",
+    "money_quantity_ID_time_exact": true,
+    "same_author_not_third_party": true,
+    "separate_implementation_no_primary_import": true,
+    "shared_State_kernel_not_external_certification": true,
+    "synthetic_before_replay": true
+  },
+  "version": "V1.0"
+}

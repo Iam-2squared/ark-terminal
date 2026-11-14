@@ -1,0 +1,38 @@
+{
+  "GOOD": {
+    "OOF_dates": 12,
+    "folds": 3
+  },
+  "JST": "2026-10-02T11:20:40.816228+09:00",
+  "LIMITED_BUT_EVALUABLE": {
+    "OOF_dates": 8,
+    "folds": 2
+  },
+  "bootstrap_seed": 2026100303,
+  "empty_folds_retained": true,
+  "fallback": "Only if zero new acquired dates, first5 existing input dates train; remaining chronological dates split 3 balanced blocks, exposed diagnostic evaluation",
+  "fixed_three_blocks": [
+    [
+      "2025-08-04",
+      "2025-08-05",
+      "2025-08-06",
+      "2025-08-07"
+    ],
+    [
+      "2025-08-08",
+      "2025-08-12",
+      "2025-08-13",
+      "2025-08-14"
+    ],
+    [
+      "2025-08-15",
+      "2025-08-18",
+      "2025-08-19"
+    ]
+  ],
+  "initial_train_dates_min": 5,
+  "label_or_outcome_based_split_changes": 0,
+  "permutation_seed": 2026100302,
+  "purge": "all target/donor ends strictly earlier than test_start; each target within same session",
+  "train": "all available earlier dates; same security-session one date/fold"
+}

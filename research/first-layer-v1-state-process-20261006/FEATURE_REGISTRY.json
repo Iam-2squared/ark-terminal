@@ -1,0 +1,3496 @@
+{
+  "Primary9": [
+    "RISE",
+    "SHARP_RISE",
+    "RISE_STOP",
+    "PULLBACK",
+    "RANGE",
+    "REBOUND",
+    "DROP",
+    "SHARP_DROP",
+    "DROP_STOP"
+  ],
+  "aliases": {
+    "P.r0.dwell": "H.dwell",
+    "P.r0.end_context": "H.context",
+    "P.r0.end_fast": "H.fast",
+    "P.r0.end_local": "H.local",
+    "P.r0.last_age_active": "H.age_active",
+    "P.r0.present": "Q.history_available",
+    "P.r0.primary": "H.primary"
+  },
+  "category_reserved": [
+    "__MISSING__",
+    "__UNSEEN__",
+    "__PADDING__",
+    "__NOT_APPLICABLE__"
+  ],
+  "conditional_views": {
+    "P.r0 vs H": "Exact synonymous primary/end facet/dwell/last-age values are registry aliases and encoded once.",
+    "S vs H/r0": "S is null when current not observed; H/r0 is the last true historical observation. They differ in meaning and are not globally synonymous; S contributes current incremental effect only."
+  },
+  "field_count": 379,
+  "field_mapping": "Frozen Path endpoint properties and actual Path events; verified native C O,H,L,C,Vo,Va. Raw IDs/absolute date/security excluded from model.",
+  "fields": [
+    {
+      "alias": null,
+      "formula": "Boolean from actual available prefix; not a manual KEEP/DROP rule",
+      "kind": "num",
+      "name": "Q.current_state_available",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Boolean from actual available prefix; not a manual KEEP/DROP rule",
+      "kind": "num",
+      "name": "Q.history_available",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Boolean from actual available prefix; not a manual KEEP/DROP rule",
+      "kind": "num",
+      "name": "Q.transition_available",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Boolean from actual available prefix; not a manual KEEP/DROP rule",
+      "kind": "num",
+      "name": "Q.prefix_readable",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Boolean from actual available prefix; not a manual KEEP/DROP rule",
+      "kind": "num",
+      "name": "Q.market_available",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Boolean from actual available prefix; not a manual KEEP/DROP rule",
+      "kind": "num",
+      "name": "Q.price_basis_available",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Count over actually read session prefix, no cross-session join",
+      "kind": "num",
+      "name": "Q.run_count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Count over actually read session prefix, no cross-session join",
+      "kind": "num",
+      "name": "Q.market_observed_count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Count over actually read session prefix, no cross-session join",
+      "kind": "num",
+      "name": "Q.formal_observed_count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Count over actually read session prefix, no cross-session join",
+      "kind": "num",
+      "name": "Q.segment_break_count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Count over actually read session prefix, no cross-session join",
+      "kind": "num",
+      "name": "Q.observation_lost_count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Cutoff minus last actually observed raw bar END, active calendar/ordinal respectively",
+      "kind": "num",
+      "name": "Q.latest_market_age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Cutoff minus last actually observed raw bar END, active calendar/ordinal respectively",
+      "kind": "num",
+      "name": "Q.latest_market_age_slots",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "Q.activity",
+      "penalty": 0.01,
+      "source": "Latest frozen State/Path quality field (known by decision); reason not inferred from later recovery",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "Q.basis",
+      "penalty": 0.01,
+      "source": "Latest frozen State/Path quality field (known by decision); reason not inferred from later recovery",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "Q.numeric_status",
+      "penalty": 0.01,
+      "source": "Latest frozen State/Path quality field (known by decision); reason not inferred from later recovery",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "Q.rejection_reason",
+      "penalty": 0.01,
+      "source": "Latest frozen State/Path quality field (known by decision); reason not inferred from later recovery",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "Q.row_status",
+      "penalty": 0.01,
+      "source": "Latest frozen State/Path quality field (known by decision); reason not inferred from later recovery",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "Q.source_unavailable_reason",
+      "penalty": 0.01,
+      "source": "Latest frozen State/Path quality field (known by decision); reason not inferred from later recovery",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "Q.last_reset_reasons",
+      "penalty": 0.01,
+      "source": "Latest frozen State/Path quality field (known by decision); reason not inferred from later recovery",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "Q.auction",
+      "penalty": 0.01,
+      "source": "Latest frozen State/Path quality field (known by decision); reason not inferred from later recovery",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "state",
+      "name": "S.primary",
+      "penalty": 0.02,
+      "source": "Primary_or_null gated by current_semantics_observed",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "S.context",
+      "penalty": 0.01,
+      "source": "Frozen observed endpoint context; fast=true/false/null/NOT_APPLICABLE separated",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "S.local",
+      "penalty": 0.01,
+      "source": "Frozen observed endpoint local; fast=true/false/null/NOT_APPLICABLE separated",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "S.direction_basis",
+      "penalty": 0.01,
+      "source": "Frozen observed endpoint direction_basis; fast=true/false/null/NOT_APPLICABLE separated",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "S.fast",
+      "penalty": 0.01,
+      "source": "Frozen observed endpoint fast; fast=true/false/null/NOT_APPLICABLE separated",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "S.fast_applicable",
+      "penalty": 0.01,
+      "source": "Frozen observed endpoint fast_applicable; fast=true/false/null/NOT_APPLICABLE separated",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "S.activity",
+      "penalty": 0.01,
+      "source": "Frozen observed endpoint activity; fast=true/false/null/NOT_APPLICABLE separated",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "S.basis",
+      "penalty": 0.01,
+      "source": "Frozen observed endpoint basis; fast=true/false/null/NOT_APPLICABLE separated",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Frozen run dwell/stop.count or endpoint scheduled_t minus stop.recognized_at / range.established_at",
+      "kind": "num",
+      "name": "S.dwell",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Frozen run dwell/stop.count or endpoint scheduled_t minus stop.recognized_at / range.established_at",
+      "kind": "num",
+      "name": "S.stop_count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Frozen run dwell/stop.count or endpoint scheduled_t minus stop.recognized_at / range.established_at",
+      "kind": "num",
+      "name": "S.stop_recognized_age_slots",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Frozen run dwell/stop.count or endpoint scheduled_t minus stop.recognized_at / range.established_at",
+      "kind": "num",
+      "name": "S.range_established_age_slots",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Observed endpoint object presence, null if endpoint unavailable",
+      "kind": "num",
+      "name": "S.stop_present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Observed endpoint object presence, null if endpoint unavailable",
+      "kind": "num",
+      "name": "S.range_present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "stop.high-low; close_u-stop.center; range.high-low; (close_u-range.low)/width if width>0",
+      "kind": "num",
+      "name": "S.stop_width_u",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "stop.high-low; close_u-stop.center; range.high-low; (close_u-range.low)/width if width>0",
+      "kind": "num",
+      "name": "S.stop_close_offset_u",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "stop.high-low; close_u-stop.center; range.high-low; (close_u-range.low)/width if width>0",
+      "kind": "num",
+      "name": "S.range_width_u",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "stop.high-low; close_u-stop.center; range.high-low; (close_u-range.low)/width if width>0",
+      "kind": "num",
+      "name": "S.range_close_position",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "S.stop_direction",
+      "penalty": 0.01,
+      "source": "Frozen stop.direction when available",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "S.range_reason",
+      "penalty": 0.01,
+      "source": "Frozen balance.reason when available",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "state",
+      "name": "H.primary",
+      "penalty": 0.02,
+      "source": "Primary_or_null gated by current_semantics_observed",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "H.context",
+      "penalty": 0.01,
+      "source": "Frozen observed endpoint context; fast=true/false/null/NOT_APPLICABLE separated",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "H.local",
+      "penalty": 0.01,
+      "source": "Frozen observed endpoint local; fast=true/false/null/NOT_APPLICABLE separated",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "H.direction_basis",
+      "penalty": 0.01,
+      "source": "Frozen observed endpoint direction_basis; fast=true/false/null/NOT_APPLICABLE separated",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "H.fast",
+      "penalty": 0.01,
+      "source": "Frozen observed endpoint fast; fast=true/false/null/NOT_APPLICABLE separated",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "H.fast_applicable",
+      "penalty": 0.01,
+      "source": "Frozen observed endpoint fast_applicable; fast=true/false/null/NOT_APPLICABLE separated",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "H.activity",
+      "penalty": 0.01,
+      "source": "Frozen observed endpoint activity; fast=true/false/null/NOT_APPLICABLE separated",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "H.basis",
+      "penalty": 0.01,
+      "source": "Frozen observed endpoint basis; fast=true/false/null/NOT_APPLICABLE separated",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Frozen run dwell/stop.count or endpoint scheduled_t minus stop.recognized_at / range.established_at",
+      "kind": "num",
+      "name": "H.dwell",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Frozen run dwell/stop.count or endpoint scheduled_t minus stop.recognized_at / range.established_at",
+      "kind": "num",
+      "name": "H.stop_count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Frozen run dwell/stop.count or endpoint scheduled_t minus stop.recognized_at / range.established_at",
+      "kind": "num",
+      "name": "H.stop_recognized_age_slots",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Frozen run dwell/stop.count or endpoint scheduled_t minus stop.recognized_at / range.established_at",
+      "kind": "num",
+      "name": "H.range_established_age_slots",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Observed endpoint object presence, null if endpoint unavailable",
+      "kind": "num",
+      "name": "H.stop_present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Observed endpoint object presence, null if endpoint unavailable",
+      "kind": "num",
+      "name": "H.range_present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "stop.high-low; close_u-stop.center; range.high-low; (close_u-range.low)/width if width>0",
+      "kind": "num",
+      "name": "H.stop_width_u",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "stop.high-low; close_u-stop.center; range.high-low; (close_u-range.low)/width if width>0",
+      "kind": "num",
+      "name": "H.stop_close_offset_u",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "stop.high-low; close_u-stop.center; range.high-low; (close_u-range.low)/width if width>0",
+      "kind": "num",
+      "name": "H.range_width_u",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "stop.high-low; close_u-stop.center; range.high-low; (close_u-range.low)/width if width>0",
+      "kind": "num",
+      "name": "H.range_close_position",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "H.stop_direction",
+      "penalty": 0.01,
+      "source": "Frozen stop.direction when available",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "H.range_reason",
+      "penalty": 0.01,
+      "source": "Frozen balance.reason when available",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Cutoff ordinal/active time minus last formally observed endpoint; never current-state imputation",
+      "kind": "num",
+      "name": "H.age_slots",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Cutoff ordinal/active time minus last formally observed endpoint; never current-state imputation",
+      "kind": "num",
+      "name": "H.age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Last formal observed endpoint vs latest endpoint; confirmed events strictly after last observation",
+      "kind": "num",
+      "name": "H.same_segment",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Last formal observed endpoint vs latest endpoint; confirmed events strictly after last observation",
+      "kind": "num",
+      "name": "H.intervening_observation_loss",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Last formal observed endpoint vs latest endpoint; confirmed events strictly after last observation",
+      "kind": "num",
+      "name": "H.intervening_reset",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Current OPEN run prefix activity/progress only; null when current State unobserved",
+      "kind": "num",
+      "name": "S.net_u",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Current OPEN run prefix activity/progress only; null when current State unobserved",
+      "kind": "num",
+      "name": "S.mean_volume",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Current OPEN run prefix activity/progress only; null when current State unobserved",
+      "kind": "num",
+      "name": "S.mean_value",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "pair",
+      "name": "T.latest_pair",
+      "penalty": 0.05,
+      "source": "Last actual TRANSITION from/to in prefix; no synthesized pair",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Cutoff minus latest real TRANSITION confirmation time",
+      "kind": "num",
+      "name": "T.latest_age_slots",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Cutoff minus latest real TRANSITION confirmation time",
+      "kind": "num",
+      "name": "T.latest_age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Last real TRANSITION segment equals current segment; null if no transition",
+      "kind": "num",
+      "name": "T.latest_same_segment",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "log1p(new-run mean)-log1p(old-run mean), only real directly connected runs at latest TRANSITION",
+      "kind": "num",
+      "name": "T.activity_volume_change",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "log1p(new-run mean)-log1p(old-run mean), only real directly connected runs at latest TRANSITION",
+      "kind": "num",
+      "name": "T.activity_value_change",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count from oldest retained run entered_at through cutoff; if no runs, whole read prefix",
+      "kind": "num",
+      "name": "T.HOLD.count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count>0 over same window",
+      "kind": "num",
+      "name": "T.HOLD.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Active time since last occurrence in same window, null if no occurrence",
+      "kind": "num",
+      "name": "T.HOLD.age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count from oldest retained run entered_at through cutoff; if no runs, whole read prefix",
+      "kind": "num",
+      "name": "T.TRANSITION.count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count>0 over same window",
+      "kind": "num",
+      "name": "T.TRANSITION.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Active time since last occurrence in same window, null if no occurrence",
+      "kind": "num",
+      "name": "T.TRANSITION.age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count from oldest retained run entered_at through cutoff; if no runs, whole read prefix",
+      "kind": "num",
+      "name": "T.ENTER.count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count>0 over same window",
+      "kind": "num",
+      "name": "T.ENTER.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Active time since last occurrence in same window, null if no occurrence",
+      "kind": "num",
+      "name": "T.ENTER.age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count from oldest retained run entered_at through cutoff; if no runs, whole read prefix",
+      "kind": "num",
+      "name": "T.EXIT.count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count>0 over same window",
+      "kind": "num",
+      "name": "T.EXIT.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Active time since last occurrence in same window, null if no occurrence",
+      "kind": "num",
+      "name": "T.EXIT.age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count from oldest retained run entered_at through cutoff; if no runs, whole read prefix",
+      "kind": "num",
+      "name": "T.CONTEXT_CHANGE.count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count>0 over same window",
+      "kind": "num",
+      "name": "T.CONTEXT_CHANGE.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Active time since last occurrence in same window, null if no occurrence",
+      "kind": "num",
+      "name": "T.CONTEXT_CHANGE.age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count from oldest retained run entered_at through cutoff; if no runs, whole read prefix",
+      "kind": "num",
+      "name": "T.LOCAL_DIRECTION_CHANGE.count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count>0 over same window",
+      "kind": "num",
+      "name": "T.LOCAL_DIRECTION_CHANGE.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Active time since last occurrence in same window, null if no occurrence",
+      "kind": "num",
+      "name": "T.LOCAL_DIRECTION_CHANGE.age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count from oldest retained run entered_at through cutoff; if no runs, whole read prefix",
+      "kind": "num",
+      "name": "T.DIRECTION_BASIS_CHANGE.count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count>0 over same window",
+      "kind": "num",
+      "name": "T.DIRECTION_BASIS_CHANGE.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Active time since last occurrence in same window, null if no occurrence",
+      "kind": "num",
+      "name": "T.DIRECTION_BASIS_CHANGE.age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count from oldest retained run entered_at through cutoff; if no runs, whole read prefix",
+      "kind": "num",
+      "name": "T.RANGE_ENTER.count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count>0 over same window",
+      "kind": "num",
+      "name": "T.RANGE_ENTER.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Active time since last occurrence in same window, null if no occurrence",
+      "kind": "num",
+      "name": "T.RANGE_ENTER.age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count from oldest retained run entered_at through cutoff; if no runs, whole read prefix",
+      "kind": "num",
+      "name": "T.RANGE_EXIT.count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count>0 over same window",
+      "kind": "num",
+      "name": "T.RANGE_EXIT.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Active time since last occurrence in same window, null if no occurrence",
+      "kind": "num",
+      "name": "T.RANGE_EXIT.age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count from oldest retained run entered_at through cutoff; if no runs, whole read prefix",
+      "kind": "num",
+      "name": "T.STOP_ENTER.count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count>0 over same window",
+      "kind": "num",
+      "name": "T.STOP_ENTER.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Active time since last occurrence in same window, null if no occurrence",
+      "kind": "num",
+      "name": "T.STOP_ENTER.age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count from oldest retained run entered_at through cutoff; if no runs, whole read prefix",
+      "kind": "num",
+      "name": "T.STOP_EXIT.count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count>0 over same window",
+      "kind": "num",
+      "name": "T.STOP_EXIT.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Active time since last occurrence in same window, null if no occurrence",
+      "kind": "num",
+      "name": "T.STOP_EXIT.age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count from oldest retained run entered_at through cutoff; if no runs, whole read prefix",
+      "kind": "num",
+      "name": "T.STOP_UPDATE.count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count>0 over same window",
+      "kind": "num",
+      "name": "T.STOP_UPDATE.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Active time since last occurrence in same window, null if no occurrence",
+      "kind": "num",
+      "name": "T.STOP_UPDATE.age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count from oldest retained run entered_at through cutoff; if no runs, whole read prefix",
+      "kind": "num",
+      "name": "T.FAST_AVAILABLE.count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count>0 over same window",
+      "kind": "num",
+      "name": "T.FAST_AVAILABLE.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Active time since last occurrence in same window, null if no occurrence",
+      "kind": "num",
+      "name": "T.FAST_AVAILABLE.age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count from oldest retained run entered_at through cutoff; if no runs, whole read prefix",
+      "kind": "num",
+      "name": "T.FAST_UNAVAILABLE.count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count>0 over same window",
+      "kind": "num",
+      "name": "T.FAST_UNAVAILABLE.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Active time since last occurrence in same window, null if no occurrence",
+      "kind": "num",
+      "name": "T.FAST_UNAVAILABLE.age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count from oldest retained run entered_at through cutoff; if no runs, whole read prefix",
+      "kind": "num",
+      "name": "T.FAST_ENTER.count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count>0 over same window",
+      "kind": "num",
+      "name": "T.FAST_ENTER.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Active time since last occurrence in same window, null if no occurrence",
+      "kind": "num",
+      "name": "T.FAST_ENTER.age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count from oldest retained run entered_at through cutoff; if no runs, whole read prefix",
+      "kind": "num",
+      "name": "T.FAST_EXIT.count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count>0 over same window",
+      "kind": "num",
+      "name": "T.FAST_EXIT.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Active time since last occurrence in same window, null if no occurrence",
+      "kind": "num",
+      "name": "T.FAST_EXIT.age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count from oldest retained run entered_at through cutoff; if no runs, whole read prefix",
+      "kind": "num",
+      "name": "T.OBSERVATION_LOST.count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count>0 over same window",
+      "kind": "num",
+      "name": "T.OBSERVATION_LOST.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Active time since last occurrence in same window, null if no occurrence",
+      "kind": "num",
+      "name": "T.OBSERVATION_LOST.age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count from oldest retained run entered_at through cutoff; if no runs, whole read prefix",
+      "kind": "num",
+      "name": "T.OBSERVATION_RESUMED.count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count>0 over same window",
+      "kind": "num",
+      "name": "T.OBSERVATION_RESUMED.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Active time since last occurrence in same window, null if no occurrence",
+      "kind": "num",
+      "name": "T.OBSERVATION_RESUMED.age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count from oldest retained run entered_at through cutoff; if no runs, whole read prefix",
+      "kind": "num",
+      "name": "T.INITIALIZING.count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count>0 over same window",
+      "kind": "num",
+      "name": "T.INITIALIZING.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Active time since last occurrence in same window, null if no occurrence",
+      "kind": "num",
+      "name": "T.INITIALIZING.age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count from oldest retained run entered_at through cutoff; if no runs, whole read prefix",
+      "kind": "num",
+      "name": "T.SEGMENT_BREAK.count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known event count>0 over same window",
+      "kind": "num",
+      "name": "T.SEGMENT_BREAK.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Active time since last occurrence in same window, null if no occurrence",
+      "kind": "num",
+      "name": "T.SEGMENT_BREAK.age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": "Q.history_available",
+      "formula": "1 iff this actual frozen run exists; PADDING otherwise",
+      "kind": "num",
+      "name": "P.r0.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": "H.primary",
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "state",
+      "name": "P.r0.primary",
+      "penalty": 0.01,
+      "source": "Frozen run Primary; PADDING is not a tenth State",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r0.start_context",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r0.start_local",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r0.start_fast",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": "H.context",
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r0.end_context",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": "H.local",
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r0.end_local",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": "H.fast",
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r0.end_fast",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r0.closure_reason",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": "H.dwell",
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r0.dwell",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r0.start_age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": "H.age_active",
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r0.last_age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r0.gap_to_older_slots",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r0.gap_to_older_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r0.market_support",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r0.open",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r0.closed",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r0.same_current_segment",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r0.valid_connection_to_older",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r0.facet_count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r0.net_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r0.gross_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r0.excursion_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r0.net_u",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r0.gross_u",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r0.path_efficiency",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r0.volume_change_to_older",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r0.value_change_to_older",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Mean actual Vo/Va of observed bars belonging to run, support retained",
+      "kind": "num",
+      "name": "P.r0.mean_volume",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Mean actual Vo/Va of observed bars belonging to run, support retained",
+      "kind": "num",
+      "name": "P.r0.mean_value",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "1 iff this actual frozen run exists; PADDING otherwise",
+      "kind": "num",
+      "name": "P.r1.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "state",
+      "name": "P.r1.primary",
+      "penalty": 0.01,
+      "source": "Frozen run Primary; PADDING is not a tenth State",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r1.start_context",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r1.start_local",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r1.start_fast",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r1.end_context",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r1.end_local",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r1.end_fast",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r1.closure_reason",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r1.dwell",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r1.start_age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r1.last_age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r1.gap_to_older_slots",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r1.gap_to_older_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r1.market_support",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r1.open",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r1.closed",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r1.same_current_segment",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r1.valid_connection_to_older",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r1.facet_count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r1.net_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r1.gross_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r1.excursion_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r1.net_u",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r1.gross_u",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r1.path_efficiency",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r1.volume_change_to_older",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r1.value_change_to_older",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Mean actual Vo/Va of observed bars belonging to run, support retained",
+      "kind": "num",
+      "name": "P.r1.mean_volume",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Mean actual Vo/Va of observed bars belonging to run, support retained",
+      "kind": "num",
+      "name": "P.r1.mean_value",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "1 iff this actual frozen run exists; PADDING otherwise",
+      "kind": "num",
+      "name": "P.r2.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "state",
+      "name": "P.r2.primary",
+      "penalty": 0.01,
+      "source": "Frozen run Primary; PADDING is not a tenth State",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r2.start_context",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r2.start_local",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r2.start_fast",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r2.end_context",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r2.end_local",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r2.end_fast",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r2.closure_reason",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r2.dwell",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r2.start_age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r2.last_age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r2.gap_to_older_slots",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r2.gap_to_older_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r2.market_support",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r2.open",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r2.closed",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r2.same_current_segment",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r2.valid_connection_to_older",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r2.facet_count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r2.net_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r2.gross_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r2.excursion_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r2.net_u",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r2.gross_u",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r2.path_efficiency",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r2.volume_change_to_older",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r2.value_change_to_older",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Mean actual Vo/Va of observed bars belonging to run, support retained",
+      "kind": "num",
+      "name": "P.r2.mean_volume",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Mean actual Vo/Va of observed bars belonging to run, support retained",
+      "kind": "num",
+      "name": "P.r2.mean_value",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "1 iff this actual frozen run exists; PADDING otherwise",
+      "kind": "num",
+      "name": "P.r3.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "state",
+      "name": "P.r3.primary",
+      "penalty": 0.01,
+      "source": "Frozen run Primary; PADDING is not a tenth State",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r3.start_context",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r3.start_local",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r3.start_fast",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r3.end_context",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r3.end_local",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r3.end_fast",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r3.closure_reason",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r3.dwell",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r3.start_age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r3.last_age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r3.gap_to_older_slots",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r3.gap_to_older_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r3.market_support",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r3.open",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r3.closed",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r3.same_current_segment",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r3.valid_connection_to_older",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r3.facet_count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r3.net_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r3.gross_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r3.excursion_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r3.net_u",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r3.gross_u",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r3.path_efficiency",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r3.volume_change_to_older",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r3.value_change_to_older",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Mean actual Vo/Va of observed bars belonging to run, support retained",
+      "kind": "num",
+      "name": "P.r3.mean_volume",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Mean actual Vo/Va of observed bars belonging to run, support retained",
+      "kind": "num",
+      "name": "P.r3.mean_value",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "1 iff this actual frozen run exists; PADDING otherwise",
+      "kind": "num",
+      "name": "P.r4.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "state",
+      "name": "P.r4.primary",
+      "penalty": 0.01,
+      "source": "Frozen run Primary; PADDING is not a tenth State",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r4.start_context",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r4.start_local",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r4.start_fast",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r4.end_context",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r4.end_local",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r4.end_fast",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r4.closure_reason",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r4.dwell",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r4.start_age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r4.last_age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r4.gap_to_older_slots",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r4.gap_to_older_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r4.market_support",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r4.open",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r4.closed",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r4.same_current_segment",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r4.valid_connection_to_older",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r4.facet_count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r4.net_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r4.gross_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r4.excursion_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r4.net_u",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r4.gross_u",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r4.path_efficiency",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r4.volume_change_to_older",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r4.value_change_to_older",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Mean actual Vo/Va of observed bars belonging to run, support retained",
+      "kind": "num",
+      "name": "P.r4.mean_volume",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Mean actual Vo/Va of observed bars belonging to run, support retained",
+      "kind": "num",
+      "name": "P.r4.mean_value",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "1 iff this actual frozen run exists; PADDING otherwise",
+      "kind": "num",
+      "name": "P.r5.present",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "state",
+      "name": "P.r5.primary",
+      "penalty": 0.01,
+      "source": "Frozen run Primary; PADDING is not a tenth State",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r5.start_context",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r5.start_local",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r5.start_fast",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r5.end_context",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r5.end_local",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r5.end_fast",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "P.r5.closure_reason",
+      "penalty": 0.01,
+      "source": "Literal confirmed first/last observed endpoint facet or known EXIT reason; OPEN vs PADDING",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r5.dwell",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r5.start_age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r5.last_age_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r5.gap_to_older_slots",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r5.gap_to_older_active",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Known run observed dwell, cutoff-to-start/last active age, support or gap to next older run; no future closure",
+      "kind": "num",
+      "name": "P.r5.market_support",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r5.open",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r5.closed",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r5.same_current_segment",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r5.valid_connection_to_older",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Prefix-only known closure/open, segment equality, real adjacency transition, confirmed within-run facet count",
+      "kind": "num",
+      "name": "P.r5.facet_count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r5.net_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r5.gross_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r5.excursion_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r5.net_u",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r5.gross_u",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r5.path_efficiency",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r5.volume_change_to_older",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Within-run raw close log progress/TV/logHigh-Low, fixed-U progress/TV, net/TV; inter-run activity diff only valid observed connection",
+      "kind": "num",
+      "name": "P.r5.value_change_to_older",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Mean actual Vo/Va of observed bars belonging to run, support retained",
+      "kind": "num",
+      "name": "P.r5.mean_volume",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Mean actual Vo/Va of observed bars belonging to run, support retained",
+      "kind": "num",
+      "name": "P.r5.mean_value",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Observed-bar occupancy within current uninterrupted observed interval; history6 uses retained runs as separated history",
+      "kind": "num",
+      "name": "P.current_contiguous.occupancy.RISE",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Observed-bar occupancy within current uninterrupted observed interval; history6 uses retained runs as separated history",
+      "kind": "num",
+      "name": "P.current_contiguous.occupancy.SHARP_RISE",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Observed-bar occupancy within current uninterrupted observed interval; history6 uses retained runs as separated history",
+      "kind": "num",
+      "name": "P.current_contiguous.occupancy.RISE_STOP",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Observed-bar occupancy within current uninterrupted observed interval; history6 uses retained runs as separated history",
+      "kind": "num",
+      "name": "P.current_contiguous.occupancy.PULLBACK",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Observed-bar occupancy within current uninterrupted observed interval; history6 uses retained runs as separated history",
+      "kind": "num",
+      "name": "P.current_contiguous.occupancy.RANGE",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Observed-bar occupancy within current uninterrupted observed interval; history6 uses retained runs as separated history",
+      "kind": "num",
+      "name": "P.current_contiguous.occupancy.REBOUND",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Observed-bar occupancy within current uninterrupted observed interval; history6 uses retained runs as separated history",
+      "kind": "num",
+      "name": "P.current_contiguous.occupancy.DROP",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Observed-bar occupancy within current uninterrupted observed interval; history6 uses retained runs as separated history",
+      "kind": "num",
+      "name": "P.current_contiguous.occupancy.SHARP_DROP",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Observed-bar occupancy within current uninterrupted observed interval; history6 uses retained runs as separated history",
+      "kind": "num",
+      "name": "P.current_contiguous.occupancy.DROP_STOP",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Real observed counts / connected TRANSITIONs / connected A>B>A triples only; no bridging missing or segment",
+      "kind": "num",
+      "name": "P.current_contiguous.observed_count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Real observed counts / connected TRANSITIONs / connected A>B>A triples only; no bridging missing or segment",
+      "kind": "num",
+      "name": "P.current_contiguous.run_count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Real observed counts / connected TRANSITIONs / connected A>B>A triples only; no bridging missing or segment",
+      "kind": "num",
+      "name": "P.current_contiguous.transition_count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Real observed counts / connected TRANSITIONs / connected A>B>A triples only; no bridging missing or segment",
+      "kind": "num",
+      "name": "P.current_contiguous.oscillation_count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Real observed counts / connected TRANSITIONs / connected A>B>A triples only; no bridging missing or segment",
+      "kind": "num",
+      "name": "P.current_contiguous.unique_states",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Current continuous raw path; history6 net/gross are sums within separate runs, efficiency null across disconnected segments",
+      "kind": "num",
+      "name": "P.current_contiguous.net_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Current continuous raw path; history6 net/gross are sums within separate runs, efficiency null across disconnected segments",
+      "kind": "num",
+      "name": "P.current_contiguous.gross_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Current continuous raw path; history6 net/gross are sums within separate runs, efficiency null across disconnected segments",
+      "kind": "num",
+      "name": "P.current_contiguous.path_efficiency",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Observed-bar occupancy within current uninterrupted observed interval; history6 uses retained runs as separated history",
+      "kind": "num",
+      "name": "P.history6.occupancy.RISE",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Observed-bar occupancy within current uninterrupted observed interval; history6 uses retained runs as separated history",
+      "kind": "num",
+      "name": "P.history6.occupancy.SHARP_RISE",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Observed-bar occupancy within current uninterrupted observed interval; history6 uses retained runs as separated history",
+      "kind": "num",
+      "name": "P.history6.occupancy.RISE_STOP",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Observed-bar occupancy within current uninterrupted observed interval; history6 uses retained runs as separated history",
+      "kind": "num",
+      "name": "P.history6.occupancy.PULLBACK",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Observed-bar occupancy within current uninterrupted observed interval; history6 uses retained runs as separated history",
+      "kind": "num",
+      "name": "P.history6.occupancy.RANGE",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Observed-bar occupancy within current uninterrupted observed interval; history6 uses retained runs as separated history",
+      "kind": "num",
+      "name": "P.history6.occupancy.REBOUND",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Observed-bar occupancy within current uninterrupted observed interval; history6 uses retained runs as separated history",
+      "kind": "num",
+      "name": "P.history6.occupancy.DROP",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Observed-bar occupancy within current uninterrupted observed interval; history6 uses retained runs as separated history",
+      "kind": "num",
+      "name": "P.history6.occupancy.SHARP_DROP",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Observed-bar occupancy within current uninterrupted observed interval; history6 uses retained runs as separated history",
+      "kind": "num",
+      "name": "P.history6.occupancy.DROP_STOP",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Real observed counts / connected TRANSITIONs / connected A>B>A triples only; no bridging missing or segment",
+      "kind": "num",
+      "name": "P.history6.observed_count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Real observed counts / connected TRANSITIONs / connected A>B>A triples only; no bridging missing or segment",
+      "kind": "num",
+      "name": "P.history6.run_count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Real observed counts / connected TRANSITIONs / connected A>B>A triples only; no bridging missing or segment",
+      "kind": "num",
+      "name": "P.history6.transition_count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Real observed counts / connected TRANSITIONs / connected A>B>A triples only; no bridging missing or segment",
+      "kind": "num",
+      "name": "P.history6.oscillation_count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Real observed counts / connected TRANSITIONs / connected A>B>A triples only; no bridging missing or segment",
+      "kind": "num",
+      "name": "P.history6.unique_states",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Current continuous raw path; history6 net/gross are sums within separate runs, efficiency null across disconnected segments",
+      "kind": "num",
+      "name": "P.history6.net_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Current continuous raw path; history6 net/gross are sums within separate runs, efficiency null across disconnected segments",
+      "kind": "num",
+      "name": "P.history6.gross_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Current continuous raw path; history6 net/gross are sums within separate runs, efficiency null across disconnected segments",
+      "kind": "num",
+      "name": "P.history6.path_efficiency",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Actual bars / dated regular slots in last fixed window truncated at same half-session start",
+      "kind": "num",
+      "name": "M.w5.observed_count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Actual bars / dated regular slots in last fixed window truncated at same half-session start",
+      "kind": "num",
+      "name": "M.w5.scheduled_count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Complete iff exactly requested slots and all observed; partial and boundary masks explicit",
+      "kind": "num",
+      "name": "M.w5.complete",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Complete iff exactly requested slots and all observed; partial and boundary masks explicit",
+      "kind": "num",
+      "name": "M.w5.partial",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Complete iff exactly requested slots and all observed; partial and boundary masks explicit",
+      "kind": "num",
+      "name": "M.w5.half_boundary_truncated",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Complete iff exactly requested slots and all observed; partial and boundary masks explicit",
+      "kind": "num",
+      "name": "M.w5.support_fraction",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Range from actual observed high/low. Close net/TV/efficiency only all requested consecutive slots observed; 5 slots=4 intervals,15 slots=14 intervals",
+      "kind": "num",
+      "name": "M.w5.ohlc_log_range",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Range from actual observed high/low. Close net/TV/efficiency only all requested consecutive slots observed; 5 slots=4 intervals,15 slots=14 intervals",
+      "kind": "num",
+      "name": "M.w5.net_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Range from actual observed high/low. Close net/TV/efficiency only all requested consecutive slots observed; 5 slots=4 intervals,15 slots=14 intervals",
+      "kind": "num",
+      "name": "M.w5.gross_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Range from actual observed high/low. Close net/TV/efficiency only all requested consecutive slots observed; 5 slots=4 intervals,15 slots=14 intervals",
+      "kind": "num",
+      "name": "M.w5.path_efficiency",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Mean actual Vo/Va among observed window bars; partial support remains explicit",
+      "kind": "num",
+      "name": "M.w5.mean_volume",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Mean actual Vo/Va among observed window bars; partial support remains explicit",
+      "kind": "num",
+      "name": "M.w5.mean_value",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Actual bars / dated regular slots in last fixed window truncated at same half-session start",
+      "kind": "num",
+      "name": "M.w15.observed_count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Actual bars / dated regular slots in last fixed window truncated at same half-session start",
+      "kind": "num",
+      "name": "M.w15.scheduled_count",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Complete iff exactly requested slots and all observed; partial and boundary masks explicit",
+      "kind": "num",
+      "name": "M.w15.complete",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Complete iff exactly requested slots and all observed; partial and boundary masks explicit",
+      "kind": "num",
+      "name": "M.w15.partial",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Complete iff exactly requested slots and all observed; partial and boundary masks explicit",
+      "kind": "num",
+      "name": "M.w15.half_boundary_truncated",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Complete iff exactly requested slots and all observed; partial and boundary masks explicit",
+      "kind": "num",
+      "name": "M.w15.support_fraction",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Range from actual observed high/low. Close net/TV/efficiency only all requested consecutive slots observed; 5 slots=4 intervals,15 slots=14 intervals",
+      "kind": "num",
+      "name": "M.w15.ohlc_log_range",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Range from actual observed high/low. Close net/TV/efficiency only all requested consecutive slots observed; 5 slots=4 intervals,15 slots=14 intervals",
+      "kind": "num",
+      "name": "M.w15.net_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Range from actual observed high/low. Close net/TV/efficiency only all requested consecutive slots observed; 5 slots=4 intervals,15 slots=14 intervals",
+      "kind": "num",
+      "name": "M.w15.gross_log",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Range from actual observed high/low. Close net/TV/efficiency only all requested consecutive slots observed; 5 slots=4 intervals,15 slots=14 intervals",
+      "kind": "num",
+      "name": "M.w15.path_efficiency",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Mean actual Vo/Va among observed window bars; partial support remains explicit",
+      "kind": "num",
+      "name": "M.w15.mean_volume",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Mean actual Vo/Va among observed window bars; partial support remains explicit",
+      "kind": "num",
+      "name": "M.w15.mean_value",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "log1p(mean5)-log1p(mean15), only both actual means available",
+      "kind": "num",
+      "name": "M.volume_5_vs_15",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "log1p(mean5)-log1p(mean15), only both actual means available",
+      "kind": "num",
+      "name": "M.value_5_vs_15",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Frozen clock: cutoff wall minute, regular active remaining, regular active elapsed; lunch excluded",
+      "kind": "num",
+      "name": "M.time_of_day",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "identity"
+    },
+    {
+      "alias": null,
+      "formula": "Frozen clock: cutoff wall minute, regular active remaining, regular active elapsed; lunch excluded",
+      "kind": "num",
+      "name": "M.remaining_active_minutes",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Frozen clock: cutoff wall minute, regular active remaining, regular active elapsed; lunch excluded",
+      "kind": "num",
+      "name": "M.active_elapsed_minutes",
+      "penalty": 0.01,
+      "source": "Frozen prefix endpoints/events or verified native O/H/L/C/Vo/Va",
+      "transform": "log1p"
+    },
+    {
+      "alias": null,
+      "formula": "Literal formal category; null/PADDING/NOT_APPLICABLE distinct. FIT-only vocabulary for general categories.",
+      "kind": "cat",
+      "name": "M.half",
+      "penalty": 0.01,
+      "source": "Dated regular AM/PM based on decision closed-bar interval",
+      "transform": "identity"
+    }
+  ],
+  "interaction_penalty": 0.1,
+  "interactions": [
+    {
+      "category": "S.primary",
+      "group": "a",
+      "numeric": [
+        "S.dwell",
+        "S.net_u",
+        "S.mean_volume",
+        "S.mean_value"
+      ]
+    },
+    {
+      "category": "H.primary",
+      "group": "b",
+      "numeric": [
+        "H.age_active",
+        "M.w5.net_log",
+        "M.w5.mean_volume",
+        "M.w5.mean_value"
+      ]
+    },
+    {
+      "category": "T.latest_pair",
+      "group": "c",
+      "numeric": [
+        "T.activity_volume_change",
+        "T.activity_value_change"
+      ]
+    },
+    {
+      "binary": "Q.current_state_available",
+      "group": "d",
+      "numeric": [
+        "M.w5.net_log",
+        "M.w5.mean_volume",
+        "M.w5.mean_value"
+      ]
+    }
+  ],
+  "market_windows_slots": [
+    5,
+    15
+  ],
+  "max_runs": 6,
+  "no_outcome_inputs": true,
+  "numeric_missing": "Canonical null retained; model standardized0 plus missing indicator; all-missing/constant FIT VALUE columns zero.",
+  "state_null": "9onehot all0 plus explicit availability/missing/padding masks; null is not State10",
+  "version": "FIRST_LAYER_V1_STATE_PROCESS_20261006"
+}

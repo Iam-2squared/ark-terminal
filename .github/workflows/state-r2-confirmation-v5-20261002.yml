@@ -1,0 +1,51 @@
+name: State Predictiveness V5 Fixed109 Recovery
+on:
+  push:
+    branches: [state-predictiveness-v5-r2-confirmation-20261002-v1]
+    paths: ['.github/workflows/state-r2-confirmation-v5-20261002.yml', 'research/state-r2-confirmation-v5-20261002/payload.b64']
+permissions:
+  contents: read
+concurrency:
+  group: state-r2-confirmation-v5-20261002
+  cancel-in-progress: false
+jobs:
+  development-export:
+    if: github.ref == 'refs/heads/state-predictiveness-v5-r2-confirmation-20261002-v1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify fixed source and scope
+        run: |
+          python - <<'PY'
+          import pathlib,os,zipfile,base64,io,hashlib
+          b=base64.b64decode(pathlib.Path('research/state-r2-confirmation-v5-20261002/payload.b64').read_bytes())
+          assert hashlib.sha256(b).hexdigest()=='66fd74cc2aaad2b26af7a4a3773cf147a2b73abaf1f6fc1d83a0b7f4c790032d'
+          with zipfile.ZipFile(io.BytesIO(b)) as z:
+              assert all(not n.startswith('/') and '..' not in pathlib.PurePosixPath(n).parts for n in z.namelist())
+              z.extractall(pathlib.Path(os.environ['RUNNER_TEMP'])/'state-r2-v5-code')
+          PY
+      - name: Fixed109 approved Development recovery; no labels
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+          STATE9_AUDIT_RAW: ${{ runner.temp }}/state-r2-v5-raw
+          STATE9_AUDIT_OUT: ${{ runner.temp }}/state-r2-v5-evidence
+        run: python "$RUNNER_TEMP/state-r2-v5-code/export_recovery_v5.py"
+      - name: Purge exact temporary directory
+        if: always()
+        run: |
+          python - <<'PY'
+          import pathlib,os,shutil,json
+          raw=pathlib.Path(os.environ['RUNNER_TEMP'])/'state-r2-v5-raw'
+          if raw.exists():shutil.rmtree(raw)
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'state-r2-v5-evidence';out.mkdir(exist_ok=True)
+          (out/'WORKFLOW_PURGE_RECEIPT.json').write_text(json.dumps({'verified':not raw.exists(),'secret_export':0})+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: state-predictiveness-v5-recovery-${{ github.run_id }}
+          path: ${{ runner.temp }}/state-r2-v5-evidence
+          retention-days: 7

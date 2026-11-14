@@ -1,0 +1,52 @@
+name: Phase57 NEW LONG Entry Two-Opportunity Parity
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-new-long-entry-two-opportunity-parity.yml'
+      - 'docs/evidence/phase57-new-long-entry-two-opportunity-contract-2026-09-18.md'
+      - 'scripts/phase57_new_long_entry_two_opportunity.py'
+      - 'scripts/phase57_new_long_entry_two_opportunity_replay.py'
+      - 'scripts/test_phase57_new_long_entry_two_opportunity.py'
+      - 'scripts/test_phase57_new_long_entry_two_opportunity_replay.py'
+      - 'predict/tests/phase57-new-long-entry-two-opportunity.test.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  parity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Kernel and replay tests
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python -m unittest \
+            scripts.test_phase57_new_long_entry_two_opportunity \
+            scripts.test_phase57_new_long_entry_two_opportunity_replay
+      - name: Generate deterministic parity evidence twice
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python -m scripts.phase57_new_long_entry_two_opportunity_replay --output-dir "$RUNNER_TEMP/run-a" > "$RUNNER_TEMP/run-a.stdout.json"
+          python -m scripts.phase57_new_long_entry_two_opportunity_replay --output-dir "$RUNNER_TEMP/run-b" > "$RUNNER_TEMP/run-b.stdout.json"
+          cmp "$RUNNER_TEMP/run-a.stdout.json" "$RUNNER_TEMP/run-b.stdout.json"
+          cmp "$RUNNER_TEMP/run-a/summary.json" "$RUNNER_TEMP/run-b/summary.json"
+          cmp "$RUNNER_TEMP/run-a/ledger.ndjson.gz" "$RUNNER_TEMP/run-b/ledger.ndjson.gz"
+          cmp "$RUNNER_TEMP/run-a/manifest.json" "$RUNNER_TEMP/run-b/manifest.json"
+          cat "$RUNNER_TEMP/run-a/summary.json"
+          sha256sum "$RUNNER_TEMP/run-a/"*
+      - name: Upload two-opportunity parity evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-new-long-entry-two-opportunity-parity-${{ github.run_id }}
+          path: ${{ runner.temp }}/run-a/
+          retention-days: 30
+          if-no-files-found: error

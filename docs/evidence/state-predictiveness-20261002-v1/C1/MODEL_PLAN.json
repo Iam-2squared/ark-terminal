@@ -1,0 +1,35 @@
+{
+  "B0": "weighted mean/class prior",
+  "B1": "Primary shrinkage lookup pseudo-count10",
+  "B2_B3": "weighted ridge with unpenalized intercept; one-hot direction scores clipped1e-12 and normalized",
+  "bootstrap_replicates": 1000,
+  "bootstrap_seed": 2026100201,
+  "candidate_claims": 6,
+  "control_comparable_threshold": 0.9,
+  "families": [
+    "B0",
+    "B1",
+    "B2",
+    "B3"
+  ],
+  "float_tolerance": {
+    "abs": 1e-08,
+    "rel": 1e-10
+  },
+  "fold_positive_min": 2,
+  "max_positive_contribution": 0.5,
+  "nonlinear_challengers": 0,
+  "permutation_seed": 2026100202,
+  "post_result_changes_allowed": 0,
+  "primary_interval_tail": "1/240",
+  "primary_relative_improvement_min": 0.02,
+  "secondary_strength": 0.1,
+  "selection": "last past training date continuous MSE, larger-strength ties",
+  "shift_tradable_slots": 60,
+  "strengths": [
+    0.01,
+    0.1,
+    1.0
+  ],
+  "version": "V1"
+}

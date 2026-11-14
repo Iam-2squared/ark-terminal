@@ -1,0 +1,50 @@
+{
+  "status": "DRAFT_NOT_EXECUTED_PENDING_C1_GATE",
+  "primary": "SAFE_UP_2_BEFORE_DOWN_1",
+  "primary_up_pct": 2,
+  "primary_down_pct": 1,
+  "up_levels_pct": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "down_levels_pct": [
+    0.5,
+    1,
+    2
+  ],
+  "statuses": [
+    "UP_FIRST",
+    "DOWN_FIRST",
+    "NEITHER",
+    "ORDER_UNKNOWN",
+    "DATA_UNAVAILABLE"
+  ],
+  "decision_cutoff": "closed raw bar_end <= candidate intent; same-minute unclosed OHLC forbidden",
+  "candidate_grid": "exact R1 original rows; no new minute grid",
+  "candidate_window_active_minutes": [
+    0,
+    30
+  ],
+  "fill_contract": "Frozen simulate_fill semantics: latch intent; iterate remaining saved comparison rows; require saved quoteAvailable and saved outcome.price at that minute; first such row fills; price is observed raw open*1.0005. No source open at t => retry on later candidate row; no forced fallback.",
+  "fill_basis_authority": "saved Pattern-v2 outcomes.price and original R1 candidate quote/time manifests; verify raw open+5bps arithmetic but do not regenerate old Entry decisions",
+  "fill_is_teacher_only": true,
+  "up_barrier": "P0*(1+u/100)",
+  "down_barrier": "P0*(1-d/100)",
+  "intrabar_order": "open>=UP => UP_FIRST; open<=DOWN => DOWN_FIRST; otherwise H>=UP and L<=DOWN => ORDER_UNKNOWN; one touch => corresponding first; never invent H/L order",
+  "source_gap": "missing scheduled raw minute before first barrier touch => DATA_UNAVAILABLE, not negative; known touch before gap retains status; NEITHER requires complete scheduled remainder and canonical full-session availability",
+  "missing_minute_not_no_trade": true,
+  "regular_source_schedule": "AM raw starts540..689; PM750..899 before2024-11-05, otherwise750..924; separate terminal auction starts690 and900/930. Exclude lunch and post2024-11-05 925..929 from continuous slots.",
+  "active_clock": "inherit R1 continuous trading interval lengths [540,690] and [750,900/925]; terminal auction wall clock retained separately; clock endpoints are not relabeled to Geometry clock",
+  "first_touch_time": "bar-start active elapsed is a lower-bound proxy; preserve bar-start and bar-end wall/active interval, no exact intrabar touch-time assertion",
+  "MAE_before_UP": "include prior bars and current open known to precede touch; current touch-bar low order unknown unless open already above UP. Save optimistic/adverse bounds; exact field UNKNOWN when unequal.",
+  "MFE_before_DOWN": "analogous preceding highs/open and touch-bar high bounds; exact field UNKNOWN when unequal",
+  "future_fields_evaluator_only": true,
+  "old_immediate_r1_geometry_recompute": false,
+  "new_label_passes_authorized": 1,
+  "threshold_search_on_secondary_grid": 0,
+  "source_gate_required": "C1 PASS; otherwise never create labels",
+  "productionReady": false
+}

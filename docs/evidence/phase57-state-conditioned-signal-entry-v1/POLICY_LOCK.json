@@ -1,0 +1,110 @@
+{
+  "artifactKind": "phase57_state_conditioned_signal_entry_v1_policy_lock",
+  "version": "v1.0",
+  "recordedDate": "2026-09-22",
+  "startHead": "c7dfb8e18747e8a263e85a7e185abb964491c87e",
+  "population": 2155,
+  "scope": "DEVELOPMENT_HISTORICAL_CLOSED_RECONSTRUCTION",
+  "policyLockedBeforeV1OutcomeEvaluation": true,
+  "existingSignalCensusEvidenceKnown": true,
+  "providerRequestsAuthorized": 0,
+  "protectedDataOpened": 0,
+  "stateEstimator": {
+    "name": "closed_1m_recent5_direction_sign_v1",
+    "decisionInput": "minute-census.context.returnPct.5",
+    "inputBoundary": "only bars closed strictly before checkpoint minute",
+    "rules": [
+      {"if": "returnPct.5 > 0", "state": "UP"},
+      {"if": "returnPct.5 < 0", "state": "DOWN"},
+      {"if": "returnPct.5 == 0", "state": "NEUTRAL"},
+      {"if": "returnPct.5 is null", "state": "UNKNOWN"}
+    ],
+    "thresholdSweep": false,
+    "modelTraining": false,
+    "futureStateReadByDecision": false,
+    "stateV2ReferenceUse": "DIAGNOSTIC_ONLY"
+  },
+  "referenceCoarseMapping": {
+    "UP": "UP",
+    "DOWN": "DOWN",
+    "UNCHANGED": "NEUTRAL",
+    "nonDefined": "UNKNOWN"
+  },
+  "entryPolicy": {
+    "UP": {
+      "sourceArm": "A",
+      "action": "BUY_NOW",
+      "signalFamilies": [],
+      "fallbackActiveMinutes": 0
+    },
+    "DOWN": {
+      "sourceArm": "D",
+      "action": "WAIT_RECOVERY_SIGNAL",
+      "signalFamilies": ["HIGHER_LOW", "LOWER_WICK", "RECLAIM"],
+      "fallbackActiveMinutes": 10
+    },
+    "NEUTRAL": {
+      "sourceArm": "C",
+      "action": "WAIT_UPWARD_TRANSITION_SIGNAL",
+      "signalFamilies": ["BREAKOUT", "COMPRESSION_EXPANSION"],
+      "fallbackActiveMinutes": 10
+    },
+    "UNKNOWN": {
+      "sourceArm": "E",
+      "action": "WAIT_ANY_EXISTING_SIGNAL",
+      "signalFamilies": [
+        "CONTINUATION",
+        "BREAKOUT",
+        "COMPRESSION_EXPANSION",
+        "HIGHER_LOW",
+        "LOWER_WICK",
+        "RECLAIM"
+      ],
+      "fallbackActiveMinutes": 10,
+      "treatedAsBullish": false
+    }
+  },
+  "conceptualBaselines": {
+    "A": "Immediate BUY (source arm A)",
+    "B": "Existing signal-only all-six policy with fixed 10-active-minute fallback (source arm E)",
+    "C": "NEW state-conditioned policy (A/D/C/E selected by causal coarse state)"
+  },
+  "inputPins": {
+    "entryTimingSignalDetectorSHA256": "60c1d67ec4b3fa4c9976d15368c7f22c62ed1293d8c3bf85033d3b05613677fc",
+    "entryTimingMeasurementManifestSHA256": "a0c840b9ff8bf00a538140046e12536dbbab1d7739bf4019acfbc1f6f53ef518",
+    "stateV2A12ArtifactId": 10692617487,
+    "stateV2A12ArtifactSHA256": "ef3e3a631d43702ac7072fb02885c199b92e65378105b651255aca56834db9c4",
+    "stateV2GenerationManifestSHA256": "fcd022114d1e6f3158c6bfd1757268a2fb2b9fcc89394de146ea15b8660e6fcc"
+  },
+  "decisionForbiddenFields": [
+    "future_resolution_v2",
+    "orderedOracle",
+    "pathClassEvaluatorOnly",
+    "inheritedPathOrderEvaluatorOnly",
+    "selectorOutcome",
+    "futureMFE",
+    "futureMAE",
+    "futureReturn",
+    "outcome",
+    "oracleLow",
+    "oracleHigh"
+  ],
+  "evaluationOnlyFields": [
+    "orderedOracle",
+    "pathClassEvaluatorOnly",
+    "selectorOutcome",
+    "paired 30m/60m deltas"
+  ],
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "stopAfter": "ENTRY_V1_EVIDENCE_AND_CI"
+}

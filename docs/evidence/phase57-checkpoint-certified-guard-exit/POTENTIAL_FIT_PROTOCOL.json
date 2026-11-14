@@ -1,0 +1,20 @@
+{
+  "schema": "phase57-ccmg-potential-fit-protocol-v1",
+  "status": "FIXED_BEFORE_EXTENDED_TEACHER_OR_MODEL_SKILL_RESULTS",
+  "precommitSha256": "679cbe81bdaf483c7c68dbd290a520cdb6289ea1573519816e421b4c563cd079",
+  "featureArray": "recovered exact frozen all-material-r1/prefit/features.npy SHA-256 54bf771f6a090eb3e8035f7ee433ca1fbd617c165d77955ab71054b4e259a3fe",
+  "featureRow": "unique (opportunity, entryMinute) row; computedThroughMinute strictly below entryMinute; frozen 566 ordered names, no new feature selection",
+  "teacher": "canonical scripts/phase57_exit_finite_r36.py::_post_entry_high on already saved Development raw path; 100*(high-effectiveEntryPrice)/effectiveEntryPrice; strictly later same-session high; never runtime feature",
+  "teacherIdentityGate": "on each frozen 24-session IM819/R1_795 Entry compare reconstructed teacher against pinned R54 evaluatorOnlyPostEntryUpsidePct; all must match within 1e-12 or fit=0 with POTENTIAL_LABEL_LINEAGE_ABORT",
+  "trainingPopulation": "only filled frozen IMMEDIATE and ALL_MATERIAL_R1 entries from existing 58 current Development sessions, with unique causal frozen feature row and exact teacher; no Protected/Fresh/Validation/OOS",
+  "testPopulation": "only pinned R54 24-session IM819/R1_795 Entry IDs, each tested exactly once OOF",
+  "folds": "five original all-material-r1/prefit/folds.json outer temporal test sets; only fold IDs with selected 24-session test Entries invoke a fit; train only available labeled current-session Entry IDs in frozen fold.train, never fold.test or purge; no same Entry/session crosses train/test",
+  "model": {"heads": [5, 10], "family": "LogisticRegression", "penalty": "l2", "C": 1.0, "solver": "liblinear", "max_iter": 1000, "tol": 0.0001, "class_weight": null, "random_state": 570926},
+  "preprocessing": "R1 frozen M1: training-only per-column nanmedian (all-missing -> 0), fill nonfinite, training mean/std (zero std ->1), append nonfinite indicators; no calibration refit",
+  "baseline": "train-fold prevalence constant probability per head",
+  "metrics": ["ROC-AUC", "session-cluster-bootstrap CI", "PR-AUC", "Brier", "LogLoss", "prevalence baseline", "calibration", "IM/R1 point AUC", "per-session"],
+  "bootstrap": {"unit": "session", "seed": 570929, "resamples": 1999, "lowerQuantile": 0.025, "upperQuantile": 0.975},
+  "skillPass": "per head 95% session bootstrap AUC lower>0.5, Brier<baseline, LogLoss<baseline, no opposite-arm point direction, exact OOF reproducibility",
+  "budget": "at most 2*F=10 outer fits, actual tests among selected 24 sessions may use fewer; inner=0; no hyperparameter search",
+  "authority": {"holdVeto": false, "sellAuthority": false, "guardOverride": false, "capitalSizing": false, "candidateRanking": false}
+}

@@ -1,0 +1,631 @@
+{
+  "C06_fixed_8_bins_reused": 0,
+  "C10_new_alias_columns": 0,
+  "alias_policy": "semantic conditional directional phases differ from fixed clock bins/whole-prefix/window C10 fields; no duplicate same-meaning fields appended; unchanged inherited C10 columns retained",
+  "new_encoded_column_N": 214,
+  "new_field_N": 107,
+  "new_fields": [
+    {
+      "alias": null,
+      "meaning": "total maximal directional phases before BUY_INTENT",
+      "name": "C11.phase_count"
+    },
+    {
+      "alias": null,
+      "meaning": "max(total phase count-6,0)",
+      "name": "C11.omitted_phase_count"
+    },
+    {
+      "alias": null,
+      "meaning": "number of contiguous chains; lunch, missing minutes or session boundary start a new chain",
+      "name": "C11.chain_count"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "1 for a retained directional phase; 0 for a left-padding slot",
+      "name": "C11.phase0.present"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "sign of each phase close/anchor edge: +1 rise, 0 exact flat, -1 decline; all edges in a maximal phase have the same sign",
+      "name": "C11.phase0.direction"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log(last close/phase first anchor)",
+      "name": "C11.phase0.net_log_return"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "last bar minute+1 minus first bar minute; each phase lies in one contiguous chain",
+      "name": "C11.phase0.observed_duration_minutes"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "C10 active-session overlap of phase start through last minute+1; native 11:30 remains observed but adds zero scheduled active minutes",
+      "name": "C11.phase0.active_minutes"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "sum absolute log(close/anchor) for phase edges",
+      "name": "C11.phase0.gross_log_movement"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log(max(seed price, observed phase highs)/min(seed price, observed phase lows))",
+      "name": "C11.phase0.high_low_log_excursion"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "net_log_return/active_minutes; null if active_minutes=0",
+      "name": "C11.phase0.slope_per_active_minute"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log1p(sum native Vo within the phase)",
+      "name": "C11.phase0.log1p_volume"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log1p(sum native Va within the phase)",
+      "name": "C11.phase0.log1p_value"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log1p(sum Vo/active_minutes); null if active_minutes=0",
+      "name": "C11.phase0.log1p_volume_per_active_minute"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log1p(sum Va/active_minutes); null if active_minutes=0",
+      "name": "C11.phase0.log1p_value_per_active_minute"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log(phase last close/high of chronological phase two positions back), only if in the same contiguous chain",
+      "name": "C11.phase0.end_vs_two_back_high"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log(phase last close/low of chronological phase two positions back), only if in the same contiguous chain",
+      "name": "C11.phase0.end_vs_two_back_low"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "1 for a retained directional phase; 0 for a left-padding slot",
+      "name": "C11.phase1.present"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "sign of each phase close/anchor edge: +1 rise, 0 exact flat, -1 decline; all edges in a maximal phase have the same sign",
+      "name": "C11.phase1.direction"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log(last close/phase first anchor)",
+      "name": "C11.phase1.net_log_return"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "last bar minute+1 minus first bar minute; each phase lies in one contiguous chain",
+      "name": "C11.phase1.observed_duration_minutes"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "C10 active-session overlap of phase start through last minute+1; native 11:30 remains observed but adds zero scheduled active minutes",
+      "name": "C11.phase1.active_minutes"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "sum absolute log(close/anchor) for phase edges",
+      "name": "C11.phase1.gross_log_movement"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log(max(seed price, observed phase highs)/min(seed price, observed phase lows))",
+      "name": "C11.phase1.high_low_log_excursion"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "net_log_return/active_minutes; null if active_minutes=0",
+      "name": "C11.phase1.slope_per_active_minute"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log1p(sum native Vo within the phase)",
+      "name": "C11.phase1.log1p_volume"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log1p(sum native Va within the phase)",
+      "name": "C11.phase1.log1p_value"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log1p(sum Vo/active_minutes); null if active_minutes=0",
+      "name": "C11.phase1.log1p_volume_per_active_minute"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log1p(sum Va/active_minutes); null if active_minutes=0",
+      "name": "C11.phase1.log1p_value_per_active_minute"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log(phase last close/high of chronological phase two positions back), only if in the same contiguous chain",
+      "name": "C11.phase1.end_vs_two_back_high"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log(phase last close/low of chronological phase two positions back), only if in the same contiguous chain",
+      "name": "C11.phase1.end_vs_two_back_low"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "1 for a retained directional phase; 0 for a left-padding slot",
+      "name": "C11.phase2.present"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "sign of each phase close/anchor edge: +1 rise, 0 exact flat, -1 decline; all edges in a maximal phase have the same sign",
+      "name": "C11.phase2.direction"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log(last close/phase first anchor)",
+      "name": "C11.phase2.net_log_return"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "last bar minute+1 minus first bar minute; each phase lies in one contiguous chain",
+      "name": "C11.phase2.observed_duration_minutes"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "C10 active-session overlap of phase start through last minute+1; native 11:30 remains observed but adds zero scheduled active minutes",
+      "name": "C11.phase2.active_minutes"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "sum absolute log(close/anchor) for phase edges",
+      "name": "C11.phase2.gross_log_movement"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log(max(seed price, observed phase highs)/min(seed price, observed phase lows))",
+      "name": "C11.phase2.high_low_log_excursion"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "net_log_return/active_minutes; null if active_minutes=0",
+      "name": "C11.phase2.slope_per_active_minute"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log1p(sum native Vo within the phase)",
+      "name": "C11.phase2.log1p_volume"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log1p(sum native Va within the phase)",
+      "name": "C11.phase2.log1p_value"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log1p(sum Vo/active_minutes); null if active_minutes=0",
+      "name": "C11.phase2.log1p_volume_per_active_minute"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log1p(sum Va/active_minutes); null if active_minutes=0",
+      "name": "C11.phase2.log1p_value_per_active_minute"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log(phase last close/high of chronological phase two positions back), only if in the same contiguous chain",
+      "name": "C11.phase2.end_vs_two_back_high"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log(phase last close/low of chronological phase two positions back), only if in the same contiguous chain",
+      "name": "C11.phase2.end_vs_two_back_low"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "1 for a retained directional phase; 0 for a left-padding slot",
+      "name": "C11.phase3.present"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "sign of each phase close/anchor edge: +1 rise, 0 exact flat, -1 decline; all edges in a maximal phase have the same sign",
+      "name": "C11.phase3.direction"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log(last close/phase first anchor)",
+      "name": "C11.phase3.net_log_return"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "last bar minute+1 minus first bar minute; each phase lies in one contiguous chain",
+      "name": "C11.phase3.observed_duration_minutes"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "C10 active-session overlap of phase start through last minute+1; native 11:30 remains observed but adds zero scheduled active minutes",
+      "name": "C11.phase3.active_minutes"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "sum absolute log(close/anchor) for phase edges",
+      "name": "C11.phase3.gross_log_movement"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log(max(seed price, observed phase highs)/min(seed price, observed phase lows))",
+      "name": "C11.phase3.high_low_log_excursion"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "net_log_return/active_minutes; null if active_minutes=0",
+      "name": "C11.phase3.slope_per_active_minute"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log1p(sum native Vo within the phase)",
+      "name": "C11.phase3.log1p_volume"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log1p(sum native Va within the phase)",
+      "name": "C11.phase3.log1p_value"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log1p(sum Vo/active_minutes); null if active_minutes=0",
+      "name": "C11.phase3.log1p_volume_per_active_minute"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log1p(sum Va/active_minutes); null if active_minutes=0",
+      "name": "C11.phase3.log1p_value_per_active_minute"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log(phase last close/high of chronological phase two positions back), only if in the same contiguous chain",
+      "name": "C11.phase3.end_vs_two_back_high"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log(phase last close/low of chronological phase two positions back), only if in the same contiguous chain",
+      "name": "C11.phase3.end_vs_two_back_low"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "1 for a retained directional phase; 0 for a left-padding slot",
+      "name": "C11.phase4.present"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "sign of each phase close/anchor edge: +1 rise, 0 exact flat, -1 decline; all edges in a maximal phase have the same sign",
+      "name": "C11.phase4.direction"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log(last close/phase first anchor)",
+      "name": "C11.phase4.net_log_return"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "last bar minute+1 minus first bar minute; each phase lies in one contiguous chain",
+      "name": "C11.phase4.observed_duration_minutes"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "C10 active-session overlap of phase start through last minute+1; native 11:30 remains observed but adds zero scheduled active minutes",
+      "name": "C11.phase4.active_minutes"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "sum absolute log(close/anchor) for phase edges",
+      "name": "C11.phase4.gross_log_movement"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log(max(seed price, observed phase highs)/min(seed price, observed phase lows))",
+      "name": "C11.phase4.high_low_log_excursion"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "net_log_return/active_minutes; null if active_minutes=0",
+      "name": "C11.phase4.slope_per_active_minute"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log1p(sum native Vo within the phase)",
+      "name": "C11.phase4.log1p_volume"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log1p(sum native Va within the phase)",
+      "name": "C11.phase4.log1p_value"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log1p(sum Vo/active_minutes); null if active_minutes=0",
+      "name": "C11.phase4.log1p_volume_per_active_minute"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log1p(sum Va/active_minutes); null if active_minutes=0",
+      "name": "C11.phase4.log1p_value_per_active_minute"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log(phase last close/high of chronological phase two positions back), only if in the same contiguous chain",
+      "name": "C11.phase4.end_vs_two_back_high"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log(phase last close/low of chronological phase two positions back), only if in the same contiguous chain",
+      "name": "C11.phase4.end_vs_two_back_low"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "1 for a retained directional phase; 0 for a left-padding slot",
+      "name": "C11.phase5.present"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "sign of each phase close/anchor edge: +1 rise, 0 exact flat, -1 decline; all edges in a maximal phase have the same sign",
+      "name": "C11.phase5.direction"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log(last close/phase first anchor)",
+      "name": "C11.phase5.net_log_return"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "last bar minute+1 minus first bar minute; each phase lies in one contiguous chain",
+      "name": "C11.phase5.observed_duration_minutes"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "C10 active-session overlap of phase start through last minute+1; native 11:30 remains observed but adds zero scheduled active minutes",
+      "name": "C11.phase5.active_minutes"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "sum absolute log(close/anchor) for phase edges",
+      "name": "C11.phase5.gross_log_movement"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log(max(seed price, observed phase highs)/min(seed price, observed phase lows))",
+      "name": "C11.phase5.high_low_log_excursion"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "net_log_return/active_minutes; null if active_minutes=0",
+      "name": "C11.phase5.slope_per_active_minute"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log1p(sum native Vo within the phase)",
+      "name": "C11.phase5.log1p_volume"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log1p(sum native Va within the phase)",
+      "name": "C11.phase5.log1p_value"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log1p(sum Vo/active_minutes); null if active_minutes=0",
+      "name": "C11.phase5.log1p_volume_per_active_minute"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log1p(sum Va/active_minutes); null if active_minutes=0",
+      "name": "C11.phase5.log1p_value_per_active_minute"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log(phase last close/high of chronological phase two positions back), only if in the same contiguous chain",
+      "name": "C11.phase5.end_vs_two_back_high"
+    },
+    {
+      "alias": null,
+      "chronology": "latest six phases in chronological order, left-padded when fewer than six",
+      "meaning": "log(phase last close/low of chronological phase two positions back), only if in the same contiguous chain",
+      "name": "C11.phase5.end_vs_two_back_low"
+    },
+    {
+      "alias": null,
+      "meaning": "1 if neighboring retained phases share a contiguous chain, else 0; null if either padding",
+      "name": "C11.transition0_1.same_chain"
+    },
+    {
+      "alias": null,
+      "meaning": "current minus preceding phase slope; null at a chain break or undefined slope",
+      "name": "C11.transition0_1.slope_change"
+    },
+    {
+      "alias": null,
+      "meaning": "current minus preceding log1p volume per active minute; null at a chain break or undefined rate",
+      "name": "C11.transition0_1.volume_activity_change"
+    },
+    {
+      "alias": null,
+      "meaning": "current minus preceding log1p value per active minute; null at a chain break or undefined rate",
+      "name": "C11.transition0_1.value_activity_change"
+    },
+    {
+      "alias": null,
+      "meaning": "1 if neighboring retained phases share a contiguous chain, else 0; null if either padding",
+      "name": "C11.transition1_2.same_chain"
+    },
+    {
+      "alias": null,
+      "meaning": "current minus preceding phase slope; null at a chain break or undefined slope",
+      "name": "C11.transition1_2.slope_change"
+    },
+    {
+      "alias": null,
+      "meaning": "current minus preceding log1p volume per active minute; null at a chain break or undefined rate",
+      "name": "C11.transition1_2.volume_activity_change"
+    },
+    {
+      "alias": null,
+      "meaning": "current minus preceding log1p value per active minute; null at a chain break or undefined rate",
+      "name": "C11.transition1_2.value_activity_change"
+    },
+    {
+      "alias": null,
+      "meaning": "1 if neighboring retained phases share a contiguous chain, else 0; null if either padding",
+      "name": "C11.transition2_3.same_chain"
+    },
+    {
+      "alias": null,
+      "meaning": "current minus preceding phase slope; null at a chain break or undefined slope",
+      "name": "C11.transition2_3.slope_change"
+    },
+    {
+      "alias": null,
+      "meaning": "current minus preceding log1p volume per active minute; null at a chain break or undefined rate",
+      "name": "C11.transition2_3.volume_activity_change"
+    },
+    {
+      "alias": null,
+      "meaning": "current minus preceding log1p value per active minute; null at a chain break or undefined rate",
+      "name": "C11.transition2_3.value_activity_change"
+    },
+    {
+      "alias": null,
+      "meaning": "1 if neighboring retained phases share a contiguous chain, else 0; null if either padding",
+      "name": "C11.transition3_4.same_chain"
+    },
+    {
+      "alias": null,
+      "meaning": "current minus preceding phase slope; null at a chain break or undefined slope",
+      "name": "C11.transition3_4.slope_change"
+    },
+    {
+      "alias": null,
+      "meaning": "current minus preceding log1p volume per active minute; null at a chain break or undefined rate",
+      "name": "C11.transition3_4.volume_activity_change"
+    },
+    {
+      "alias": null,
+      "meaning": "current minus preceding log1p value per active minute; null at a chain break or undefined rate",
+      "name": "C11.transition3_4.value_activity_change"
+    },
+    {
+      "alias": null,
+      "meaning": "1 if neighboring retained phases share a contiguous chain, else 0; null if either padding",
+      "name": "C11.transition4_5.same_chain"
+    },
+    {
+      "alias": null,
+      "meaning": "current minus preceding phase slope; null at a chain break or undefined slope",
+      "name": "C11.transition4_5.slope_change"
+    },
+    {
+      "alias": null,
+      "meaning": "current minus preceding log1p volume per active minute; null at a chain break or undefined rate",
+      "name": "C11.transition4_5.volume_activity_change"
+    },
+    {
+      "alias": null,
+      "meaning": "current minus preceding log1p value per active minute; null at a chain break or undefined rate",
+      "name": "C11.transition4_5.value_activity_change"
+    }
+  ],
+  "numeric_encoding": "one native numeric value (null to NaN) plus one missing-mask column; no fit, scaling or imputation",
+  "teacher_R_Winner_input": false,
+  "version": "C11_ORDERED_DIRECTIONAL_PHASES_V1"
+}

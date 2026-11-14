@@ -1,0 +1,96 @@
+{
+  "schema": "phase57-development-integrated-v1-accounting-precommit-v1",
+  "status": "FROZEN_BEFORE_V1_PORTFOLIO_REPLAY_OR_V1_PERFORMANCE",
+  "savedJst": "2026-09-27 13:28 JST",
+  "basisHead": "ade6695f5838776810379923a0163e2ece2370a5",
+  "priorExposure": "v0 performance and 2025-07-17 missing terminal auction already observed; this contract is a new, prospective accounting measurement, not a revision of v0 or a new EXIT",
+  "v0ProtocolSha256": "9b345b3e73214eea0c58caa9509ea0bff8dc6e3c57a9cff646a02566bf4d8fc0",
+  "frozenInputs": {
+    "entryDualFreezeCommit": "4878a1cc53430e816261dea0fb16aeb53b3c238d",
+    "immediateRecordSha256": "4522bea9ac94f597affc8518c4cb25354e27f9e64141152cde8b8a4b9e09df9c",
+    "r1RecordSha256": "15ddb5cfc5169024878ee72d9dbecc6e1d9dec24e78afa2dcdf8dea891117fa6",
+    "r50TerminalControlLedgerSha256": "770f02612cdd97ed2420f14a2fe6ab6ed1f50a96f222afa9b3c376982c8ea476",
+    "selectorOriginSha256": "1138960e489c3403e49f502a7ff7ab1fa1e9ef205910d2d018f2bb938df813ea",
+    "rawPathSha256": "37853e73799544be6fd6eb955de514073dd13671692426291a9fdb6d80056c6b",
+    "v0SourceSha256": "2391fdc11741da9221bb6f9124ac25b7b57c24b5e484815df3d8b416f7746b44",
+    "r34CashBookSha256": "cf18bf5ba506dd8b066792a85bf8b5358333609b7fbf74f532beeebd03ae74f9",
+    "r37SizingBridgeSha256": "b4287945bf314ffd3822f6bc8dc8d71bbaed38b58de72d08b2b9e1fb5a5cfec8"
+  },
+  "scope": {
+    "type": "OUTCOME_EXPOSED_DEVELOPMENT_ONLY",
+    "cohort": "exact R50 OOF score window, 34 frozen sessions, IM 1150 / R1 1107 Entry fills; not 58-session / 2155-Opportunity full period",
+    "arms": ["IMMEDIATE", "ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF"],
+    "capacities": [3, 4, 5],
+    "primaryCapacity": 3,
+    "modelFits": 0,
+    "protectedOpens": 0,
+    "providerRequests": 0,
+    "exitStatus": "R50_B_TERMINAL_HOLD_CONTROL_BENCHMARK_NOT_FINAL_EXIT",
+    "selectorEntryRankExitChanges": 0
+  },
+  "valuationOptions": [
+    {
+      "id": "SAME_SEGMENT_LAST_COMPLETED_TRADE_ASOF_V1",
+      "controlling": true,
+      "source": "pinned allowlisted raw one-minute OHLCV; reference is CLOSE of latest completed owned-symbol bar since Entry in the current continuous trading segment; exact 15:30 single-price auction when actually observed; pinned raw Entry-minute OPEN at the Entry time for newly funded position, distinct from cost-inclusive effective Entry",
+      "segmentsJstMinutes": [[540, 690], [750, 930]],
+      "referenceRule": "For held position at event minute T in a segment, choose the greatest raw source minute m in that same segment with m>=Entry minute and m+1<=T, bar CLOSE finite positive, sourceTimestamp=knownAt=m+1. If no such bar is available but the confirmed Entry OPEN was observed in this segment, retain that raw OPEN with sourceTimestamp=knownAt=Entry minute. At 15:30 prefer an observed single-price auction at exactly 930, otherwise use last completed afternoon bar. Newly admitted position uses exact raw Entry-minute OPEN tagged ENTRY_RAW_OPEN, never cost-inclusive effective Entry as a market mark or an unclosed bar HIGH/LOW/CLOSE.",
+      "staleness": "Historical last-known trade is permitted only within the same continuous trading segment and session. Record staleMinutes=T-knownAt and original raw minute for each mark. No crossing lunch, session boundary, or into following day; no synthetic/executable price claim.",
+      "noObservedMark": "null for that position, null total gross exposure, unrealized PnL and equity; do not substitute cost/zero PnL/previous-day prices; new ranked Entry sizing rejects with explicit missing-valuation reason"
+    }
+  ],
+  "accounting": {
+    "executionVsValuation": "Only confirmed R50_B 15:30 auction EXIT produces realized cash and charged sell cost. A last-known mark only measures an owned position; it is never a sale, execution, order, or prospective fill.",
+    "missingTerminalAuction": "CENSORED_UNRESOLVED_NO_CASH_RELEASE; retain actual quantity and original purchase cost, reserve capacity and cash; retain locked ownership as an accounting uncertainty across sessions without claiming that the intraday strategy chose overnight holding",
+    "nextSession": "No retrospective terminal fill, no later price as prior 15:30 sale, no automated next-session EXIT or resumption of the strategy for the censored position. It remains unresolved and blocks new same-symbol Entry; all subsequent valuation requires contemporaneous source and corporate-action proof.",
+    "corporateActions": "No verified between-session split/dividend adjustment lineage is available for an unresolved cross-session position in these frozen inputs. Even if a later raw mark happens to be present, block mark-to-market of this carried position until both price and adjustment continuity are certified. Never silently compare a later adjusted price to unadjusted cost.",
+    "cashAndOpenBasis": "realized cash equals initial cash minus confirmed purchases plus confirmed auction proceeds minus single sell cost; unmatched open positions keep 100-share quantity and frozen effective Entry cost; realized PnL from confirmed exits only; unrealized PnL = marked notional minus open cost only where every open position mark is valid",
+    "eventOrdering": ["confirmed EXIT and cash release", "mark every remaining open position at as-of NOW", "deterministic R35 rank and R37 equity/MAX_N 100-share sizing", "fund admitted Entry from nonnegative cash", "record marks and ledger"],
+    "sameTimeRelease": "only confirmed EXIT proceeds are available for same-time Entry sizing; valuation marks never generate cash",
+    "positionAndCash": "initial JPY 1000000, LONG/CASH only, lot 100, cash >=0, MAX3 primary/MAX4/MAX5 sensitivity, no margin/leverage/short/borrow/collateral reuse",
+    "equity": "cash + sum(markPrice * open quantity) only if every open position has certified event-time causal mark and corporate-action continuity; otherwise null. Cash and realized PnL remain known even when equity is null.",
+    "terminalWindow": "end of 34-session window retains unresolved censored position and original basis; final marked equity reported only if valid mark exists, full-period Portfolio Return additionally requires all scheduled event equity valid and no final unresolved EXIT. Full-period MaxDD only if all scheduled event equity valid. Partial observed segments are clearly labeled and cannot be concatenated through null.",
+    "lunchAndBoundaries": "no pre-lunch price carried to the afternoon; no cross-session mark, overnight fill, auction substitute, or retrospectively backdated mark"
+  },
+  "rankAndEvaluator": {
+    "rankProducer": "unchanged frozen R35 selector origin",
+    "order": ["newEligibleRank ASC", "savedV1Score DESC", "symbol ASC", "entryId ASC"],
+    "rankKnownAt": "must not exceed frozen Entry timestamp",
+    "sizing": "unchanged R37 target=current valid marked equity/MAX_N, floor min(target, available cash) to 100-share lot; missing equity rejects; no refit or new ranker",
+    "evaluatorOnly": ["POST_ENTRY_UPSIDE_GE5", "CANONICAL_L2H_GE5", "post-Entry best High", "terminal benchmark Capture"],
+    "primaryKnownSupport": {"IMMEDIATE": 222, "ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF": 200},
+    "secondaryKnownSupport": {"IMMEDIATE": 387, "ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF": 381},
+    "enrichment": "Reuse audited frozen-rank-first v0 Top1/Top3/Top5 results; any v1 funded attribution occurs strictly after six replays and never feeds decision",
+    "futureDecisionDenylist": ["futureHigh", "futureLow", "futureReturn", "futureMFE", "futureMAE", "finalPnL", "exitOutcome", "oracleExit", "Capture", "futureState", "futurePivot", "realized>=5bucket", "POST_ENTRY_UPSIDE_GE5", "CANONICAL_L2H_GE5"]
+  },
+  "outputsAndValidity": {
+    "variants": ["IMMEDIATE_MAX3", "IMMEDIATE_MAX4", "IMMEDIATE_MAX5", "R1_MAX3", "R1_MAX4", "R1_MAX5"],
+    "fullLedger": "event timestamp, cash, realized PnL, every position id/quantity/cost/source bar/mark/source knownAt/stale minutes/unrealized, gross exposure/equity/null reason, unresolved count, capacity and utilization",
+    "curves": "six time ordered timestamp/equity/cash/exposure/utilization/drawdown CSV and plots; nulls remain explicit gaps, no line through unknown span; plot partial only if incomplete",
+    "scorecard": ["valuation coverage", "initial/final equity", "portfolio return if valid", "realized/unrealized", "full-period MaxDD if valid", "PF", "win rate", "avg win/loss", "p05/p10/worst", "entries/exits/open/unresolved", "capacity/cash/valuation rejects", "turnover", "holding duration/lock", "event and time-weighted utilization", "utilization >=80% time share", "min cash", "max/avg gross", "symbol/session concentration", "top contributors", "IM/R1 common funded pairs", "MAX3/4/5", "evaluator-only high-upside attribution"],
+    "missingReferences": "all invalid timestamps and each unresolved open position with missing eligible source reference, including required segment, knownAt/corporate-action reason; never omit or convert null",
+    "noPortfolioWinnerFromIncomplete": true,
+    "noFinalExitOrLiveEstimate": true
+  },
+  "reproducibility": "one exact canonical serialized result is generated twice byte-identically; source manifest and protocol hash pinned by CI and replay",
+  "exposure": {
+    "outcomeExposedDevelopmentOpportunities": 2155,
+    "priorR49OutsideAllowlistDecoded": 3220,
+    "priorV0SupersededPreflightOutsideRawDecoded": 4225,
+    "allowlistFirstNow": true,
+    "claimHistoricalZeroOutsideAccess": false,
+    "protectedOpened": 0,
+    "providerRequests": 0
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

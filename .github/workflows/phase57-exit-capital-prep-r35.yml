@@ -1,0 +1,130 @@
+name: Phase57 EXIT Capital Preparation R35
+
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - 'scripts/phase57_exit_core_runtime_r35.py'
+      - 'scripts/phase57_exit_hold_targets_r35.py'
+      - 'scripts/test_phase57_exit_runtime_r35.py'
+      - 'scripts/phase57_exit_core_cache_r35.py'
+      - 'scripts/phase57_cash_capital_r34.py'
+      - 'scripts/test_phase57_cash_capital_r34.py'
+      - 'scripts/phase57_cash_capital_rank_lineage_r35.py'
+      - '.github/workflows/phase57-exit-capital-prep-r35.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase57-exit-capital-prep-r35-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  prep-only:
+    if: github.ref == 'refs/heads/research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      ARK_TEST_OFFLINE: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONPATH: '.'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install pinned canonical producer dependencies
+        run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.7.2 pandas==2.2.3
+
+      - name: Restore immutable R20 observation substrate
+        uses: actions/download-artifact@v4
+        with:
+          repository: Iam-2squared/ark-terminal
+          run-id: '36128852207'
+          name: phase57-exit-checkpoints-r20-36128852207
+          github-token: ${{ github.token }}
+          path: artifacts/r20
+
+      - name: Restore frozen R1 Entry records
+        uses: actions/download-artifact@v4
+        with:
+          repository: Iam-2squared/ark-terminal
+          run-id: '36099497597'
+          name: phase57-all-material-r1-afb38b7a5421ca4f6ff6d439bf89096236efd119
+          github-token: ${{ github.token }}
+          path: artifacts/r1
+
+      - name: Generate exact R33 fit contract without fitting
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/prep-r35
+          python -m scripts.phase57_exit_fit_contract_r33 > artifacts/prep-r35/r33-fit-contract.json
+          echo 'e360ffe056ad1a848c55ac257b53cfd0d3be422fbe79476c70b4f69c91a12478  artifacts/prep-r35/r33-fit-contract.json' | sha256sum -c -
+
+      - name: Focused runtime and cash-only tests
+        env:
+          R33_FIT_CONTRACT: artifacts/prep-r35/r33-fit-contract.json
+        run: |
+          set -euo pipefail
+          python -m unittest -v             scripts.test_phase57_exit_runtime_r35             scripts.test_phase57_cash_capital_r34             2>&1 | tee artifacts/prep-r35/tests.log
+
+      - name: Build deterministic unscaled CORE cache twice
+        run: |
+          set -euo pipefail
+          python -m scripts.phase57_exit_core_cache_r35             --r20-source artifacts/r20/run-a             --fit-contract artifacts/prep-r35/r33-fit-contract.json             --out artifacts/prep-r35/core-a
+          python -m scripts.phase57_exit_core_cache_r35             --r20-source artifacts/r20/run-a             --fit-contract artifacts/prep-r35/r33-fit-contract.json             --out artifacts/prep-r35/core-b
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads((Path('artifacts/prep-r35/core-a/manifest.json')).read_text())
+          b=json.loads((Path('artifacts/prep-r35/core-b/manifest.json')).read_text())
+          assert a['projectionSha256']==b['projectionSha256']
+          assert a['outputHashes']==b['outputHashes']
+          assert a['checkpointCounts']=={
+              'IMMEDIATE':345893,
+              'ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF':310354,
+          }
+          assert a['modelFits']==a['candidateReplays']==a['performanceInspections']==0
+          assert a['providerRequests']==a['protectedPartitionsOpened']==0
+          assert all(v is False for v in a['safety'].values())
+          PY
+
+      - name: Audit frozen causal rank lineage twice
+        run: |
+          set -euo pipefail
+          python -m scripts.phase57_cash_capital_rank_lineage_r35             --r1-records artifacts/r1/all-material-r1/ci-run-a/entry-records.json.gz             --out artifacts/prep-r35/rank-a.json.gz
+          python -m scripts.phase57_cash_capital_rank_lineage_r35             --r1-records artifacts/r1/all-material-r1/ci-run-a/entry-records.json.gz             --out artifacts/prep-r35/rank-b.json.gz
+          cmp artifacts/prep-r35/rank-a.json.gz artifacts/prep-r35/rank-b.json.gz
+          python - <<'PY'
+          import gzip,json
+          from pathlib import Path
+          d=json.loads(gzip.decompress(Path('artifacts/prep-r35/rank-a.json.gz').read_bytes()))
+          assert d['byArm']['IMMEDIATE']['population']==2155
+          assert d['byArm']['IMMEDIATE']['fills']==1963
+          assert d['byArm']['ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF']['population']==2155
+          assert d['byArm']['ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF']['fills']==1885
+          assert all(v['rankKnownAfterEntry']==0 for v in d['byArm'].values())
+          assert d['outcomeFieldsRead']==d['portfolioReplays']==0
+          assert d['providerRequests']==d['protectedPartitionsOpened']==0
+          assert all(v is False for v in d['safety'].values())
+          PY
+
+      - name: Preserve preparation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-exit-capital-prep-r35-${{ github.run_id }}
+          path: artifacts/prep-r35
+          retention-days: 30
+          overwrite: false
+          if-no-files-found: error

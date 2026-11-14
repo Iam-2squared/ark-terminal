@@ -1,0 +1,304 @@
+{
+  "$id": "urn:ark:state-path:v1:20261002",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "current_semantics_observed": {
+            "const": false
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "Primary_or_null": {
+            "type": "null"
+          },
+          "dwell_observed_bars": {
+            "type": "null"
+          },
+          "dwell_scheduled_bars": {
+            "type": "null"
+          },
+          "run_id": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "current_semantics_observed": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "Primary_or_null": {
+            "enum": [
+              "RISE",
+              "SHARP_RISE",
+              "RISE_STOP",
+              "PULLBACK",
+              "RANGE",
+              "REBOUND",
+              "DROP",
+              "SHARP_DROP",
+              "DROP_STOP"
+            ]
+          },
+          "dwell_observed_bars": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "dwell_scheduled_bars": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "run_id": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "Primary_or_null": {
+      "enum": [
+        "RISE",
+        "SHARP_RISE",
+        "RISE_STOP",
+        "PULLBACK",
+        "RANGE",
+        "REBOUND",
+        "DROP",
+        "SHARP_DROP",
+        "DROP_STOP",
+        null
+      ]
+    },
+    "activity": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "bar_end": {
+      "type": "string"
+    },
+    "basis": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "case_id": {
+      "type": "string"
+    },
+    "causal_segment_id": {
+      "type": "string"
+    },
+    "context_direction": {
+      "enum": [
+        -1,
+        0,
+        1,
+        null
+      ]
+    },
+    "current_semantics_observed": {
+      "type": "boolean"
+    },
+    "direction_basis": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "display_primary": {
+      "enum": [
+        "RISE",
+        "SHARP_RISE",
+        "RISE_STOP",
+        "PULLBACK",
+        "RANGE",
+        "REBOUND",
+        "DROP",
+        "SHARP_DROP",
+        "DROP_STOP",
+        null
+      ]
+    },
+    "dwell_observed_bars": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "dwell_scheduled_bars": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "entered_at": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "entered_bar_end": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "fast": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "fast_applicable_to_primary": {
+      "type": "boolean"
+    },
+    "last_observed_at": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "last_observed_bar_end": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "local_direction": {
+      "enum": [
+        -1,
+        0,
+        1,
+        null
+      ]
+    },
+    "observed_at": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "quality": {
+      "additionalProperties": false,
+      "properties": {
+        "auction": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "numeric_status": {
+          "enum": [
+            "ACCEPTED",
+            "NOT_AVAILABLE",
+            "REJECTED"
+          ]
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reset_reasons": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "row_status": {
+          "type": "string"
+        },
+        "source": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "numeric_status",
+        "reason",
+        "reset_reasons",
+        "row_status",
+        "source",
+        "auction"
+      ],
+      "type": "object"
+    },
+    "range": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "run_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "scheduled_t": {
+      "type": "integer"
+    },
+    "source_events": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "stop": {
+      "type": [
+        "object",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "case_id",
+    "scheduled_t",
+    "bar_end",
+    "causal_segment_id",
+    "Primary_or_null",
+    "display_primary",
+    "current_semantics_observed",
+    "activity",
+    "basis",
+    "observed_at",
+    "local_direction",
+    "context_direction",
+    "direction_basis",
+    "fast",
+    "fast_applicable_to_primary",
+    "stop",
+    "range",
+    "source_events",
+    "quality",
+    "run_id",
+    "dwell_scheduled_bars",
+    "dwell_observed_bars",
+    "entered_at",
+    "entered_bar_end",
+    "last_observed_at",
+    "last_observed_bar_end"
+  ],
+  "title": "Frozen State9 Path endpoint",
+  "type": "object",
+  "x-Primary-contract": "null when current_semantics_observed=false; carried display is not a State",
+  "x-run-contract": "no continuity across null, gap or segment reset; entry bar count=1; open right-censoring",
+  "x-time-contract": "strictly increasing integer scheduled_t and timezone-aware actual bar_end; no future observed_at; observed_at=t when observed"
+}

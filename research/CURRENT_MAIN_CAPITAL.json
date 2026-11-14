@@ -1,0 +1,74 @@
+{
+  "document_id": "ARK_CURRENT_MAIN_CAPITAL_V5_RESTORE_20261007",
+  "status": "USER_SELECTED_RESEARCH_MAIN_CAPITAL",
+  "user_instruction_ja": "おけ。もういったんV5をメインに戻ろう。",
+  "scope": "Research mainline selection only. Not a production configuration update or a main-branch merge.",
+  "main_capital_name": "Capital v5 MAX3 Slot Intelligence",
+  "main_capital_policy_id": "CAPITAL_MAX3_SLOT_RESERVE_V1",
+  "capacity_policy_id": "CAPITAL_MAX_CONCURRENT_3_RESEARCH_POLICY_V1",
+  "capital_authority": {
+    "repository": "Iam-2squared/ark-terminal",
+    "commit": "710656491be06235901b45c50a8b5cbd714ba4eb",
+    "report_path": "docs/evidence/capital-v5-max3-slot-intelligence-20261004-v1/REPORT_FINAL-ja.md",
+    "report_git_blob": "2ac3d70b085d5e525d314ee69d327b725a2a56c9",
+    "implementation_directory": "research/capital-v5-max3-slot-intelligence-20261004-v1",
+    "allocation_path": "research/capital-v5-max3-slot-intelligence-20261004-v1/allocation.py",
+    "allocation_git_blob": "c48283ead2c1dc369281c734ee2006d1ea479fac"
+  },
+  "selection_rules_ja": [
+    "戻すのはCapital V5の購入可否・枠運用・数量配分の系譜。V5.1やV9以降の別配分を黙って混ぜない。",
+    "V5のnative rank/score接続、reserve、配分weight、band cap、target、100株lot、MAX3の契約を参照元どおり保持する。新しい数値やpolicyを作らない。",
+    "Selector/Frozen Entryの変更は行わない。FIRST LAYERの新規系譜リセットは撤回せず、旧FIRST LAYERのmodel/feature/score/thresholdを復活させない。",
+    "購入前SHARP_DROP除外の既存候補状態は維持し、このCapital選択だけで追加filterの本番採用や新規作動を認定しない。"
+  ],
+  "exit_binding": {
+    "main_exit_id": "SHARP_DROP_FIRST_OBSERVED_EXIT_V0",
+    "name": "State9 Structural EXIT v3 Local Guard + SHARP_DROP Emergency EXIT + canonical 15:20 EOD",
+    "pointer_path": "research/CURRENT_MAIN_EXIT.json",
+    "freeze_repository": "Iam-2squared/ark-terminal",
+    "freeze_commit": "30519cc85042a36097db54a70471de7bc679794e",
+    "freeze_path": "research/exit-sharp-drop-overlay-counterfactual-20261007/MAIN_EXIT_FREEZE_20261007.json",
+    "freeze_sha256": "a9845422555b478fe1ed34a95b97fa185f83c2c487c19926f72dbe628eec590d",
+    "exit_changed_by_this_selection": false,
+    "instruction_ja": "今回凍結したSHARP_DROP即時EXITを維持する。V5の過去結果を再現するControl以外で旧EXITへ巻き戻さない。"
+  },
+  "new_combination": {
+    "id": "CAPITAL_V5_WITH_MAIN_EXIT_SHARP_DROP_V0",
+    "status": "SELECTED_FOR_RESEARCH_NOT_YET_CAPITAL_EVALUATED",
+    "integration_implemented_by_this_action": false,
+    "final_equity_jpy": null,
+    "monthly_performance": "NOT_EVALUATED",
+    "capitalImprovement": "NOT_EVALUATED",
+    "future_comparison_ja": "同じFrozen Entry・同じV5 Capital・同じ購入前filter条件で、旧EXITと新EXITをpaired比較する。実行時にはEXITが変えるcash/slot解放と後続数量を時系列で扱う。今回そのReplayは開始しない。"
+  },
+  "historical_evidence": {
+    "preserved": true,
+    "old_v5_returns_relabelled_as_new_combination": false,
+    "old_exit_teacher_and_negative_results_preserved": true,
+    "note_ja": "旧V5の20-session換算・RESET20・38-session結果はそれぞれ旧条件の履歴として保持し、新EXIT併用の資産成績へ代入しない。"
+  },
+  "this_action_counts": {
+    "model_fits": 0,
+    "inference": 0,
+    "threshold_search": 0,
+    "teacher_generation": 0,
+    "entry_exit_or_capital_replays": 0,
+    "protected_partition_opens": 0,
+    "runtime_code_edits": 0,
+    "orders": 0,
+    "main_merges": 0,
+    "force_pushes": 0
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "productionReady": false
+  }
+}

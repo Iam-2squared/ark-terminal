@@ -1,0 +1,46 @@
+{
+  "atJst": "2026-09-29T21:24:17.545845+09:00",
+  "basisHead": "1e328c7b47acf6dc9341e784808f691cdbd75f18",
+  "canonicalContracts": {
+    "calendar": "scripts/phase57_behavior_dictionary.py calendar()/phase()",
+    "continuous": "09:00..11:29 and 12:30..15:24 start minute, inclusive; 11:30 auction 690 separate, 15:25..15:29 preclose no execution, 15:30 auction 930",
+    "entryPath": "entry-owned bar at frozen entry minute through continuous and exact 930; lunch omitted in active count",
+    "execution": "no order/fill; exact next scheduled OPEN is future replay only",
+    "opening": "09:00 and 12:30 first continuous bars, no separately recorded opening-auction row in this substrate",
+    "terminal": "single-price exact 930 auction; missing remains UNKNOWN; 690 morning auction separate and excluded by frozen anatomy precommit"
+  },
+  "cycleIdentity": "cycle-20260929-03",
+  "inputContractPreflightConsumed": 1,
+  "parser": {
+    "barIntegrity": "7 finite numerical fields, positive OHLC, Low<=Open/Close<=High; duplicate timestamp rejects complete-path mask",
+    "entryJoin": "(arm, session|symbol|minute) frozen identity plus opportunityId lookup; IM/R1 worlds not pooled",
+    "floatHandling": "accept finite int-equivalent 540.0→540; reject 540.5, bool, string, NaN/inf/null, out-of-session timestamp; no rounding",
+    "missing": "absent scheduled bars UNKNOWN, no trade/halt/data-missing classification unproven",
+    "providerKnownAt": "not independently proven"
+  },
+  "pendingEmpiricalChecks": [
+    "timestamp type distribution",
+    "source session bar counts",
+    "auction representation and coverage",
+    "unexpected/rejected bars",
+    "entry join"
+  ],
+  "producer": {
+    "nanInfNull": "producer valid() filters nonfinite prices and compact raises on duplicate source Time; archive may still require empirical validation",
+    "path": "scripts/phase57_entry_pattern_v2.py",
+    "schema": "today is list of 7-number bars [minute,O,H,L,C,Vo,Va] from np.array(...,float).tolist()",
+    "sha256": "ca4bb73e1523c134e6b0e7a6b103ad3794edd65385bf1ad93241296783d0c23b",
+    "timestampOrigin": "raw Time HH:MM converted by minute_time to h*60+m; float ndarray preserves exact integral minute",
+    "timezone": "source Time is Japan cash market local clock; session date associated separately; numeric minute has no timezone token"
+  },
+  "sourcePinsVerified": {
+    "capitalScores": "b6ed8340536b4c89fd562873bc95e028efd7bfd9130e7c92a3ede52b3b0d3645",
+    "entryAllowlist": "5c8dbeabd7dfded143066edfec793f916d67c1b7fa5f5079f56475cb6aa774f1",
+    "executionCode": "e49a5d9f2bd065d3df5d7d7743134e82f703e4334b06d3ddf9fb3b1324e5e3eb",
+    "integrationPrecommit": "93d9ddb8e45a473947430fb67f013e56f28d079614625f534ef769c3434990f9",
+    "integrationZip": "949b4a3bcddf41ad15051c30924fcdc3c8b1b5c187c0505d464804ef0335f356",
+    "phaseAAccounting": "fe092fa1648cfcc6fed71b49763987694ac9e43ac76fcde99a31027515f7362c",
+    "rawPath": "37853e73799544be6fd6eb955de514073dd13671692426291a9fdb6d80056c6b"
+  },
+  "status": "CONTRACT_CODE_VERIFIED_REAL_FORMAT_PENDING"
+}

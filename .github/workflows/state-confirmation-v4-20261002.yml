@@ -1,0 +1,51 @@
+name: State Predictiveness V4 Fixed Development Expansion
+on:
+  push:
+    branches: [state-predictiveness-v4-confirmation-20261002-v1]
+    paths: ['.github/workflows/state-confirmation-v4-20261002.yml', 'research/state-confirmation-v4-20261002/payload.b64']
+permissions:
+  contents: read
+concurrency:
+  group: state-confirmation-v4-20261002
+  cancel-in-progress: false
+jobs:
+  development-export:
+    if: github.ref == 'refs/heads/state-predictiveness-v4-confirmation-20261002-v1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify fixed source and scope
+        run: |
+          python - <<'PY'
+          import pathlib,os,zipfile,base64,io,hashlib
+          b=base64.b64decode(pathlib.Path('research/state-confirmation-v4-20261002/payload.b64').read_bytes())
+          assert hashlib.sha256(b).hexdigest()=='32b2ed7f8d26eb6caf311744afe27e836f20a491bedde9c719f9d81121dabcbe'
+          with zipfile.ZipFile(io.BytesIO(b)) as z:
+              assert all(not n.startswith('/') and '..' not in pathlib.PurePosixPath(n).parts for n in z.namelist())
+              z.extractall(pathlib.Path(os.environ['RUNNER_TEMP'])/'state-reversal-v4-code')
+          PY
+      - name: Fixed approved Development metadata then temporary raw current-slot export
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+          STATE9_AUDIT_RAW: ${{ runner.temp }}/state-reversal-v4-raw
+          STATE9_AUDIT_OUT: ${{ runner.temp }}/state-reversal-v4-evidence
+        run: python "$RUNNER_TEMP/state-reversal-v4-code/export_expansion_v4.py"
+      - name: Purge exact temporary directory
+        if: always()
+        run: |
+          python - <<'PY'
+          import pathlib,os,shutil,json
+          raw=pathlib.Path(os.environ['RUNNER_TEMP'])/'state-reversal-v4-raw'
+          if raw.exists():shutil.rmtree(raw)
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'state-reversal-v4-evidence';out.mkdir(exist_ok=True)
+          (out/'WORKFLOW_PURGE_RECEIPT.json').write_text(json.dumps({'verified':not raw.exists(),'secret_export':0})+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: state-predictiveness-v4-development-${{ github.run_id }}
+          path: ${{ runner.temp }}/state-reversal-v4-evidence
+          retention-days: 7

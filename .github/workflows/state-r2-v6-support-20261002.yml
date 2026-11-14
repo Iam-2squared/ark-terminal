@@ -1,0 +1,51 @@
+name: State Predictiveness V6 Fixed Support Completion
+on:
+  push:
+    branches: [state-predictiveness-v6-support-completion-20261002-v1]
+    paths: ['.github/workflows/state-r2-v6-support-20261002.yml', 'research/state-r2-support-v6-20261002/payload.b64']
+permissions:
+  contents: read
+concurrency:
+  group: state-r2-v6-support-20261002
+  cancel-in-progress: false
+jobs:
+  development-export:
+    if: github.ref == 'refs/heads/state-predictiveness-v6-support-completion-20261002-v1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify fixed source and scope
+        run: |
+          python - <<'PY'
+          import pathlib,os,zipfile,base64,io,hashlib
+          b=base64.b64decode(pathlib.Path('research/state-r2-support-v6-20261002/payload.b64').read_bytes())
+          assert hashlib.sha256(b).hexdigest()=='f0a98384dd7e40bea9727657874ee3c8ab84c4df22149e817989bcab9cf95de0'
+          with zipfile.ZipFile(io.BytesIO(b)) as z:
+              assert all(not n.startswith('/') and '..' not in pathlib.PurePosixPath(n).parts for n in z.namelist())
+              z.extractall(pathlib.Path(os.environ['RUNNER_TEMP'])/'state-r2-v6-code')
+          PY
+      - name: Fixed Development support completion; no labels
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+          STATE9_AUDIT_RAW: ${{ runner.temp }}/state-r2-v6-raw
+          STATE9_AUDIT_OUT: ${{ runner.temp }}/state-r2-v6-evidence
+        run: python "$RUNNER_TEMP/state-r2-v6-code/export_v6.py"
+      - name: Purge exact temporary directory
+        if: always()
+        run: |
+          python - <<'PY'
+          import pathlib,os,shutil,json
+          raw=pathlib.Path(os.environ['RUNNER_TEMP'])/'state-r2-v6-raw'
+          if raw.exists():shutil.rmtree(raw)
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'state-r2-v6-evidence';out.mkdir(exist_ok=True)
+          (out/'WORKFLOW_PURGE_RECEIPT.json').write_text(json.dumps({'verified':not raw.exists(),'secret_export':0})+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: state-predictiveness-v6-support-${{ github.run_id }}
+          path: ${{ runner.temp }}/state-r2-v6-evidence
+          retention-days: 7

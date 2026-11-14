@@ -1,0 +1,80 @@
+name: Phase57 Comprehensive Entry v3 Causal Event Study
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-comprehensive-entry-v3.yml'
+      - 'scripts/phase57_comprehensive_entry_v3.py'
+      - 'scripts/report_phase57_comprehensive_entry_v3.py'
+      - 'scripts/test_phase57_comprehensive_entry_v3.py'
+      - 'docs/evidence/phase57-comprehensive-entry-v3/**'
+permissions:
+  contents: read
+jobs:
+  verify-event-study:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      ARK_TEST_OFFLINE: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Pinned offline evaluator dependencies
+        run: python -m pip install numpy==2.3.5 scikit-learn==1.8.0 pandas==2.3.3
+      - name: Causal state, sequence, execution, missing and boundary tests
+        run: |
+          mkdir -p /tmp/comprehensive-entry-v3
+          python scripts/offline/kernel_exec.py python -m unittest -v scripts.test_phase57_comprehensive_entry_v3 2>&1 | tee /tmp/comprehensive-entry-v3/targeted-tests.log
+      - name: Deterministic TRAIN-only evidence regeneration without fits
+        run: |
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_comprehensive_entry_v3 --out /tmp/comprehensive-entry-v3/measurement
+          python scripts/offline/kernel_exec.py python -m scripts.verify_phase57_comprehensive_entry --saved docs/evidence/phase57-comprehensive-entry-v3/measurement --regen /tmp/comprehensive-entry-v3/measurement
+          python scripts/offline/kernel_exec.py python -m scripts.report_phase57_comprehensive_entry_v3 --source docs/evidence/phase57-comprehensive-entry-v3/measurement --out /tmp/comprehensive-entry-v3/report
+          python scripts/offline/kernel_exec.py python -m scripts.verify_phase57_comprehensive_entry --saved docs/evidence/phase57-comprehensive-entry-v3/report --regen /tmp/comprehensive-entry-v3/report
+          git diff --exit-code
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Offline prediction regression with no Project fit
+        run: python scripts/run_offline_regression.py --suite predict --output-dir /tmp/comprehensive-entry-v3/regression
+      - name: Pin exact checked head, tests, evidence and safety
+        env:
+          RESEARCH_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          root = Path('/tmp/comprehensive-entry-v3')
+          summary = json.loads((root/'measurement/summary.json').read_text())
+          audit = json.loads((root/'report/audit-appendix.json').read_text())
+          regression = json.loads((root/'regression/regression.json').read_text())
+          evidence = Path('docs/evidence/phase57-comprehensive-entry-v3')
+          closure = json.loads((evidence/'closure-manifest.json').read_text())
+          for name, digest in closure['filePins'].items():
+              assert hashlib.sha256(Path(name).read_bytes()).hexdigest() == digest, name
+          assert audit['status'] == regression['status'] == 'PASS'
+          assert 'Ran 26 tests' in (root/'targeted-tests.log').read_text()
+          assert summary['validationEvaluations'] == summary['developmentTestEvaluations'] == summary['supervisedFits'] == 0
+          receipt = {'checkedHead':os.environ['RESEARCH_HEAD'], 'runId':os.environ['GITHUB_RUN_ID'],
+              'runAttempt':os.environ['GITHUB_RUN_ATTEMPT'], 'pr':587, 'targetedTestsPassed':26,
+              'regression':regression['suites'], 'supervisedFits':0, 'validationEvaluations':0,
+              'developmentTestEvaluations':0, 'freshOOSOpened':False,
+              'verdict':summary['status'], 'safety':summary['safety'],
+              'pins':{str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in
+                  [evidence/'protocol.json',evidence/'measurement/manifest.json',evidence/'report/manifest.json',evidence/'closure-manifest.json']}}
+          (root/'final-ci-receipt.json').write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-comprehensive-entry-v3-${{ github.event.pull_request.head.sha }}
+          path: /tmp/comprehensive-entry-v3/
+          if-no-files-found: error
+          retention-days: 30

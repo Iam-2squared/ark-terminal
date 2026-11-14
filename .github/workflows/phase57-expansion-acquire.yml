@@ -1,0 +1,129 @@
+name: Phase57 Expansion Frozen Acquisition
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-expansion-acquire.yml'
+      - 'scripts/phase57_expansion_data.py'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-expansion-acquisition-v1
+  cancel-in-progress: false
+jobs:
+  preflight:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.gate.outputs.ready }}
+      matrix: ${{ steps.gate.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - id: gate
+        run: |
+          if test "$(git log -1 --format=%s)" = 'Phase57: run frozen Development acquisition v1'; then
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
+            echo "matrix=$(python -m scripts.phase57_expansion_data matrix)" >> "$GITHUB_OUTPUT"
+          else
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+          fi
+  reuse:
+    needs: preflight
+    if: needs.preflight.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-long-only-l0-replication-34917676944
+          path: ${{ runner.temp }}/source/base
+          repository: Iam-2squared/ark-terminal
+          run-id: 34917676944
+          github-token: ${{ github.token }}
+      - name: Preserve selective daily reuse
+        run: |
+          mkdir -p "$RUNNER_TEMP/reuse/jquants-v2" "$RUNNER_TEMP/daily-persist"
+          python -m scripts.phase57_expansion_data restore --archives "$RUNNER_TEMP/source" --cache "$RUNNER_TEMP/reuse/jquants-v2" --output "$RUNNER_TEMP/daily-persist/reuse-receipt.json"
+          python -m scripts.phase57_expansion_data encrypt --cache "$RUNNER_TEMP/reuse/jquants-v2" --output "$RUNNER_TEMP/daily-persist/daily-reuse.tar.gz.enc"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-expansion-daily-reuse-${{ github.run_id }}
+          path: ${{ runner.temp }}/daily-persist
+          retention-days: 90
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-l1-minute-shard-*-34926225832
+          path: ${{ runner.temp }}/source/l1
+          repository: Iam-2squared/ark-terminal
+          run-id: 34926225832
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-v2-minute-shard-*-34964031692
+          path: ${{ runner.temp }}/source/v2
+          repository: Iam-2squared/ark-terminal
+          run-id: 34964031692
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-l2-minute-shard-*-34936002178
+          path: ${{ runner.temp }}/source/l2
+          repository: Iam-2squared/ark-terminal
+          run-id: 34936002178
+          github-token: ${{ github.token }}
+      - name: Reuse exact admitted dates; skip sealed tar members
+        run: |
+          mkdir -p "$RUNNER_TEMP/reuse-persist"
+          python -m scripts.phase57_expansion_data restore --archives "$RUNNER_TEMP/source" --cache "$RUNNER_TEMP/reuse/jquants-v2" --output "$RUNNER_TEMP/reuse-persist/reuse-receipt.json"
+          python -m scripts.phase57_expansion_data encrypt --cache "$RUNNER_TEMP/reuse/jquants-v2" --output "$RUNNER_TEMP/reuse-persist/all-reuse.tar.gz.enc"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-expansion-reuse-${{ github.run_id }}
+          path: ${{ runner.temp }}/reuse-persist
+          retention-days: 90
+      - if: always()
+        run: rm -rf -- "$RUNNER_TEMP/source" "$RUNNER_TEMP/reuse"
+  acquire:
+    needs: [preflight, reuse]
+    if: needs.preflight.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix: ${{ fromJSON(needs.preflight.outputs.matrix) }}
+    env:
+      JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-expansion-daily-reuse-${{ github.run_id }}
+          path: ${{ runner.temp }}/reuse-encrypted
+      - name: Restore hash-verified existing daily inputs
+        run: |
+          mkdir -p "$RUNNER_TEMP/raw/jquants-v2"
+          python -m scripts.phase57_expansion_data restore --archives "$RUNNER_TEMP/reuse-encrypted" --cache "$RUNNER_TEMP/raw/jquants-v2" --output "$RUNNER_TEMP/restore-receipt.json"
+      - name: Acquire only frozen Development partition with page checkpoints
+        run: python -m scripts.phase57_expansion_data acquire --job '${{ matrix.id }}' --cache "$RUNNER_TEMP/raw/jquants-v2" --output "$RUNNER_TEMP/persist"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-expansion-raw-${{ matrix.id }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/persist
+          retention-days: 90
+          if-no-files-found: error
+      - if: always()
+        run: rm -rf -- "$RUNNER_TEMP/raw" "$RUNNER_TEMP/reuse-encrypted"

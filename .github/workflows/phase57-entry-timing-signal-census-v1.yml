@@ -1,0 +1,40 @@
+name: Phase57 Entry Timing Signal Census v1
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-entry-timing-signal-census-v1.yml'
+      - 'scripts/phase57_entry_timing*.py'
+      - 'scripts/test_phase57_entry_timing_census.py'
+      - 'scripts/verify_phase57_entry_timing_census.py'
+      - 'docs/evidence/phase57-entry-timing-signal-census-v1/**'
+permissions:
+  contents: read
+concurrency:
+  group: phase57-entry-timing-signal-census-v1
+  cancel-in-progress: true
+jobs:
+  verify:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      ARK_TEST_OFFLINE: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.7.2 pandas==2.2.3
+      - name: Causal tests and inherited Entry regression
+        run: python scripts/offline/kernel_exec.py python -m unittest -v scripts.test_phase57_entry_timing_census scripts.test_phase57_entry_pattern_v2 scripts.test_phase57_entry_extended scripts.test_phase57_chart_entry
+      - name: Verify preserved census; no new measurement or training
+        run: |
+          python scripts/offline/kernel_exec.py python scripts/verify_phase57_entry_timing_census.py
+          python scripts/offline/kernel_exec.py python scripts/verify_phase57_development_preservation.py
+          python scripts/offline/kernel_exec.py python scripts/verify_phase57_selector_min_price75_freeze.py

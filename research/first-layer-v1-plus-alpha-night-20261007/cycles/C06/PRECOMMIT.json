@@ -1,0 +1,133 @@
+{
+  "REPORT501_forbidden_for_continued_selection": true,
+  "adaptive_development": true,
+  "blocks": [
+    "S1",
+    "S2"
+  ],
+  "budget_model_fits": 4,
+  "clock": {
+    "JST": "2026-10-07T07:06:25.661591+09:00",
+    "UTC": "2026-10-06T22:06:25.661591+00:00"
+  },
+  "configs": [
+    {
+      "V1_INTERACTIONS": true,
+      "added_families": [
+        "C01",
+        "C06"
+      ],
+      "candidate_id": "C06_ORDERED_CHAMPION",
+      "complexity": [
+        2,
+        12,
+        0,
+        288,
+        0.0
+      ],
+      "family": "logit",
+      "new_interactions": [
+        {
+          "category": "S.primary",
+          "group": "C03current",
+          "numeric": [
+            "C01.open_progress",
+            "C01.range_position",
+            "C01.connected_efficiency",
+            "C01.mean_value"
+          ]
+        },
+        {
+          "category": "H.primary",
+          "group": "C03history",
+          "numeric": [
+            "C01.from_high",
+            "C01.from_low",
+            "C01.high_update_count",
+            "C01.value_up_fraction"
+          ]
+        },
+        {
+          "binary": "Q.current_state_available",
+          "group": "C03available",
+          "numeric": [
+            "C01.direction_agreement",
+            "C01.tail_vs_full_efficiency",
+            "C01.mean_volume",
+            "C01.support_fraction"
+          ]
+        }
+      ],
+      "parent_id": "C03_STATE_CHART_LOGIT",
+      "regularization_multiplier": 1.0
+    },
+    {
+      "V1_INTERACTIONS": true,
+      "added_families": [
+        "C01",
+        "C06"
+      ],
+      "candidate_id": "C06_ORDERED_REJECT_BRANCH",
+      "complexity": [
+        2,
+        12,
+        0,
+        288,
+        2.0
+      ],
+      "drop_FIT_constant_columns": true,
+      "family": "logit",
+      "new_interactions": [
+        {
+          "category": "S.primary",
+          "group": "C03current",
+          "numeric": [
+            "C01.open_progress",
+            "C01.range_position",
+            "C01.connected_efficiency",
+            "C01.mean_value"
+          ]
+        },
+        {
+          "category": "H.primary",
+          "group": "C03history",
+          "numeric": [
+            "C01.from_high",
+            "C01.from_low",
+            "C01.high_update_count",
+            "C01.value_up_fraction"
+          ]
+        },
+        {
+          "binary": "Q.current_state_available",
+          "group": "C03available",
+          "numeric": [
+            "C01.direction_agreement",
+            "C01.tail_vs_full_efficiency",
+            "C01.mean_volume",
+            "C01.support_fraction"
+          ]
+        }
+      ],
+      "parent_id": "C05_REG_STRONG",
+      "regularization_multiplier": 3.0
+    }
+  ],
+  "cycle": "C06",
+  "family_QA": "all-entry immutable family manifests + FIT-only representation audit + independent count verification",
+  "hypothesis": "Causal8-bin ordered path may distinguish intraday sequences with similar whole-day means/extrema",
+  "implementation_sha256": "24e524385bf2f069708c4ab9b7701792fbefa184032d85442939bca029c996a3",
+  "new_REPORT_scores_opened": false,
+  "notes": [],
+  "parent": "C03_STATE_CHART_LOGIT",
+  "parent_operating_point": 95,
+  "points": [
+    90,
+    95,
+    99
+  ],
+  "precommit_before_new_fit": true,
+  "prior_REPORT501_already_opened": true,
+  "registry_sha256": "3772b5a5ecee3a7cc210d3baf084a858e57d9f32cb44b20b06b0a6397f9849cf",
+  "second_parent_reason": "Saved Pareto low-MINUS branch if different from Champion; no new thresholds or seeds"
+}

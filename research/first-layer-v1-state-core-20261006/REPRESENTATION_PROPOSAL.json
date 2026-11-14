@@ -1,0 +1,67 @@
+{
+  "abstain_policy": "retain candidate; not a PLUS correct prediction; ABSTAIN MINUS counts in passed MINUS",
+  "allowed_interactions": [
+    "current_state × current_run_activity",
+    "transition_family × activity_change",
+    "current_state × path_efficiency",
+    "current_state × remaining_active_minutes"
+  ],
+  "blocks_upper_bound": 3,
+  "cal_plus_retention_proposals": {
+    "diagnostic": [
+      0.975,
+      0.99
+    ],
+    "primary": 0.95
+  },
+  "comparisons": {
+    "A": "CURRENT",
+    "B": "CURRENT+TRANSITION",
+    "C": "CURRENT+TRANSITION+PATH",
+    "D": "STATE-CORE FULL = C + state-aligned activity/time [PRIMARY]",
+    "E": "minimal MARKET-ONLY CONTROL without State"
+  },
+  "configurations": 5,
+  "current": "formal observed Primary, availability/basis, current-run duration, main/local and official auxiliary fields, pre-cutoff run activity/time",
+  "cutoff": "BUY_INTENT decision time; teacher ledger separated; no post-entry inputs",
+  "document_id": "ARK_FIRST_LAYER_V1_STATE_CORE_WORK_20261006",
+  "excluded_first_pass": [
+    "Tick",
+    "Daily/Light/API",
+    "Dictionary",
+    "peer/index/news",
+    "old Sign feature matrix/models/q/80% gate/v3 slots",
+    "post-entry sources/teacher-derived features"
+  ],
+  "final_precommit_published": false,
+  "fit_allowed": false,
+  "fit_upper_bound": 15,
+  "model_family": "new hierarchical/regularized logistic; common effect plus State/Transition/Path/activity/time",
+  "not_finalized": [
+    "chronological FIT/CAL/TEST boundaries and teacher-maturity purge",
+    "exact block count and support limits",
+    "design matrix exact fields/normalizers/regularization",
+    "finite CAL thresholds and integer PLUS-miss budgets",
+    "minimum MINUS rejection, completed gate/session robustness/uncertainty limits"
+  ],
+  "path": "latest maximum six observed state runs in contiguous segment; current run truncated at BUY_INTENT, auxiliary changes retained within same Primary",
+  "path_runs_proposal": 6,
+  "primary": "D",
+  "state_aligned_activity": "OHLC/price progress, Volume, Trading Value, active time, remaining active minutes and missingness; normalization scale must be fixed in final schema",
+  "state_names": [
+    "RISE",
+    "SHARP_RISE",
+    "RISE_STOP",
+    "PULLBACK",
+    "RANGE",
+    "REBOUND",
+    "DROP",
+    "SHARP_DROP",
+    "DROP_STOP"
+  ],
+  "state_semantics": "as frozen, no prior win/loss meaning; no tenth missing state",
+  "status": "PROPOSAL_ONLY_NOT_EXECUTABLE_PRECOMMIT",
+  "teacher": "net>0 PLUS, net<0 MINUS; ZERO/UNKNOWN/unresolved/no-fill preserved under frozen contracts",
+  "teacher_original_gzip_sha256": "37395d7567df741a74b1ff749a32118cec04ed988da101b81634c2c55ae9ae0d",
+  "transition": "adjacent observed runs only; previous/current Primary and duration/context/aux/activity change; reset on missing/session/lunch/contract boundaries"
+}

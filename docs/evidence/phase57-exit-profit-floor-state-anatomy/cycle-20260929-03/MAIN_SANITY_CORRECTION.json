@@ -1,0 +1,24 @@
+{
+  "atJst": "2026-09-29T21:31:28.707914+09:00",
+  "closePairRowsN": 904,
+  "cycleIdentity": "cycle-20260929-03",
+  "independentAuditRanAfterIncorrectSanityPass": true,
+  "independentAuditStatus": "PASS_LIMITED_SCOPE",
+  "independentDidNotVerifyCloseGiveback": true,
+  "independentMismatchN": 0,
+  "mainCodeSha256": "dbf6200aa616387e03c78b908be488d0502f7fb061abbfcf113329c1ce27a6a1",
+  "mainSanityReceiptSha256": "5c3b572eb6eec983d10da59e05c92ea55b4876d8078c9c1315b58a690136faa4",
+  "minimumImpossibleGivebackPp": -2.641850880727037,
+  "negativeByWorld": {
+    "IM": 9,
+    "R1": 29
+  },
+  "negativeMaxCloseGivebackRowsN": 38,
+  "newThresholdsSelected": false,
+  "nextRequirement": "new finite approval for corrected Close aggregation and strengthened synthetic/Main Sanity; no further current main or independent budget",
+  "noMainRecalculationOrOverwrite": true,
+  "originalMainSanityStatus": "PASS_INCORRECT",
+  "rootCause": "close_pullback_row initializes running prior Close peak then stores peak minus current Close without clamping to zero. When subsequent Close advances without pullback, a negative value is recorded as max giveback.",
+  "scope": "CLOSE_MILESTONE_PAIR_ROWS.jsonl.gz and CLOSE_MILESTONE_PULLBACK_ANATOMY.json; High-based main output and independent checked counts/quantiles remain separately recorded but full completion prohibited.",
+  "status": "PATH_ANATOMY_INCOMPLETE_MAIN_INVALID"
+}

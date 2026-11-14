@@ -1,0 +1,12 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {strictPath} from './recover_phase57_historical_remeasurement_paths.mjs';
+const date='2024-12-02',timestamp=`${date}T10:00:00+09:00`;
+const iso=t=>new Date(t+9*3600000).toISOString().replace('.000Z','+09:00');
+const bars=Array.from({length:6},(_,i)=>({sessionDate:date,barStartJst:iso(Date.parse(timestamp)+i*300000),availableAtJst:iso(Date.parse(timestamp)+(i+1)*300000),high:103,low:97,close:101,observedMinutes:5}));
+test('strict LOW MAE and HIGH MFE use reference, no session path',()=>{const p=strictPath(bars,date,timestamp,100);assert.ok(Math.abs(p.trueMaePct+3)<1e-10);assert.ok(Math.abs(p.mfePct-3)<1e-10);assert.equal(p.barCount,6);});
+test('missing path never filled',()=>assert.equal(strictPath(bars.slice(1),date,timestamp,100).labelable,false));
+test('lunch and end cannot use shortened horizon',()=>{assert.equal(strictPath([],date,`${date}T11:15:00+09:00`,100).reason,'LUNCH_BREAK');assert.equal(strictPath([],date,`${date}T15:15:00+09:00`,100).reason,'SESSION_END');});
+test('future completed-time corruption rejected',()=>assert.throws(()=>strictPath(bars.map((b,i)=>i?b:{...b,availableAtJst:`${date}T10:06:00+09:00`}),date,timestamp,100)));
+test('duplicate and cross-session rejected',()=>{assert.throws(()=>strictPath([...bars,bars[0]],date,timestamp,100));assert.throws(()=>strictPath([{...bars[0],sessionDate:'2024-12-03'}],date,timestamp,100));});
+
+test('UTC and JST instant identities are equal',()=>assert.deepEqual(strictPath(bars,date,'2024-12-02T01:00:00.000Z',100),strictPath(bars,date,timestamp,100)));

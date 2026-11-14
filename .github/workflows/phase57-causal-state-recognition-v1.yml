@@ -1,0 +1,32 @@
+name: Phase57 STEP3 Causal State Recognition
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-causal-state-recognition-v1.yml'
+      - 'scripts/phase57_causal_state_recognition_v1.py'
+      - 'docs/evidence/phase57-causal-state-recognition-v1/**'
+permissions:
+  contents: read
+jobs:
+  measure:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Measure STEP3 from saved causal checkpoints and STEP1 evaluator anatomy
+        run: |
+          test ! -e docs/evidence/phase57-causal-state-recognition-v1/result
+          python scripts/phase57_causal_state_recognition_v1.py
+          test -s docs/evidence/phase57-causal-state-recognition-v1/result/summary.json
+          test -s docs/evidence/phase57-causal-state-recognition-v1/result/REPORT.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-step3-causal-state-${{ github.event.pull_request.head.sha }}
+          path: docs/evidence/phase57-causal-state-recognition-v1/result
+          retention-days: 90

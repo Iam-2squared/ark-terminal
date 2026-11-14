@@ -1,0 +1,120 @@
+{
+  "status": "PASS_RESULT_INTEGRITY_NOT_COMPLETION",
+  "evidenceCommit": "70cef9a0808e9b7b02a31c977a2c35431a9ccc77",
+  "testedCodeCommit": "5ab3092f34853d979c2c7a5eb8b7ea2d3b0b7f56",
+  "runId": 35441778315,
+  "registrySHA256": "3db98b56a98e39cc15708c5918c2aaf694376cc472d601c79971db49a5b98a39",
+  "traitCounts": {
+    "WATCH": 52,
+    "INSUFFICIENT": 18,
+    "USABLE": 3
+  },
+  "coverage": {
+    "universe": 218319,
+    "reconstruction_eligible": 216040,
+    "daily_scaled_eligible": 190000,
+    "intraday_scaled_eligible": 190000
+  },
+  "completion": {
+    "acceptedCorrelations": [
+      {
+        "left": "amihud",
+        "rho": 0.34252684809568645,
+        "right": "value_AM"
+      },
+      {
+        "left": "amihud",
+        "rho": 0.5359641165471001,
+        "right": "value_PM1"
+      },
+      {
+        "left": "value_AM",
+        "rho": 0.464769492681581,
+        "right": "value_PM1"
+      },
+      {
+        "left": "amihud",
+        "rho": 0.3430732137341334,
+        "right": "volume_AM"
+      },
+      {
+        "left": "value_AM",
+        "rho": 0.9999751783872073,
+        "right": "volume_AM"
+      },
+      {
+        "left": "amihud",
+        "rho": 0.5364507098427324,
+        "right": "volume_PM1"
+      },
+      {
+        "left": "value_AM",
+        "rho": 0.46494375834036533,
+        "right": "volume_PM1"
+      },
+      {
+        "left": "value_PM1",
+        "rho": 0.9999602616794131,
+        "right": "volume_PM1"
+      }
+    ],
+    "complete": false,
+    "daily": 1,
+    "excludedTailSessions": [
+      "2024-09-30",
+      "2024-09-26",
+      "2024-10-28"
+    ],
+    "families": [
+      "activity",
+      "liquidity"
+    ],
+    "intraday": 2,
+    "status": "V0_TRAIT_RELIABILITY_INSUFFICIENT",
+    "usable": 3
+  },
+  "focusedTests": 129,
+  "regressionTests": 2949,
+  "manifestAudit": "PASS_36_ARTIFACTS",
+  "lanePHashCheck": "PASS",
+  "sourceHashes": {
+    "06_pattern_vocabulary.json": "b351d26ebee02e28d9831026b1f0567c44f092b0d355fcba015b93e242063607",
+    "07_composite_patterns.json": "57ca1350fca6d30803a744ecef6f90bd97d96fed79f8a6e83914db2e87871116",
+    "17_split_half_reliability.json": "326425a1ee33baea11e080dad85fabb0fce55da8ba4517a3f4539d91f547aa8a",
+    "29_tests.json": "26fb447fbfeca42566dfca720939158f2171c24540f787f1dba9173dbb2bd5dd",
+    "18_incremental_reliability.json": "fc680efb65a68084110b24d6f149ad8b9fe8cb6af36555f00176f89a460d48fe",
+    "13_volume_value.json": "cd06b66b4962de415817c7571505e040bf7900064fe140806f2768db2cb11ec9",
+    "16_posterior_profiles.json": "162b67a44517a3b1b4db39e300ab650836c90b628f513db9dbfbb587fea0bd99",
+    "33_final_report.md": "a747bf7a5e70c0f4ba92d91d0bb7e440f1482f08e5c6b1586acdf602ed8bede6",
+    "21_block_bootstrap.json": "c8280d6d32239f00df20e7ae6d457c75f5f20618aec06188715451dcffd5597f",
+    "27_human_semantics_audit.json": "b92144c0ecd84351f033f58dc6135d56da2a5d418ef833cf9666388f791e6a8e",
+    "30_regression.json": "19a7316e8f4c1dfd32046b2100ee72b0801a4da08ab87b24a3daaa64b30e9205",
+    "exposure_trial_delta.json": "e7d70ea1ffc1cd7a30b05f4c105b993cd7ffa42c90c4a87c290b6756dcfd96fb",
+    "23_multiple_testing.json": "9b6c5b3cac8204a6f028c5d71027ba13f6817fa94c0ecfcaa529457d5e755a42",
+    "04_scale_s.json": "8976cfb0ad8a29e6c6240ed038222dc20c3bf1340b612f330285c6824017ed9b",
+    "14_raw_profiles.json": "2571f3e1178e6ae994364d6395f48d6ba71300c6b4f2d4315ba1dfd4415036ca",
+    "10_tier2_intraday_traits.json": "8239d99ad5fbd4a97c13e90e1af57ae7b86ef3f08841b944648adbe8873799be",
+    "08_walk_forward_split.json": "bd23c28f94d7f61fc36b4b5faf24c8a5fb5df9ac82dc1f5c495bcd753bc2257b",
+    "22_tail_session_sensitivity.json": "692d6242e8db0fb89d910b107d0695ba15a9707787cc8d4a7632c61d741dc810",
+    "manifest.json": "9a78145ea6771109b6aaa5def6fa78a47d72f68b641d989e660f39c65670c3dc",
+    "02_registry_precommit.json": "805377d57af355744934c198c294a3fce989edd741bef669a50b4b0d2a1852ae",
+    "28_lane_p_compatibility.json": "662730e07c59d1724f381acc8600d75dd5d328aabb42b7a83661f1b35355a29f",
+    "25_dictionary_v0.json": "b6fe739b9c99d52e443307b5aa17ad322d750575cb1a2ab9288c252efeef9b4b",
+    "09_tier1_daily_traits.json": "aaefd4c4f53937e7794750a2886d2d0ff2db641372bb8aa23b6e0d79e642b85e",
+    "12_swing.json": "3579e119cfb481cff11c935171a4823ea04524fd5e33bb1bee929faa83bfe6a0",
+    "31_ci.json": "4dd9116ae0d19f6c0502e55a811a138c44bbcb3f82c1c932204afbbfad453942",
+    "runtime.json": "1e1eaf31e65a208b7454c07a9d88774e8460ccd11d8ed0019875ec2bb673fda5",
+    "15_peer_relative_profiles.json": "f8ba6462d3caa87a1b2e46460858ec805ffbb4dbaad18f842f224d5ed3cf48d9",
+    "profiles.json.gz": "3b2b0aa87398d398d98e1f61acf36cc421b48f202ea08b48fd755c5ec9890a36",
+    "34_final_handoff.md": "a747bf7a5e70c0f4ba92d91d0bb7e440f1482f08e5c6b1586acdf602ed8bede6",
+    "20_liquidity_strata.json": "cfc0ae48a6d8845aff90e960ab41290e05a3cf4edf49f0431d3e47122b784176",
+    "26_completion_gate.json": "617b7e4f3967f12b1efea11b3c48978b3625c94a287028fa80802a339333e557",
+    "24_trait_gate.json": "a530b77e5b6a398cdae852e332bb6320753220fab3196d356e444fbe7ec10620",
+    "01_start_state.json": "18987a65c368fb0afbc73b2a4c8bcd19450054454f651e407eef83e1f3e6cf91",
+    "05_trait_catalog.json": "87e8c0342e7fa0818c677e1fdeef8451b6903146771d8b6aa7ae04df0ac539f7",
+    "19_calibration.json": "859540f976798fe3683aa2ab02ce59fe6102875734c1af1f9020588251a5e7a2",
+    "03_data_eligibility.json": "66bf49edb7f396c1df4fcab14ad6e8813ea22dbd00624deba115ffbaca58fd36",
+    "32_safety_data_boundary.json": "5f7fe2009796ddc96ccd05698230ce008b14b3d52763d3d2bfb9b67c2e2e3ee8",
+    "11_support_resistance.json": "34353e02429fb5aa9177f5024869bc2f994bb7ec755afaef80d3283fdb7873b2"
+  }
+}

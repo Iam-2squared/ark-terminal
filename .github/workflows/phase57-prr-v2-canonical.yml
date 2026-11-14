@@ -1,0 +1,63 @@
+name: Phase57 PRR V2 canonical route stability
+on:
+  push:
+    branches:
+      - research/phase57-long-only-cash-equity
+    paths:
+      - 'scripts/phase57_prr_v2_canonical.py'
+      - '.github/workflows/phase57-prr-v2-canonical.yml'
+jobs:
+  canonical:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 60
+    env:
+      OMP_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+      PYTHONHASHSEED: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install exact canonical packages
+        run: python -m pip install 'numpy==2.3.5' 'scipy==1.18.1' 'scikit-learn==1.8.0' 'joblib==1.6.0' 'threadpoolctl==3.7.0' 'pandas==2.2.3'
+      - name: Static syntax and 30 focused route/accounting cases
+        run: |
+          python -m py_compile scripts/phase57_prr_v2_diagnostic.py scripts/phase57_prr_v2_canonical.py
+          python -m unittest tests.test_phase57_prr_rank tests.test_phase57_prr_economics -v
+      - name: Restore existing Development State reference
+        run: |
+          mkdir -p artifacts/reference
+          cp docs/evidence/phase57-state-v3-9pattern-entry-v1/measurement/state-checkpoints.json.gz artifacts/reference/state-checkpoints.json.gz
+      - name: Reconstruct exact frozen 566 features, zero fits
+        run: python -m scripts.phase57_entry_all_material_r1_data --workers 2
+      - name: Canonical pass A, six fixed outer fits
+        run: python -m scripts.phase57_prr_v2_canonical --pass-name A
+      - name: Canonical pass B, independent process and six fixed outer fits
+        run: python -m scripts.phase57_prr_v2_canonical --pass-name B
+      - name: Compare route stability and freeze canonical OOF if eligible
+        run: python -m scripts.phase57_prr_v2_canonical --compare
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-prr-v2-canonical-evidence
+          path: |
+            docs/evidence/phase57-prr-numerical-recovery/FIT_ATTEMPTS.json
+            docs/evidence/phase57-prr-numerical-recovery/CANONICAL_RUNTIME_ENV_A.json
+            docs/evidence/phase57-prr-numerical-recovery/CANONICAL_RUNTIME_ENV_B.json
+            docs/evidence/phase57-prr-numerical-recovery/CANONICAL_PASS_A_FIT.json
+            docs/evidence/phase57-prr-numerical-recovery/CANONICAL_PASS_B_FIT.json
+            docs/evidence/phase57-prr-numerical-recovery/CANONICAL_PASS_A_OOF.jsonl.gz
+            docs/evidence/phase57-prr-numerical-recovery/CANONICAL_PASS_B_OOF.jsonl.gz
+            docs/evidence/phase57-prr-numerical-recovery/ROUTE_STABILITY.json
+            docs/evidence/phase57-prr-numerical-recovery/OLD_OOF_COMPARISON.json
+            docs/evidence/phase57-prr-numerical-recovery/MISMATCH_ROWS.jsonl.gz
+            docs/evidence/phase57-prr-numerical-recovery/CANONICAL_OOF.jsonl.gz
+            docs/evidence/phase57-prr-numerical-recovery/ROUTE_DECISIONS.jsonl.gz
+            docs/evidence/phase57-prr-numerical-recovery/CANONICAL_OOF_FREEZE.json
+            docs/evidence/phase57-prr-numerical-recovery/CANONICAL_OOF_FREEZE.sha256
+          if-no-files-found: warn

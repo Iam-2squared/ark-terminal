@@ -1,0 +1,137 @@
+{
+  "schema": "phase57-post-prr-phase-a-precommit-v1",
+  "savedJst": "2026-09-29T12:05:59+09:00",
+  "basisHead": "4552d53d7984850c4de76802a63c272365e1dbd6",
+  "startAuditSha256": "06187848acf8f6f5d77998a65f11f83e7b4623dcb7016abeeb72b02165ae516c",
+  "sourcePins": {
+    "prrPrecommit": {
+      "path": "docs/evidence/phase57-prr-numerical-recovery/CYCLE_PRECOMMIT.json",
+      "sha256": "e57cd148f20b93633504994c67eeb28c4c97ac1f1334f54e7d10793e4442feb9"
+    },
+    "prrManifest": {
+      "path": "docs/evidence/phase57-prr-numerical-recovery/MANIFEST.json",
+      "sha256": "35da1f64f6344035525dc06b020c10b2103faa818760de479785dd0aa730e3df"
+    },
+    "canonicalOof": {
+      "path": "docs/evidence/phase57-prr-numerical-recovery/CANONICAL_OOF.jsonl.gz",
+      "sha256": "ae460660a45ef9c20138a0cd2481a82f20f8192bbde5ecb6154ed8e01e5929f2"
+    },
+    "routeDecisions": {
+      "path": "docs/evidence/phase57-prr-numerical-recovery/ROUTE_DECISIONS.jsonl.gz",
+      "sha256": "071ad1039edc886fa1d56084178ac57d8121e37d8a3a333e4621f6bb7a7845b8"
+    },
+    "prrPrimary": {
+      "path": "docs/evidence/phase57-prr-numerical-recovery/LAYER_A_ENTRY_ROWS.jsonl.gz",
+      "sha256": "ccb57b7e1a136cb04bb210d9b74c79f322b4ff27146213158a1dd689234018be"
+    },
+    "prrAll": {
+      "path": "docs/evidence/phase57-prr-numerical-recovery/ALL_ENTRY_ENTRY_ROWS.jsonl.gz",
+      "sha256": "7296770008d846c874076ae3a9b62c7a215c83ffa1a393aeb8d1cbfe2e06550a"
+    },
+    "ccmgManifest": {
+      "path": "docs/evidence/phase57-checkpoint-certified-guard-exit/MANIFEST.json",
+      "sha256": "6053ccdeafe55f588ad228579b0d93c77d68cc2b45b7191e608c67f7a7745325"
+    },
+    "ccmgSource": {
+      "path": "docs/evidence/phase57-checkpoint-certified-guard-exit/LAYER_A_ENTRY_ROWS.jsonl.gz",
+      "sha256": "3d6a3b7494b9fc4cabe686fe998e44a470324c1be7c1e7156779ad6bd60ff8f1"
+    },
+    "ccmgTrace": {
+      "path": "docs/evidence/phase57-checkpoint-certified-guard-exit/CHECKPOINT_DRY_TRACE.jsonl.gz",
+      "sha256": "7f10f3394ea2429b0135b66ec17bc99a317f74323e2a98d5c2b448ba835493a8"
+    },
+    "r54Accounting": {
+      "path": "docs/evidence/phase57-exit-mh-r54/CYCLE2_R34_ACCOUNTING_AUDIT_RECEIPT.json",
+      "sha256": "9437ea5df37879c9219c3d425356e8a90f65996582bf67028bdca352ce72cfee"
+    }
+  },
+  "scope": [
+    "CONTRACT_AUDIT",
+    "A0_CENSUS",
+    "A0_FREEZE",
+    "A1_ANALYSIS_SPEC",
+    "A1_RESULTS",
+    "NEXT_EXPERIMENT_SPEC_DRAFT",
+    "INDEPENDENT_AUDIT",
+    "PHASE_A_CLOSURE",
+    "CONTROLLING_HANDOFF"
+  ],
+  "masks": [
+    "control_outcome_known",
+    "ccmg_outcome_known",
+    "paired_outcome_known",
+    "entry_cost_basis_known",
+    "quantity_known",
+    "control_intent_time_known",
+    "ccmg_first_intent_time_known",
+    "fill_time_known",
+    "future_label_known",
+    "runtime_feature_asof_valid"
+  ],
+  "join": [
+    "arm",
+    "entryId",
+    "session",
+    "symbol",
+    "entryMinute",
+    "entryPrice",
+    "quantity"
+  ],
+  "accounting": {
+    "authority": "frozen R34 funded ledger/cost contract, saved prices and quantities; resolve before normalization",
+    "pnlJpy": "saved exit price times quantity minus paid entry cost and frozen contract costs, separately for each policy",
+    "netReturnPct": "100*pnlJpy / frozen paid entry cost; mean of per-entry Net%, not mean yen",
+    "deltaPnlJpy": "CCMG minus R50 at identical Entry and quantity on paired known mask",
+    "deltaNetPp": "CCMG NetReturnPct minus R50 NetReturnPct; missing stays null",
+    "commonCostCancellation": "only after fee basis and common cost/quantity confirmed",
+    "reconciliation": "append-only rows and receipt; retain old reports and closure"
+  },
+  "a0": {
+    "noFeatureDeltaAssociation": true,
+    "deltaVisibility": "only equal/nonzero/unavailable counts",
+    "tables": [
+      "arm x route x primary/all/primary-outside",
+      "outcome masks",
+      "sessions/opportunities",
+      "intent availability and ordering",
+      "asof snapshot availability",
+      "old released Development period support",
+      "Potential score and lineage availability"
+    ],
+    "freeze": "A0_CENSUS.json plus SHA and exposure ledger before A1 spec"
+  },
+  "a1": {
+    "specAfterA0": true,
+    "pairedMask": "all both-known R50/CCMG rows including delta=0",
+    "analyses": [
+      "paired value and Net% by arm, population and route",
+      "upside buckets <5, 5-10, >=10 and Winner bands",
+      "gain/loss concentration and session clustering",
+      "Potential rank versus delta on fixed full paired population",
+      "IM/R1 corresponding opportunity overlap without pooling",
+      "CCMG first sell intent, R50 intent ordering, fill and causal snapshot feasibility"
+    ],
+    "inferentialLimits": "Development reused; Primary subset of all; arms alternative Entry worlds; no portfolio/causal claim"
+  },
+  "forbidden": [
+    "new estimator/calibration fit",
+    "new candidate/policy replay",
+    "route/floor/ladder change",
+    "provider requests",
+    "protected partition access",
+    "orders",
+    "main merge"
+  ],
+  "budget": {
+    "newFits": 0,
+    "newPolicyReplays": 0,
+    "providerRequests": 0,
+    "orders": 0
+  },
+  "nextExperimentUndecided": [
+    "minimumSupport",
+    "tailTolerance",
+    "experimentGate",
+    "trainingBudget"
+  ]
+}

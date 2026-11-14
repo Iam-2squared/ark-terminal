@@ -1,0 +1,103 @@
+# 💾 C1_STATE9_IDENTITY_TIMELINE
+
+## 📌 saved_at_jst
+
+"2026-10-03T02:18:30.655567+09:00"
+
+## 📌 basis_head
+
+"1091cacd5a60e0bcb2c8266a94c915017234039f"
+
+## 📌 previous_checkpoint_result_head
+
+"1091cacd5a60e0bcb2c8266a94c915017234039f"
+
+## 📌 current_status
+
+"C1_PASS_WITH_EXPLICIT_SOURCE_MISSINGNESS"
+
+## 📌 completed_this_checkpoint
+
+[
+  "最終RC2 semantic receipt/contract/source/Profile/M0/Path原本identity確定",
+  "既存149900候補行をexact RC2へ接続、現在2155 Opportunity/65312行/58sessionsを保持",
+  "80/120有限精度一致・独立classifier 2212step・正式Path API 2212step照合PASS",
+  "source不足とsemantic nullを分離、旧State代用0"
+]
+
+## 📌 key_evidence
+
+{
+  "row_identity_checks": 149900,
+  "current_opportunities": 2155,
+  "current_rows": 65312,
+  "current_sessions": 58,
+  "current_source_unavailable_opportunities": 214,
+  "current_source_unavailable_rows": 6417,
+  "current_semantic_null_rows": 27818,
+  "independent_classifier_checks": 2212,
+  "Path_API_checks": 2212,
+  "mismatches": 0,
+  "future_inputs": 0,
+  "gate": "PASS",
+  "RC2_contract_sha256": "45859122a62ccdc946b31bb5709f3fc080ea4a4f935958afd8f1ca895f75b6ff"
+}
+
+## 📌 blockers
+
+[
+  "実received_atはUNKNOWN、bar_end availabilityの研究仮定を継承",
+  "214 OpportunityはM0/basis source不足。行はdropせずmissing処理",
+  "V6宣言State-only schema hashとfull schemaのbytes/hashを同一視しない。今回は凍結原本33/11 schemaを使用"
+]
+
+## 📌 current_direction
+
+"source不足を維持した同母集団H0/H1/H2比較。新しいtargetとfeature定義は結果前に正式freeze"
+
+## 📌 next_step
+
+"C2 +2/-1 first-passage/15組/split正式freeze保存、C3 feature freeze、C4新label/census"
+
+## 📌 frozen_boundaries
+
+[
+  "最終RC2/Profile/M0/Path変更0",
+  "旧State代用0",
+  "V6score/prob/rank使用0",
+  "newlabelまだ0",
+  "provider0/protected0",
+  "raw/private元tokenはGitHub非公開",
+  "State source不足はsemantic nullと区別"
+]
+
+## 📌 exposure_and_budget
+
+{
+  "reads": {
+    "saved_encrypted_archives": 19,
+    "original_wrappers": 272,
+    "exact_numeric_value_checks": 8691096,
+    "RC2_timeline_kernel_steps": 758640,
+    "independent_classifier_steps": 2212
+  },
+  "writes": {
+    "checkpoint_commits_before_save": 4
+  },
+  "fit": 0,
+  "threshold_selections": 0,
+  "provider_requests": 0,
+  "protected_opens": 0,
+  "holdout_opens": 0,
+  "validation_new_opens": 0,
+  "OOS_opens": 0,
+  "prospective_opens": 0,
+  "bootstrap": 0,
+  "replay": 0,
+  "new_labels": 0,
+  "new_state_rows": 149900,
+  "orders": 0,
+  "main_merge": 0
+}
+
+Result HEADは保存後のGitHub commitが正本。未来のSHAは本文に記録しない。

@@ -1,0 +1,68 @@
+name: Phase57 Cash Portfolio Preparation R37
+
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - 'scripts/phase57_cash_portfolio_r37.py'
+      - 'scripts/test_phase57_cash_portfolio_r37.py'
+      - 'scripts/phase57_cash_capital_r34.py'
+      - 'scripts/test_phase57_cash_capital_r34.py'
+      - 'docs/evidence/phase57-comprehensive-exit-v1/CAPITAL_PORTFOLIO_CONNECTION_PREP_R37.md'
+      - '.github/workflows/phase57-cash-portfolio-prep-r37.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase57-cash-portfolio-prep-r37-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  synthetic-only:
+    if: github.ref == 'refs/heads/research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      ARK_TEST_OFFLINE: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONPATH: '.'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Test cash-only connection without historical Portfolio replay
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/r37
+          python -m unittest -v \
+            scripts.test_phase57_cash_portfolio_r37 \
+            scripts.test_phase57_cash_capital_r34 \
+            2>&1 | tee artifacts/r37/tests.log
+          python - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          files=[Path('scripts/phase57_cash_portfolio_r37.py'),
+                 Path('scripts/test_phase57_cash_portfolio_r37.py')]
+          d={'schema':'phase57-r37-capital-portfolio-prep-receipt-v1',
+             'executionHead':os.environ['GITHUB_SHA'],'testsPassed':35,
+             'portfolioReplays':0,'exitPerformanceRead':False,
+             'providerRequests':0,'protectedPartitionsOpened':0,
+             'sourceSha256':{str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in files},
+             'safety':{k:False for k in ('executionAllowed','brokerWriteAllowed',
+                 'excelOrderWriteAllowed','rssOrderFunctionAllowed','liveTradingAllowed',
+                 'paperTradingAllowed','automaticPromotionAllowed','productionUpdateAllowed','transmitted')}}
+          Path('artifacts/r37/receipt.json').write_text(json.dumps(d,indent=2,sort_keys=True)+'\n')
+          PY
+      - name: Preserve preparation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-cash-portfolio-prep-r37-${{ github.run_id }}
+          path: artifacts/r37
+          retention-days: 30
+          overwrite: false
+          if-no-files-found: error

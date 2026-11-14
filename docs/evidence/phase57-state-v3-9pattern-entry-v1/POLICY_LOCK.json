@@ -1,0 +1,72 @@
+{
+  "artifactKind": "phase57_state_v3_9pattern_entry_v1_policy_lock",
+  "version": "v1.0",
+  "lockedBeforeMeasurement": true,
+  "startHead": "35e0b5ec20ca05940f34bbe23a5ba29d6d566f72",
+  "population": 2155,
+  "entryWindow": {
+    "semantics": "frozen_entry_timing_comparison_grid",
+    "decisionObservationGrid": "T0_through_Tplus30_active_closed_checkpoints_including_non_executable_boundary_instants",
+    "fillAttemptGrid": "existing_comparisonEligible_grid_excluding_lunch_and_session_boundary_instants",
+    "maximumActiveMinutes": 30,
+    "hardSessionEndJstMinute": 925,
+    "lunchRecessCountsAsActiveMinute": false
+  },
+  "buyStates": ["RISE", "SHARP_RISE", "REBOUND"],
+  "waitStates": ["RISE_STOP", "PULLBACK", "RANGE", "SHARP_DROP", "DROP", "DROP_STOP"],
+  "invalidStateAction": "WAIT_WITH_SIGNAL_AND_LATER_STATE_RECHECK",
+  "stateRecheckActiveMinutes": 5,
+  "signalCheckActiveMinutes": 1,
+  "signalFamilies": ["CONTINUATION", "BREAKOUT", "COMPRESSION_EXPANSION", "HIGHER_LOW", "LOWER_WICK", "RECLAIM"],
+  "signalAggregation": "ANY_TRUE_OR",
+  "fixedTimeFallback": false,
+  "intentPersistsThroughWindow": true,
+  "fillSemantics": "frozen_next_open_plus_5bps_proxy_with_existing_quote_availability_and_retry",
+  "tieSemantics": {
+    "initialBuyStateAtT0Primary": "INITIAL_STATE_BUY",
+    "waitSignalAndStateTransitionSameTimestampPrimary": "SIGNAL_TRIGGER",
+    "triggerSourcesPreserveAll": true,
+    "tieMayChangeTimestampOrPrice": false
+  },
+  "implementationClarifications": {
+    "barTimestamp": "raw_bar_start; close_available_at_bar_start_plus_one_active_minute",
+    "officialOpen": "first_regular_bar_open_only_when_bar_start_is_09:00; otherwise missing_open_degraded",
+    "recentCoverage": "observed_regular_bar_starts_divided_by_expected_regular_bar_starts_in_last_up_to_10_active_minutes_ending_at_asof",
+    "staleLatestAnchor": "latest_expected_closed_bar_start_is_not_observed",
+    "stopCompleteCoverage": "recentCoverageEqualsOne",
+    "flatNearEdgeWithAnyRecentMissing": "carry_prior_direction_as_RISE_or_DROP_not_stop",
+    "directionEquality": "absolute_return_equal_to_U_is_directional",
+    "shockEquality": "threshold_equality_qualifies",
+    "oppositionMagnitudeEquality": "full_reversal_not_partial",
+    "stateNull": "only_for_INVALID_dataQuality_and_never_a_tenth_state"
+  },
+  "inputPins": {
+    "step1ContractJSONSHA256": "2962814043a7cd3be24ea373004e188826a5b3d6d2f9fc9894114524507efadd",
+    "step1ContractMarkdownSHA256": "6b7e790c2930cdc0678a5af22dd2229b07c4642028323ccab3b62e7a6dbfc81c",
+    "entryTimingMeasurementManifestSHA256": "a0c840b9ff8bf00a538140046e12536dbbab1d7739bf4019acfbc1f6f53ef518",
+    "entryV1MeasurementManifestSHA256": "e944dd2679f85f13f2151572aba24b340957615de639e4426f7568d03fb9ccaf",
+    "signalDetectorSHA256": "60c1d67ec4b3fa4c9976d15368c7f22c62ed1293d8c3bf85033d3b05613677fc",
+    "opportunityRecordsSHA256": "4b9afd72ccfff0b557fb4a5e067ac122ace90ae501d15a79627a89af9554a01e",
+    "immediateRecordsSHA256": "4522bea9ac94f597affc8518c4cb25354e27f9e64141152cde8b8a4b9e09df9c",
+    "signalOnlyRecordsSHA256": "ad5653d15d989578abcdb4316dd2f6df58a1f43f44373ac8b59155fd9111ed94",
+    "entryV1RecordsSHA256": "83f919a4e7280ac6af1104d13c19907c27948045806c84cee73ff36a1540a5f2",
+    "rawPathsSHA256": "37853e73799544be6fd6eb955de514073dd13671692426291a9fdb6d80056c6b",
+    "rowsSHA256": "f513fd7bcb8c685f110fd951a55fbdb98c459add59007c434b453a0310584c63",
+    "outcomesSHA256": "0ec281ddddd30a7f2424de0c752056818e4f97aff398ac4f38e17a479cc69848",
+    "entryPatternArtifactId": 10605887642,
+    "entryPatternArtifactSHA256": "749caf82bbd9d39969f5712ef5a6f2705ac973a2f74483f03307c671586ae05a"
+  },
+  "providerRequestsAuthorized": 0,
+  "protectedDataOpened": 0,
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

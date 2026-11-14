@@ -1,0 +1,73 @@
+{
+  "document_id": "STATE_PATH_BLIND_ADJUDICATION_20261002_V1",
+  "created_at_jst": "2026-10-02T08:23:16+09:00",
+  "status": "STATE_PATH_SEMANTIC_FREEZE_CANDIDATE",
+  "final_freeze_declared": false,
+  "path_contract_sha256": "fc3808cb7d3d161e85527d7ebf97f902df7f0c3463457beddf1a25d053cee268",
+  "blind_integrity": {
+    "review_status": "COMPLETED_PUBLIC_ONLY_BLIND_REVIEW",
+    "future_seen": false,
+    "private_material_seen_before_first_fix": false,
+    "ark_path_answer_key_seen_before_first_fix": false,
+    "other_reviewer_answer_seen": false,
+    "all_first_answers_fixed_before_private_key_open": true,
+    "first_answers_canonical_sha256": "b37443eff20c44138049453832563765cd3cb387cd997092d9ab279212b1b88a",
+    "review_final_sha256": "7e667ccbabe17c74aa4038eb2f67fcd73ea62ee0297ca651685b8a35d74f0fc6",
+    "hash_receipt_sha256": "96c7b36dc357eb43ec9cde9cc0f1574e20f4058d6acd90fdc3f775be1016eaad",
+    "blind_delivery_zip_sha256": "23cd04914179c04214bf76f3c856e2b3beb3dba95cab66ff8175c680e5008df5"
+  },
+  "adjudication_agreement": {
+    "scheduled_endpoints_primary_or_null": {
+      "agree": 302,
+      "total": 302
+    },
+    "scheduled_endpoints_current_semantics_observed": {
+      "agree": 302,
+      "total": 302
+    },
+    "scheduled_endpoints_segment_ordinal": {
+      "agree": 302,
+      "total": 302
+    },
+    "scheduled_endpoints_dwell_entered_last_observed": {
+      "agree": 302,
+      "total": 302
+    },
+    "events_type_time_from_to_segment": {
+      "agree": 609,
+      "total": 609
+    },
+    "runs_primary_boundaries_dwell_closure": {
+      "agree": 91,
+      "total": 91
+    },
+    "blind_boundary_concerns": 0,
+    "blind_duration_concerns": 0,
+    "blind_null_reset_concerns": 0
+  },
+  "representation_differences_nonblocking": {
+    "basis_token_rows": 279,
+    "basis_token_observed_rows": 241,
+    "fast_applicable_to_primary_observed_rows": 44,
+    "nonobserved_carried_facet_rows": 23,
+    "event_reason_lexical_rows": 413,
+    "interpretation": "Reviewer-local/underspecified representation differs from authoritative Frozen/PRIVATE serialization, while formal Primary/null, observation status, segment boundaries, transitions, dwell and run closure agree.",
+    "downstream_rule": "Authoritative Frozen State9/Path fields remain controlling. Do not replace source basis/facet tokens with reviewer-local lexical normalization."
+  },
+  "limitations_retained": [
+    "actual known_at / receive chronology UNKNOWN; bar_end availability remains an inherited research assumption",
+    "M0 finite precision evidence is not exact-log error proof and does not certify feed/U market suitability",
+    "C016-C027 original first canonical commitment bytes remain a nonblocking provenance limitation",
+    "S/A/B/C, Membership and velocity remain DEFINITION_INCOMPLETE and are not Path Core requirements"
+  ],
+  "adjudication_conclusion": {
+    "decisive_semantic_contradiction": false,
+    "future_isolation_failure": false,
+    "frozen_identity_change_required": false,
+    "path_contract_change_required": false,
+    "result_driven_threshold_change_required": false,
+    "representation_clarification_required_before_core_freeze_candidate": false,
+    "representation_limitations_carry_forward": true
+  },
+  "next_action": "Freeze State Path semantics as candidate and start a separate Predictiveness Contract/Precommit. Future data may enter only as labels/evaluation after the predictive design is fixed; State9 and Path semantics remain frozen."
+}

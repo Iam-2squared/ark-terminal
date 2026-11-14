@@ -1,0 +1,137 @@
+name: Phase57 STEP1 Future Path Deep Audit v1
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-future-path-deep-audit-v1.yml'
+      - 'scripts/phase57_future_path_deep_audit.py'
+      - 'scripts/test_phase57_future_path_deep_audit.py'
+      - 'docs/evidence/phase57-future-path-deep-audit-v1/**'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-future-path-deep-audit-v1
+  cancel-in-progress: false
+jobs:
+  audit:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      ARK_TEST_OFFLINE: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    outputs:
+      measured: ${{ steps.gate.outputs.measure }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 16
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install numpy==2.3.5
+      - id: gate
+        run: |
+          if test -e docs/evidence/phase57-future-path-deep-audit-v1/ci-result/receipt.json; then
+            echo 'measure=false' >> "$GITHUB_OUTPUT"
+          else
+            echo 'measure=true' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Isolated STEP1 synthetic integrity tests
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/deep-audit"
+          python -m py_compile scripts/phase57_future_path_deep_audit.py scripts/test_phase57_future_path_deep_audit.py
+          python scripts/offline/kernel_exec.py python -m unittest -v scripts.test_phase57_future_path_deep_audit 2>&1 | tee "$RUNNER_TEMP/deep-audit/tests.log"
+      - name: Audit original 2155 paths twice without State Signal or training
+        if: steps.gate.outputs.measure == 'true'
+        run: |
+          set -euo pipefail
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_future_path_deep_audit --output "$RUNNER_TEMP/deep-audit/measurement" 2>&1 | tee "$RUNNER_TEMP/deep-audit/run.log"
+          python scripts/offline/kernel_exec.py python -m scripts.phase57_future_path_deep_audit --output "$RUNNER_TEMP/deep-audit-replay" 2>&1 | tee "$RUNNER_TEMP/deep-audit/replay.log"
+          cmp "$RUNNER_TEMP/deep-audit/measurement/manifest.json" "$RUNNER_TEMP/deep-audit-replay/manifest.json"
+          git diff --exit-code
+      - name: Hash receipt and explicit human STOP
+        if: steps.gate.outputs.measure == 'true'
+        env:
+          EXECUTION_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          cp docs/evidence/phase57-future-path-deep-audit-v1/PROTOCOL.md "$RUNNER_TEMP/deep-audit/PROTOCOL.md"
+          python - <<'PY'
+          import hashlib,json,os,pathlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'deep-audit'
+          digest=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+          measurement=root/'measurement'
+          pins=json.loads((measurement/'input-pins.json').read_text())
+          for name,p in pins.items():
+              assert digest(pathlib.Path(name))==p['sha256'],name
+          manifest=json.loads((measurement/'manifest.json').read_text())
+          for name,h in manifest.items():assert digest(measurement/name)==h,name
+          replay=json.loads((root.parent/'deep-audit-replay'/'manifest.json').read_text())
+          assert manifest==replay
+          assert 'Ran 16 tests' in (root/'tests.log').read_text()
+          receipt={'executionHead':os.environ['EXECUTION_HEAD'],'runId':os.environ['GITHUB_RUN_ID'],
+            'referenceHead':'4ec55bb6923d0f69fbc9654ad33bb61cd2840780','step':1,
+            'originalClassificationParity':True,'doubleReplayByteHashParity':True,'focusedTests':16,
+            'measurementManifestSha256':digest(measurement/'manifest.json'),
+            'evidencePins':{str(p.relative_to(root)):digest(p) for p in sorted(root.rglob('*')) if p.is_file()},
+            'status':'STEP1_EVIDENCE_WITH_LIMITATIONS_STOP_FOR_HUMAN',
+            'step2Authorized':False,'nextStepStarted':False,'dedicatedCIIsNotPRGreen':True}
+          (root/'receipt.json').write_text(json.dumps(receipt,sort_keys=True,indent=2)+'\n')
+          print(json.dumps({k:v for k,v in receipt.items() if k!='evidencePins'}))
+          PY
+      - name: Verify preserved STEP1 evidence only, never automatically remeasure
+        if: steps.gate.outputs.measure == 'false'
+        run: |
+          python - <<'PY'
+          import hashlib,json,pathlib
+          root=pathlib.Path('docs/evidence/phase57-future-path-deep-audit-v1/ci-result')
+          digest=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+          r=json.loads((root/'receipt.json').read_text())
+          assert r['step']==1 and not r['step2Authorized'] and not r['nextStepStarted']
+          for name,h in r['evidencePins'].items():assert digest(root/name)==h,name
+          for name,p in json.loads((root/'measurement/input-pins.json').read_text()).items():assert digest(pathlib.Path(name))==p['sha256'],name
+          for name,h in json.loads((root/'measurement/code-pins.json').read_text()).items():assert digest(pathlib.Path(name))==h,name
+          print('Preserved STEP1 hashes verified. STOP FOR HUMAN; no new measurement.')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.gate.outputs.measure == 'true'
+        with:
+          name: phase57-future-path-deep-audit-${{ github.run_id }}
+          path: ${{ runner.temp }}/deep-audit
+          retention-days: 90
+  preserve:
+    needs: audit
+    if: needs.audit.outputs.measured == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-future-path-deep-audit-${{ github.run_id }}
+          path: docs/evidence/phase57-future-path-deep-audit-v1/ci-result
+      - name: Append new audit evidence to research branch and STOP
+        env:
+          BRANCH: ${{ github.head_ref }}
+          EXPECTED: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$BRANCH" = research/phase57-long-only-cash-equity
+          test "$(git ls-remote origin "refs/heads/$BRANCH" | cut -f1)" = "$EXPECTED"
+          test -z "$(git ls-tree -r HEAD -- docs/evidence/phase57-future-path-deep-audit-v1/ci-result)"
+          test -s docs/evidence/phase57-future-path-deep-audit-v1/ci-result/receipt.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/evidence/phase57-future-path-deep-audit-v1/ci-result
+          git commit -m 'Phase57: preserve STEP1 Future Path Deep Audit evidence and STOP for human'
+          git push origin "HEAD:$BRANCH"

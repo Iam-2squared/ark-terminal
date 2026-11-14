@@ -1,0 +1,96 @@
+{
+  "Candidate_fill": "unchanged V3 next eligible regular raw Open/locked intent exact closing fallback, canonical market lineage validity and adverse SELL0.9995; no invented fill; canonical R denominator buy_debit100; no second BUY charge",
+  "Control": "V3 A/B/C then canonical 15:20 EOD; exact saved R unchanged; Control intent=min(native structural intent,920); at920 EOD Control priority",
+  "E_R_units": "same native precision60 Decimal; preserve 100-share costs and denominator; new COUNTERFACTUAL_RETURN only",
+  "P1_saved_seal_pin": {
+    "bytes": 1202,
+    "sha256": "4da043d88a7dc990ccbe5eeedeec818049d5601f7df9b7976452016f37c6e60d"
+  },
+  "Primary": "sealed S1/S2 DEV_COMPARE Frozen Entry UNION 322 before Entry filters",
+  "R_boundaries": "L5 R<=-5; L4 -5<R<=-4; L3 -4<R<=-3; L2 -3<R<=-2; L1 -2<R<=-1; L0 -1<R<0; ZERO R=0; P0 0<R<1; P1 1<=R<2; P2 2<=R<3; P3 3<=R<4; P4 4<=R<5; P5 R>=5; UNKNOWN separate",
+  "R_units": "saved native decimal fraction precision60 -> exact Fraction*100; no epsilon or display rounding for bands",
+  "Secondary": "sealed P1 KEEP 306 subset of identical generated results",
+  "State_enum": [
+    "RISE_STOP",
+    "RISE",
+    "SHARP_RISE",
+    "PULLBACK",
+    "RANGE",
+    "REBOUND",
+    "SHARP_DROP",
+    "DROP",
+    "DROP_STOP"
+  ],
+  "State_profile_sha256": "77ee61ba1808a2c17614439fe7d14212a53cbfa7358c032ce16989eeb5248922",
+  "always_zero": [
+    "learned_model_fit",
+    "preprocessing_fit",
+    "calibration_fit",
+    "old_score_inference",
+    "threshold_search",
+    "State_meaning_change",
+    "new_teacher_generation",
+    "Entry_Reentry_Replay",
+    "Capital_Portfolio_Replay",
+    "provider_requests",
+    "RAW_recovery",
+    "protected_partition_opens",
+    "orders",
+    "production_updates",
+    "Frozen_EXIT_refreeze",
+    "main_merge",
+    "force_push"
+  ],
+  "availability": "Historical PIT assumed closed-bar end; actual received_at UNKNOWN",
+  "budget": {
+    "Control_reconstruction_max": 1,
+    "State_kernel_if_saved_missing_only": true,
+    "independent_spec": 1,
+    "main_candidate_pass_max": 1,
+    "main_lifecycles_max": 322,
+    "reproduction": 1,
+    "technical_repairs_max": 5
+  },
+  "candidate": "SHARP_DROP_FIRST_OBSERVED_EXIT_V0",
+  "candidate_N": 1,
+  "capitalImprovement": "NOT_EVALUATED",
+  "clock": "Entry Open fill -> raw bar closed at start+1 -> State -> EXIT intent; checkpoint later than buy Open fill, never copy pre-fill State",
+  "created_at_UTC": "2026-10-07T08:14:58.349395+00:00",
+  "currentFrozenExitChanged": false,
+  "document_id": "ARK_EXIT_SHARP_DROP_OVERLAY_COUNTERFACTUAL_WORK_20261007",
+  "exposure": "ADAPTIVE_DEVELOPMENT",
+  "freshValidation": "NOT_RUN",
+  "ids_sha256": "a29d2a6f61ea8092141c07efe500b2d06c497c03108a109072bab9a3bcd225eb",
+  "missing": "confirmed legal State-unavailable: no overlay and continue; missing trace/timing or input conflict: Candidate UNKNOWN, never Control equality",
+  "newFirstLayerSelected": null,
+  "productionReady": false,
+  "rules": [
+    "actual filled position, first post-fill legal checkpoint",
+    "no earlier Control SELL_INTENT",
+    "usable frozen Primary exactly SHARP_DROP",
+    "same checkpoint Control wins",
+    "PRE and ACTIVE included; no unrealized gain/loss condition",
+    "intent latches; no cancellation on later State/price/outcome"
+  ],
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "selectedExitReplacement": null,
+  "source_lineage_status": "CONFIRMED",
+  "source_rows_pin": {
+    "bytes": 22949238,
+    "sha256": "80edce319a1e94420bfcd6c05602962ad73ab0207da9a8fa9134335d567ff91e"
+  },
+  "state_source_archive_pin": {
+    "bytes": 81463518,
+    "sha256": "31a0fd8b8ec9c790b912a8da06ea601127fac0a5936f12181740d20e8627fe89"
+  }
+}

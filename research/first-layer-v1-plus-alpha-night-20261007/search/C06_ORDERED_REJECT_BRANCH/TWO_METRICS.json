@@ -1,0 +1,316 @@
+{
+  "Entry_N": 322,
+  "candidate": "C06_ORDERED_REJECT_BRANCH",
+  "clock": {
+    "JST": "2026-10-07T07:08:49.243467+09:00",
+    "UTC": "2026-10-06T22:08:49.243467+00:00"
+  },
+  "config": {
+    "V1_INTERACTIONS": true,
+    "added_families": [
+      "C01",
+      "C06"
+    ],
+    "candidate_id": "C06_ORDERED_REJECT_BRANCH",
+    "complexity": [
+      2,
+      12,
+      0,
+      288,
+      2.0
+    ],
+    "drop_FIT_constant_columns": true,
+    "family": "logit",
+    "new_interactions": [
+      {
+        "category": "S.primary",
+        "group": "C03current",
+        "numeric": [
+          "C01.open_progress",
+          "C01.range_position",
+          "C01.connected_efficiency",
+          "C01.mean_value"
+        ]
+      },
+      {
+        "category": "H.primary",
+        "group": "C03history",
+        "numeric": [
+          "C01.from_high",
+          "C01.from_low",
+          "C01.high_update_count",
+          "C01.value_up_fraction"
+        ]
+      },
+      {
+        "binary": "Q.current_state_available",
+        "group": "C03available",
+        "numeric": [
+          "C01.direction_agreement",
+          "C01.tail_vs_full_efficiency",
+          "C01.mean_volume",
+          "C01.support_fraction"
+        ]
+      }
+    ],
+    "parent_id": "C05_REG_STRONG",
+    "regularization_multiplier": 3.0
+  },
+  "exposure": "ADAPTIVE_DEVELOPMENT",
+  "metrics": {
+    "90": {
+      "M": 172,
+      "MINUS_remaining": 0.872093023255814,
+      "MINUS_removal": 0.12790697674418605,
+      "M_drop": 22,
+      "M_keep": 150,
+      "P": 144,
+      "PLUS_retention": 0.8958333333333334,
+      "P_drop": 15,
+      "P_keep": 129,
+      "UNKNOWN_drop": 1,
+      "UNKNOWN_keep": 5,
+      "ZERO_drop": 0,
+      "ZERO_keep": 0,
+      "blocks": {
+        "S1": {
+          "M": 81,
+          "MINUS_remaining": 0.8641975308641975,
+          "MINUS_removal": 0.13580246913580246,
+          "M_drop": 11,
+          "M_keep": 70,
+          "P": 78,
+          "PLUS_retention": 0.8974358974358975,
+          "P_drop": 8,
+          "P_keep": 70,
+          "UNKNOWN_drop": 0,
+          "UNKNOWN_keep": 5,
+          "ZERO_drop": 0,
+          "ZERO_keep": 0,
+          "target_integer": false
+        },
+        "S2": {
+          "M": 91,
+          "MINUS_remaining": 0.8791208791208791,
+          "MINUS_removal": 0.12087912087912088,
+          "M_drop": 11,
+          "M_keep": 80,
+          "P": 66,
+          "PLUS_retention": 0.8939393939393939,
+          "P_drop": 7,
+          "P_keep": 59,
+          "UNKNOWN_drop": 1,
+          "UNKNOWN_keep": 0,
+          "ZERO_drop": 0,
+          "ZERO_keep": 0,
+          "target_integer": false
+        }
+      },
+      "current_state": {
+        "available": {
+          "M": 84,
+          "MINUS_remaining": 0.8214285714285714,
+          "MINUS_removal": 0.17857142857142858,
+          "M_drop": 15,
+          "M_keep": 69,
+          "P": 61,
+          "PLUS_retention": 0.8688524590163934,
+          "P_drop": 8,
+          "P_keep": 53,
+          "UNKNOWN_drop": 0,
+          "UNKNOWN_keep": 0,
+          "ZERO_drop": 0,
+          "ZERO_keep": 0,
+          "target_integer": false
+        },
+        "unavailable": {
+          "M": 88,
+          "MINUS_remaining": 0.9204545454545454,
+          "MINUS_removal": 0.07954545454545454,
+          "M_drop": 7,
+          "M_keep": 81,
+          "P": 83,
+          "PLUS_retention": 0.9156626506024096,
+          "P_drop": 7,
+          "P_keep": 76,
+          "UNKNOWN_drop": 1,
+          "UNKNOWN_keep": 5,
+          "ZERO_drop": 0,
+          "ZERO_keep": 0,
+          "target_integer": false
+        }
+      },
+      "target_integer": false
+    },
+    "95": {
+      "M": 172,
+      "MINUS_remaining": 0.9302325581395349,
+      "MINUS_removal": 0.06976744186046512,
+      "M_drop": 12,
+      "M_keep": 160,
+      "P": 144,
+      "PLUS_retention": 0.9236111111111112,
+      "P_drop": 11,
+      "P_keep": 133,
+      "UNKNOWN_drop": 0,
+      "UNKNOWN_keep": 6,
+      "ZERO_drop": 0,
+      "ZERO_keep": 0,
+      "blocks": {
+        "S1": {
+          "M": 81,
+          "MINUS_remaining": 0.8888888888888888,
+          "MINUS_removal": 0.1111111111111111,
+          "M_drop": 9,
+          "M_keep": 72,
+          "P": 78,
+          "PLUS_retention": 0.8974358974358975,
+          "P_drop": 8,
+          "P_keep": 70,
+          "UNKNOWN_drop": 0,
+          "UNKNOWN_keep": 5,
+          "ZERO_drop": 0,
+          "ZERO_keep": 0,
+          "target_integer": false
+        },
+        "S2": {
+          "M": 91,
+          "MINUS_remaining": 0.967032967032967,
+          "MINUS_removal": 0.03296703296703297,
+          "M_drop": 3,
+          "M_keep": 88,
+          "P": 66,
+          "PLUS_retention": 0.9545454545454546,
+          "P_drop": 3,
+          "P_keep": 63,
+          "UNKNOWN_drop": 0,
+          "UNKNOWN_keep": 1,
+          "ZERO_drop": 0,
+          "ZERO_keep": 0,
+          "target_integer": false
+        }
+      },
+      "current_state": {
+        "available": {
+          "M": 84,
+          "MINUS_remaining": 0.9166666666666666,
+          "MINUS_removal": 0.08333333333333333,
+          "M_drop": 7,
+          "M_keep": 77,
+          "P": 61,
+          "PLUS_retention": 0.9344262295081968,
+          "P_drop": 4,
+          "P_keep": 57,
+          "UNKNOWN_drop": 0,
+          "UNKNOWN_keep": 0,
+          "ZERO_drop": 0,
+          "ZERO_keep": 0,
+          "target_integer": false
+        },
+        "unavailable": {
+          "M": 88,
+          "MINUS_remaining": 0.9431818181818182,
+          "MINUS_removal": 0.056818181818181816,
+          "M_drop": 5,
+          "M_keep": 83,
+          "P": 83,
+          "PLUS_retention": 0.9156626506024096,
+          "P_drop": 7,
+          "P_keep": 76,
+          "UNKNOWN_drop": 0,
+          "UNKNOWN_keep": 6,
+          "ZERO_drop": 0,
+          "ZERO_keep": 0,
+          "target_integer": false
+        }
+      },
+      "target_integer": false
+    },
+    "99": {
+      "M": 172,
+      "MINUS_remaining": 0.9825581395348837,
+      "MINUS_removal": 0.01744186046511628,
+      "M_drop": 3,
+      "M_keep": 169,
+      "P": 144,
+      "PLUS_retention": 0.9791666666666666,
+      "P_drop": 3,
+      "P_keep": 141,
+      "UNKNOWN_drop": 0,
+      "UNKNOWN_keep": 6,
+      "ZERO_drop": 0,
+      "ZERO_keep": 0,
+      "blocks": {
+        "S1": {
+          "M": 81,
+          "MINUS_remaining": 0.9629629629629629,
+          "MINUS_removal": 0.037037037037037035,
+          "M_drop": 3,
+          "M_keep": 78,
+          "P": 78,
+          "PLUS_retention": 0.9615384615384616,
+          "P_drop": 3,
+          "P_keep": 75,
+          "UNKNOWN_drop": 0,
+          "UNKNOWN_keep": 5,
+          "ZERO_drop": 0,
+          "ZERO_keep": 0,
+          "target_integer": false
+        },
+        "S2": {
+          "M": 91,
+          "MINUS_remaining": 1.0,
+          "MINUS_removal": 0.0,
+          "M_drop": 0,
+          "M_keep": 91,
+          "P": 66,
+          "PLUS_retention": 1.0,
+          "P_drop": 0,
+          "P_keep": 66,
+          "UNKNOWN_drop": 0,
+          "UNKNOWN_keep": 1,
+          "ZERO_drop": 0,
+          "ZERO_keep": 0,
+          "target_integer": false
+        }
+      },
+      "current_state": {
+        "available": {
+          "M": 84,
+          "MINUS_remaining": 0.9642857142857143,
+          "MINUS_removal": 0.03571428571428571,
+          "M_drop": 3,
+          "M_keep": 81,
+          "P": 61,
+          "PLUS_retention": 0.9836065573770492,
+          "P_drop": 1,
+          "P_keep": 60,
+          "UNKNOWN_drop": 0,
+          "UNKNOWN_keep": 0,
+          "ZERO_drop": 0,
+          "ZERO_keep": 0,
+          "target_integer": false
+        },
+        "unavailable": {
+          "M": 88,
+          "MINUS_remaining": 1.0,
+          "MINUS_removal": 0.0,
+          "M_drop": 0,
+          "M_keep": 88,
+          "P": 83,
+          "PLUS_retention": 0.9759036144578314,
+          "P_drop": 2,
+          "P_keep": 81,
+          "UNKNOWN_drop": 0,
+          "UNKNOWN_keep": 6,
+          "ZERO_drop": 0,
+          "ZERO_keep": 0,
+          "target_integer": false
+        }
+      },
+      "target_integer": false
+    }
+  },
+  "phase": "SEARCH",
+  "prediction_sha256": "45241b2d8757edbcc8bb0966779ba7cd42ef140434fe177e3c1ac58ba2a0ff0f"
+}

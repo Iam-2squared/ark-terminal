@@ -1,0 +1,29 @@
+name: Phase57 NEW LONG EXIT Profit Protection v0 FAST-FAIL
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-new-long-exit-profit-protection-v0-fast-fail.yml'
+      - 'scripts/*phase57_new_long_exit_profit_protection_v0_fast_fail*'
+      - 'docs/evidence/phase57-new-long-exit-profit-protection-v0-contract-2026-09-18.md'
+      - 'docs/evidence/phase57-new-long-exit-profit-protection-v0-fast-fail/**'
+permissions: {contents: read}
+jobs:
+  profit-protection-v0:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Frozen rule tests
+        env: {ARK_TEST_OFFLINE: '1'}
+        run: python3 scripts/offline/kernel_exec.py python3 -m unittest scripts.test_phase57_new_long_exit_profit_protection_v0_fast_fail
+      - name: Replay and reproduce
+        env: {ARK_TEST_OFFLINE: '1'}
+        run: |
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_profit_protection_v0_fast_fail --out /tmp/pp-a | tee /tmp/pp-result.txt
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_profit_protection_v0_fast_fail --out /tmp/pp-b >/tmp/pp-result-b.txt
+          cmp /tmp/pp-a/summary.json /tmp/pp-b/summary.json
+          cmp /tmp/pp-a/ledger.json.gz /tmp/pp-b/ledger.json.gz
+          cmp /tmp/pp-a/manifest.json /tmp/pp-b/manifest.json
+      - uses: actions/upload-artifact@v4
+        with: {name: phase57-new-long-exit-profit-protection-v0-fast-fail, path: /tmp/pp-a/}

@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "contractId": "PHASE57_LONG_ONLY_CURRENT_ENTRY_FILTER_RECOVERY_AUDIT_V1",
+  "status": "FROZEN_BEFORE_AUGMENTED_TICK_AND_FEATURE_AUDIT",
+  "createdAtJst": "2026-09-16",
+  "purpose": "Diagnose why the unchanged CURRENT Entry preserves too little of the Phase57 LONG-only Frozen Selector v1 opportunity set without designing, fitting, tuning, or simulating a replacement Entry.",
+  "scope": {
+    "market": "JPX_CASH_EQUITY",
+    "direction": "LONG_ONLY",
+    "developmentSessions": 76,
+    "decisionTimestamps": 760,
+    "selectionEvents": 3800,
+    "firstEntryCandidates": 2743,
+    "reuseAlreadyOpenedDevelopmentOnly": true,
+    "validationOpened": false,
+    "oosOpened": false,
+    "newProviderRequestsAllowed": false
+  },
+  "frozenInputs": {
+    "selectorFreezeCommit": "565d74b3dea823581fdb32380113aac5913a248d",
+    "selectorFrozenPayloadSha256": "3dc6d222d4039737c0dcfdcfa4a83372202152e29b582225419ab97c00610d59",
+    "selectorRidgeArtifactSha256": "994f1dbaba1d32e97458d5dd9d4c646ef443fbb37128650e8166001d8deabefb",
+    "currentEntryModelSha256": "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a",
+    "currentEntryFeatureContractSha256": "cc70b1eb07c0719f72c4a8caa0f165a2812aec4af0b2fdeae42ef3ff400c4115",
+    "currentEntryFeatureImplementationSha256": "7cd4ab03f4de8e0b845fc5f7fb2893d9585feee0989b0f6b085a18a28be73ba0",
+    "priorTransferContractSha256": "fae3e3f8073f7d2715297e759abf62bd5852d93cd4970562ab8d11c1690e3aea",
+    "priorTransferReportFileSha256": "4b18c17836c70751b77ceee8fab8ee4e6ca6d2a6e1c99920268ea7cf4ce52685",
+    "priorTransferLedgerGzipSha256": "a36eecfed29aa0e9da50b051839578ca2e8f3a37d500de17bd6c3acfd8ce3a53",
+    "priorTransferLedgerPayloadSha256": "bc5f37822e829308d508ebe3748af0ad2f1dd2e41e8847d5633512f8de850f0d"
+  },
+  "allowedAugmentation": {
+    "sameDevelopmentReplay": true,
+    "saveExistingFiveMinuteStateEvaluations": true,
+    "saveExistingFrozenFeatureValues": true,
+    "savePerFeatureFrozenLogitContributions": true,
+    "decisionMutationAllowed": false,
+    "featureFormulaMutationAllowed": false,
+    "modelMutationAllowed": false,
+    "thresholdMutationAllowed": false
+  },
+  "canonicalBlockedReasonClasses": {
+    "SESSION_OPEN_MISSING": "SESSION_OPEN_MISSING",
+    "RECENT_GRID_GAP_OR_STALE": "RECENT_GRID_GAP_OR_STALE",
+    "INSUFFICIENT_PREFIX": "INSUFFICIENT_HISTORY",
+    "VOLUME_DENOMINATOR_MISSING": "FEATURE_MISSING",
+    "NONFINITE_FEATURE": "NONFINITE_FEATURE",
+    "ENTRY_REFERENCE_PRICE_UNAVAILABLE": "REFERENCE_PRICE_UNAVAILABLE",
+    "ALREADY_ENTERED_NO_REENTRY": "DUPLICATE_OR_ALREADY_ENTERED",
+    "TERMINAL_EXPIRED_UNTIL_NEXT_SESSION": "STATE_BLOCK"
+  },
+  "timeOfDayBandsJst": {
+    "OPEN_EARLY": ["09:30"],
+    "MORNING_MID": ["10:00", "10:30"],
+    "MORNING_LATE": ["11:00", "11:30"],
+    "AFTERNOON_OPEN": ["13:00"],
+    "AFTERNOON_MID": ["13:30", "14:00"],
+    "CLOSE_APPROACH": ["14:30", "15:00"]
+  },
+  "opportunityThresholdsPct": [1, 2, 3, 5],
+  "unitOfAnalysis": {
+    "primaryFunnel": "SELECTION_EVENT",
+    "firstEntryThroughput": "UNIQUE_SYMBOL_SESSION",
+    "lostOpportunity": "SELECTION_EVENT_WITH_FINAL_OPPORTUNITY_STATUS_NOT_PASS",
+    "recoverablePool": "DESCRIPTIVE_UPPER_BOUND_NOT_ACHIEVABLE_PERFORMANCE",
+    "featureComparison": "FIRST_PASS_TICK_VS_LAST_SCORE_READY_NEVER_PASS_TICK"
+  },
+  "architectureMismatchVerdictRule": {
+    "MODEL_FILTER_TOO_STRICT": {
+      "firstEntryPassCoverageBelow": 0.20,
+      "waitLost3ShareOfAllSelector3HitsAtLeast": 0.10
+    },
+    "FEATURE_AVAILABILITY_TOO_STRICT": {
+      "blockedSelectionEventRateAtLeast": 0.20,
+      "blocked3PrecisionAtLeastFractionOfSelectorBaseline": 0.80
+    },
+    "STATE_FILTER_TOO_STRICT": {
+      "rejectSelectionEventRateAtLeast": 0.10,
+      "reject3PrecisionAtLeastFractionOfSelectorBaseline": 0.80
+    },
+    "precedence": [
+      "INCONCLUSIVE_IF_INTEGRITY_OR_SCORE_AUDIT_FAILS",
+      "MULTIPLE_IF_TWO_OR_MORE_COMPONENTS_TRIGGER",
+      "SINGLE_TRIGGER_CLASS",
+      "INCONCLUSIVE"
+    ]
+  },
+  "prohibited": [
+    "MSH_ENTRY_LONG_V1_IMPLEMENTATION",
+    "NEW_ENTRY_MODEL",
+    "NEW_ENTRY_FEATURE",
+    "NEW_TARGET_FIT",
+    "RETRAINING",
+    "THRESHOLD_TUNING_OR_SWEEP",
+    "FEATURE_ELIMINATION_OR_ADDITION",
+    "WAIT_REDESIGN",
+    "COUNTERFACTUAL_BEST_RULE_SEARCH",
+    "SELECTOR_OR_RIDGE_OR_TOP5_CHANGE",
+    "SEGMENT_LIQUIDITY_OR_TIME_SPECIFIC_RULE",
+    "VALIDATION_OR_OOS_OPEN",
+    "EXIT_ALLOCATION_OR_PORTFOLIO_CHANGE",
+    "SHORT_MARGIN_OR_LEVERAGE"
+  ],
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "shortAllowed": false,
+    "marginAllowed": false,
+    "leverageAllowed": false
+  },
+  "completionBoundary": "ISSUE_FILTER_RECOVERY_AUDIT_AND_DESIGN_REQUIREMENTS_THEN_STOP_BEFORE_ENTRY_ARCHITECTURE"
+}

@@ -1,0 +1,24 @@
+name: Phase57 NEW LONG EXIT Candidate A
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-new-long-exit-candidate-a.yml'
+      - 'scripts/*phase57_new_long_exit_candidate_a*'
+      - 'docs/evidence/phase57-new-long-exit-candidate-a-contract-2026-09-18.md'
+permissions: {contents: read}
+jobs:
+  candidate-a:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - env: {ARK_TEST_OFFLINE: '1'}
+        run: python3 scripts/offline/kernel_exec.py python3 -m unittest scripts.test_phase57_new_long_exit_candidate_a
+      - env: {ARK_TEST_OFFLINE: '1'}
+        run: |
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_candidate_a --out /tmp/ca-a | tee /tmp/ca.txt
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_new_long_exit_candidate_a --out /tmp/ca-b >/tmp/cab.txt
+          cmp /tmp/ca-a/summary.json /tmp/ca-b/summary.json
+          cmp /tmp/ca-a/ledger.json.gz /tmp/ca-b/ledger.json.gz
+          cmp /tmp/ca-a/manifest.json /tmp/ca-b/manifest.json

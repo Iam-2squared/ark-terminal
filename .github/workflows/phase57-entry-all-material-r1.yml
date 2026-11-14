@@ -1,0 +1,126 @@
+name: Phase57 All-Material R1 One-Shot Nested OOF
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-entry-all-material-r1.yml
+      - scripts/phase57_entry_all_material_r1_data.py
+      - scripts/phase57_entry_all_material_r1_train.py
+      - scripts/test_phase57_entry_all_material_r1.py
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase57-all-material-r1-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  one-shot-r1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+      ARK_TEST_OFFLINE: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '2'
+      MKL_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install frozen numerical runtime
+        # Initial run36099241905 stopped before fit: legacy import chain requires pandas.
+        # Match the prefit/local and existing Pattern-v2 pandas2.2.3; no model change.
+        run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.8.0 pandas==2.2.3
+      - name: Focused and frozen policy regression
+        run: |
+          set -euo pipefail
+          python -m unittest -v scripts.test_phase57_entry_all_material_r1 scripts.test_phase57_entry_all_material_evaluator_v1 scripts.test_phase57_drop_pull_1m_state_recheck_v1 scripts.test_phase57_state_v3_9pattern_entry_v1 scripts.test_phase57_entry_timing_census
+          python scripts/phase57_entry_ordered_range_scorecard_v1.py --self-test
+          python scripts/phase57_entry_all_material_feature_coverage_v1.py --self-test
+      - name: Ordinary Predict regression
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/regression
+          (cd predict && npm test) > artifacts/regression/predict.log 2>&1
+          tail -15 artifacts/regression/predict.log
+      - name: Restore immutable ONE_MINUTE comparator
+        uses: actions/download-artifact@v4
+        with:
+          name: phase57-drop-pull-1m-state-recheck-v1-8c256ff98d365d01c7150afe193686f020e2026c
+          repository: Iam-2squared/ark-terminal
+          run-id: 35818555587
+          github-token: ${{ github.token }}
+          path: artifacts/one-minute
+      - name: Prepare reference inputs and verify fixed hashes
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/reference
+          cp docs/evidence/phase57-entry-timing-signal-census-v1/measurement/opportunity-records.json.gz artifacts/reference/opportunities.json.gz
+          cp docs/evidence/phase57-state-conditioned-signal-entry-v1/measurement/baseline-immediate-records.json.gz artifacts/reference/immediate.json.gz
+          cp docs/evidence/phase57-state-conditioned-signal-entry-v1/measurement/entry-records.json.gz artifacts/reference/entry-v1.json.gz
+          cp docs/evidence/phase57-state-v3-9pattern-entry-v1/measurement/entry-records.json.gz artifacts/reference/state-v3.json.gz
+          cp docs/evidence/phase57-state-v3-9pattern-entry-v1/measurement/state-checkpoints.json.gz artifacts/reference/state-checkpoints.json.gz
+          cp artifacts/one-minute/replay-a/entry-records.json.gz artifacts/reference/one-minute.json.gz
+          echo 'de8ee035d2c2949e6ecbd5315d393de8794ca7d0e36ace49a6ccfe720a65a844  artifacts/reference/one-minute.json.gz' | sha256sum -c -
+          python -m scripts.phase57_entry_all_material_r1_data --workers 2
+          python - <<'PY'
+          import json,hashlib
+          from pathlib import Path
+          root=Path('artifacts/all-material-r1/prefit')
+          f=json.loads(Path('docs/evidence/phase57-entry-all-material-v1/PREFIT_IMPLEMENTATION_R8.json').read_text())
+          for name,h in f['codeHashes'].items():
+              assert hashlib.sha256(Path(name).read_bytes()).hexdigest()==h, name
+          for name,h in f['prefitDataHashes'].items():
+              assert hashlib.sha256((root/name).read_bytes()).hexdigest()==h, name
+          marker={'githubCommit':'fad3ba8bbcf518fe84454a660e62f6d879a2a4c4','modelFitsBeforeFreeze':0,'codeHashes':f['codeHashes']}
+          (root/'implementation-freeze.json').write_text(json.dumps(marker,sort_keys=True)+'\n')
+          PY
+      - name: Finite nested OOF run A
+        run: python -u -m scripts.phase57_entry_all_material_r1_train --output-name ci-run-a
+      - name: Identical protocol run B, no optimization
+        run: python -u -m scripts.phase57_entry_all_material_r1_train --output-name ci-run-b
+      - name: Exact candidate and scorecard reproducibility
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,hashlib
+          from pathlib import Path
+          root=Path('artifacts/all-material-r1'); a=root/'ci-run-a'; b=root/'ci-run-b'
+          names=['training-labels.npy','candidate-intents.json','oof-predictions.json.gz','fold-selection.json','candidate-freeze.json','entry-records.json.gz','scorecard.json','result.json']
+          for name in names: assert (a/name).read_bytes()==(b/name).read_bytes(),name
+          r=json.loads((a/'result.json').read_text())
+          assert r['population']==2155 and r['protectedOpens']==r['providerRequests']==0
+          assert all(v is False for v in r['safety'].values())
+          receipt={'status':'PASS','scope':'one finite R1 research pass plus identical reproducibility repeat','population':2155,'modelFitsPerRun':r['modelFits'],'twoRunsByteIdentical':True,'hashes':{n:hashlib.sha256((a/n).read_bytes()).hexdigest() for n in names},'automaticPromotion':False,'scheduledAutomationRestarted':False}
+          (root/'CI_RECEIPT.json').write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\n')
+          print(json.dumps(receipt,sort_keys=True))
+          PY
+      - name: Preserve source identity
+        if: always()
+        run: |
+          mkdir -p artifacts/all-material-r1
+          git rev-parse HEAD > artifacts/all-material-r1/SOURCE_HEAD.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-all-material-r1-${{ github.sha }}
+          path: |
+            artifacts/all-material-r1/CI_RECEIPT.json
+            artifacts/all-material-r1/SOURCE_HEAD.txt
+            artifacts/all-material-r1/prefit/*.json
+            artifacts/all-material-r1/ci-run-a
+            artifacts/all-material-r1/ci-run-b
+            artifacts/regression
+          retention-days: 30
+          if-no-files-found: error

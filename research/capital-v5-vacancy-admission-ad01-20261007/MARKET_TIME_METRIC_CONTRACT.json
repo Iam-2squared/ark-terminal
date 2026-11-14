@@ -1,0 +1,23 @@
+{
+  "includes_market_time_after_1520_until_1530": true,
+  "lunch_excluded": true,
+  "market_grid_intervals_half_open": [
+    [
+      540,
+      690
+    ],
+    [
+      750,
+      930
+    ]
+  ],
+  "market_minutes_per_complete_session": 330,
+  "source_commit": "710656491be06235901b45c50a8b5cbd714ba4eb",
+  "source_exact_expression": "samples=[c for c in primary_curves if 540<=c['minute']<690 or 750<=c['minute']<930]",
+  "source_git_blob": "39f9f73a37bb75b31e9c2d42c0b46dc6936bab1a",
+  "source_path": "research/capital-v5-max3-slot-intelligence-20261004-v1/replay.py",
+  "source_sha256": "42e229f3816427ca16e6d44acc218d7b044e1a04f74cfd3154ff4aa6da11bb88",
+  "trade_lock_definition": "exact funded BUY debit * count(existing market grid intersect [entry_minute, actual_release_minute))",
+  "wallclock_lock_if_any": "Not used by AD01 primary capital lock or occupancy; prior historical artifacts remain preserved as prior definitions.",
+  "weighted_cash_utilization_ratios": "Exact sum cash/equity and exposure/equity over saved market samples; Decimal80 arithmetic-time-mean display is separately labeled and never used for gates."
+}

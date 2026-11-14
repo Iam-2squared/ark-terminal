@@ -1,0 +1,56 @@
+{
+  "LOO": "all 24 sessions and every symbol, both sides",
+  "bandValue": "futureUpsidePctEvaluatorOnly; Decimal(str(value))",
+  "bands": [
+    "<1",
+    "[1,3)",
+    "[3,5)",
+    "[5,10)",
+    "[10,inf)",
+    "UNKNOWN"
+  ],
+  "bootstrap": {
+    "B": 10000,
+    "CI": "95% percentile linear interpolation h=(Bvalid-1)*p",
+    "cluster": "session",
+    "draw": "24 sessions with replacement, shared across worlds/arms/comparisons",
+    "generator": "numpy.PCG64",
+    "seed": 20260929,
+    "sessionList": "ascending union of ALL_100 sessions",
+    "uncomputable": "null, do not redraw"
+  },
+  "comparisons": [
+    "CCMG-R50",
+    "frozen route-R50"
+  ],
+  "featureFamilies": [
+    "guard milestone/HWM/floor/confirmation/gap",
+    "existing causal State vocabulary",
+    "six existing signal families",
+    "frozen Potential ranks"
+  ],
+  "groups": [
+    "ALL_100",
+    "PRIMARY_100",
+    "PRIMARY_FUNDED",
+    "PRIMARY_OUTSIDE_100"
+  ],
+  "inventorySha256": "eeaababd49ea31d85ab54d816ad16eb904241976eb398fe5abf3e1b4dbd5a02f",
+  "money": "Decimal(q)*[Decimal(str(ccmgExitPrice))-Decimal(str(controlExitPrice))]; netPP=100*delta/entryCostJpy",
+  "noThresholdOptimization": true,
+  "population": "1725 accounting/mask join; paired K outcome-side; I firstSellIntent not null; E first intent < control decision and as-of boolean true, with branch-equivalence limitation",
+  "rank": [
+    "score5",
+    "score10",
+    "rank5Decile",
+    "rank10Decile"
+  ],
+  "rankScopes": [
+    "all paired",
+    "I∩K",
+    "E∩K"
+  ],
+  "schema": "phase57-a-plus-analysis-spec-v1",
+  "stateAssociation": "BLOCKED if source values/knownAt absent; do not substitute guard boolean",
+  "tail": "gross gain/loss separate; top1/3/5/10; tie by stable (world,arm,entryId)"
+}

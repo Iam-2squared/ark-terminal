@@ -1,0 +1,296 @@
+{
+  "schemaVersion": 1,
+  "contractId": "PHASE57_MSH_ENTRY_LONG_V1_FINAL_FIT_DECISION_CONTRACT_V1",
+  "dateJst": "2026-09-16",
+  "status": "FROZEN_PRE_TRAINING",
+  "freezeDecision": "MSH_ENTRY_LONG_V1_FIT_CONTRACT_FROZEN",
+  "scope": "DEVELOPMENT_ONLY_PRETRAINING_CONTRACT",
+  "sourceIntegrity": {
+    "repository": "Iam-2squared/ark-terminal",
+    "branch": "research/phase57-long-only-cash-equity",
+    "pullRequest": 587,
+    "frozenSelectorName": "Phase57 LONG-only Frozen Selector v1",
+    "frozenSelectorFreezeCommit": "565d74b3dea823581fdb32380113aac5913a248d",
+    "frozenSelectorPayloadSha256": "3dc6d222d4039737c0dcfdcfa4a83372202152e29b582225419ab97c00610d59",
+    "frozenSelectorRidgeArtifactSha256": "994f1dbaba1d32e97458d5dd9d4c646ef443fbb37128650e8166001d8deabefb",
+    "implementationPath": "predict/research/phase57_msh_entry_long_v1_proportional_odds.py",
+    "implementationSha256": "9e5910c476c6957aab65cc24490ffb2759084e5e49b36db42fe284674979ae74",
+    "syntheticTestPath": "predict/tests/test_phase57_msh_entry_long_v1_proportional_odds.py",
+    "syntheticTestSha256": "b334e240ac1ff16dd7a8ea12cc4f8308f049a77350e7ad4bad53fef043e394aa"
+  },
+  "universe": {
+    "exchange": "JPX",
+    "instrument": "CASH_EQUITY",
+    "direction": "LONG_ONLY",
+    "shortAllowed": false,
+    "marginAllowed": false,
+    "leverageAllowed": false
+  },
+  "architecture": {
+    "type": "NEW_LONG_SPECIFIC_ENTRY",
+    "modelCount": 1,
+    "modelFamily": "IN_REPOSITORY_PROPORTIONAL_ODDS_ORDINAL_LOGISTIC_REGRESSION",
+    "modelVersion": "phase57-msh-entry-long-v1-proportional-odds-v1",
+    "link": "LOGIT",
+    "orderedClasses": [0, 1, 2, 3, 4],
+    "cutpointCount": 4,
+    "binaryDecompositionAllowed": false,
+    "multinomialSubstitutionAllowed": false,
+    "alternativeLinkAllowed": false,
+    "secondModelAllowed": false,
+    "fallbackModelAllowed": false
+  },
+  "runtime": {
+    "python": "3.12",
+    "numpy": "2.3.5",
+    "scipy": "1.17.0",
+    "newExternalOrdinalDependency": null,
+    "licenseFootprint": {
+      "numpy": "BSD-3-Clause",
+      "scipy": "BSD-3-Clause"
+    }
+  },
+  "mathematics": {
+    "equation": "logit(P(Y<=k|x))=theta[k]-x@beta, k=0,1,2,3",
+    "cumulativeProbability": "P(Y<=k|x)=sigmoid(theta[k]-x@beta)",
+    "classProbabilities": [
+      "P0=F(theta0-x@beta)",
+      "P1=F(theta1-x@beta)-F(theta0-x@beta)",
+      "P2=F(theta2-x@beta)-F(theta1-x@beta)",
+      "P3=F(theta3-x@beta)-F(theta2-x@beta)",
+      "P4=1-F(theta3-x@beta)"
+    ],
+    "sharedSlopeAcrossCutpoints": true,
+    "cutpointParameterization": {
+      "theta0": "a0",
+      "theta1": "theta0+softplus(d1)+epsilon",
+      "theta2": "theta1+softplus(d2)+epsilon",
+      "theta3": "theta2+softplus(d3)+epsilon",
+      "epsilon": 1e-8,
+      "postFitSortingAllowed": false,
+      "orderingGuaranteedDuringOptimization": true
+    },
+    "objective": {
+      "dataLoss": "SUM_NEGATIVE_LOG_LIKELIHOOD",
+      "formula": "-sum_i(log(P(Y_i|x_i)))+lambda/2*||beta||^2",
+      "sampleMeanScaling": false,
+      "l2Target": "SLOPE_BETA_ONLY",
+      "cutpointsPenalized": false,
+      "classWeight": "UNWEIGHTED",
+      "lambda": 1.0,
+      "lambdaSelection": "PREDECLARED_FIXED_NOT_SELECTED_BY_PROJECT_PERFORMANCE",
+      "lambdaRationale": "A unit-scale stability penalty under SUM NLL after training-prefix standardization, with only two slopes. No project-data lambda comparison is allowed."
+    },
+    "numericalStability": {
+      "stableSigmoid": "scipy.special.expit",
+      "stableLogSigmoid": "-logaddexp(0,-z)",
+      "stableMiddleClassLogProbability": true,
+      "probabilityClipping": false,
+      "probabilityRenormalization": false,
+      "probabilityTolerance": 1e-12,
+      "nanInfPolicy": "FIT_FAILED_OR_INPUT_REJECTED"
+    },
+    "gradient": {
+      "type": "ANALYTIC",
+      "verification": "CENTRAL_FINITE_DIFFERENCE_ON_SYNTHETIC_DATA",
+      "finiteDifferenceStep": 1e-6,
+      "maxAbsoluteErrorGate": 2e-5,
+      "maxRelativeErrorGate": 2e-5
+    }
+  },
+  "fit": {
+    "initialization": {
+      "beta": "ALL_ZERO",
+      "cutpoints": "EMPIRICAL_CUMULATIVE_CLASS_FREQUENCY_LOGITS",
+      "randomInitialization": false,
+      "seedRequired": false
+    },
+    "solver": {
+      "library": "scipy.optimize.minimize",
+      "method": "L-BFGS-B",
+      "maxiter": 2000,
+      "ftol": 1e-12,
+      "gtol": 1e-8,
+      "deterministicInitialization": true,
+      "requiredDiagnostics": [
+        "success",
+        "status",
+        "message",
+        "nit",
+        "nfev",
+        "njev",
+        "objective"
+      ]
+    },
+    "failClosedGate": [
+      "OPTIMIZER_SUCCESS_TRUE",
+      "ALL_PARAMETERS_FINITE",
+      "FOUR_CUTPOINTS_STRICTLY_ORDERED",
+      "OBJECTIVE_FINITE",
+      "FIVE_PROBABILITIES_FINITE_NONNEGATIVE_AND_SUM_TO_ONE"
+    ],
+    "failureResult": "FIT_FAILED_NO_ARTIFACT_PROMOTION",
+    "allFiveClassesRequiredInEveryTrainingPrefix": true,
+    "implicitClassRemappingAllowed": false
+  },
+  "standardization": {
+    "fitScope": "CURRENT_TRAINING_PREFIX_ONLY",
+    "mean": "POPULATION_MEAN_DDOF_0",
+    "std": "POPULATION_STD_DDOF_0",
+    "evaluationDataIncludedInFit": false,
+    "futureSessionsIncludedInFit": false,
+    "zeroStdPolicy": "FIT_FAILED",
+    "implicitImputationAllowed": false
+  },
+  "trainingRows": {
+    "unit": "FROZEN_SELECTOR_TOP5_SELECTION_EVENT",
+    "candidateRows": 3800,
+    "uniqueSymbolSessions": 2743,
+    "independentTradeInterpretationAllowed": false,
+    "repeatedSelectionsAreCorrelated": true
+  },
+  "features": {
+    "mandatoryCore": [
+      "frozenSelectorRidgeScore",
+      "frozenSelectorRidgeRank"
+    ],
+    "mandatoryCoreAvailabilityPct": 100.0,
+    "optionalFeatures": [],
+    "decisionPriceRole": "REFERENCE_ONLY",
+    "rawDecisionPriceModelFeatureAllowed": false,
+    "missingStrategy": "NO_MODEL_FEATURE_MISSINGNESS_IN_V1_CORE",
+    "forwardFillAllowed": false,
+    "previousSessionSubstitutionAllowed": false,
+    "architectureRisk": "Both inputs are Frozen Selector outputs; v1 can recalibrate/filter Selector strength but cannot observe independent market state."
+  },
+  "label": {
+    "primary": {
+      "type": "ORDINAL_FUTURE_HIGH",
+      "reference": "DECISION_PRICE",
+      "window": "STRICT_WALL_CLOCK_PLUS_30_MINUTES",
+      "sameSessionRequired": true,
+      "completeContinuousFiveMinutePathRequired": true,
+      "classes": {
+        "0": "BELOW_PLUS_1_PERCENT",
+        "1": "PLUS_1_TO_BELOW_PLUS_2_PERCENT",
+        "2": "PLUS_2_TO_BELOW_PLUS_3_PERCENT",
+        "3": "PLUS_3_TO_BELOW_PLUS_5_PERCENT",
+        "4": "PLUS_5_PERCENT_OR_MORE"
+      },
+      "labelableRows": 1828,
+      "candidateRows": 3800,
+      "coveragePct": 48.1052631579
+    },
+    "unlabelable": {
+      "trainingAction": "EXCLUDE_FROM_MODEL_FIT_AND_OOF_SCORING",
+      "negativeClassSubstitutionAllowed": false,
+      "retainAuditLedger": true,
+      "knownReasonCounts": {
+        "PROVIDER_GAP": 1424,
+        "LUNCH_BREAK": 380,
+        "SESSION_END": 168
+      }
+    },
+    "supportingDiagnostic": {
+      "type": "COMPLETED_FIVE_MINUTE_CLOSE_ORDINAL",
+      "mixedIntoPrimaryLabel": false,
+      "hybridLabelAllowed": false
+    }
+  },
+  "crossValidation": {
+    "type": "SESSION_GROUPED_EXPANDING_WINDOW_CHRONOLOGICAL",
+    "evaluationFoldCount": 4,
+    "folds": [
+      {"fold": 1, "trainSessionOrdinals": "1-16", "evaluateSessionOrdinals": "17-31"},
+      {"fold": 2, "trainSessionOrdinals": "1-31", "evaluateSessionOrdinals": "32-46"},
+      {"fold": 3, "trainSessionOrdinals": "1-46", "evaluateSessionOrdinals": "47-61"},
+      {"fold": 4, "trainSessionOrdinals": "1-61", "evaluateSessionOrdinals": "62-76"}
+    ],
+    "wholeJstSessionKeptTogether": true,
+    "symbolSessionCrossFoldAllowed": false,
+    "randomSplitAllowed": false,
+    "stratifiedRandomSplitAllowed": false,
+    "initialSessions1To16ReceiveOofPrediction": false
+  },
+  "decision": {
+    "score": {
+      "name": "EXPECTED_ORDINAL_OPPORTUNITY_LEVEL",
+      "formula": "E[L]=0*P0+1*P1+2*P2+3*P3+4*P4",
+      "range": [0.0, 4.0],
+      "interpretation": "Expected ordered opportunity level, not probability, expected return, or monetary value."
+    },
+    "thresholdCandidates": {
+      "values": [1.0, 2.0, 3.0],
+      "count": 3,
+      "budget": 3,
+      "generationRule": "INTERIOR_INTEGER_LANDMARKS_OF_FIXED_ZERO_TO_FOUR_ORDINAL_LEVEL_RANGE",
+      "additionAfterOofAllowed": false,
+      "currentEntryThresholdReuseAllowed": false
+    },
+    "selectionObjective": {
+      "primary": "BALANCED_QUALITY_PRESERVATION_THROUGHPUT",
+      "scalar": "GEOMETRIC_MEAN(MEAN_PRECISION_1_2_3_5,MEAN_PRESERVATION_1_2_3_5,FIRST_ENTRY_COVERAGE)",
+      "thresholdWeights": "EQUAL_ACROSS_PLUS_1_PLUS_2_PLUS_3_PLUS_5",
+      "precisionOnlyAllowed": false,
+      "coverageOnlyAllowed": false,
+      "plus5OnlyAllowed": false
+    }
+  },
+  "state": {
+    "outputs": ["ENTER", "SKIP_THIS_DECISION"],
+    "waitStateAllowed": false,
+    "expiryStateAllowed": false,
+    "skipPersistent": false,
+    "freshFrozenSelectorReselectionRequiredForReevaluation": true,
+    "secondEntryInSameSymbolSessionAllowed": false
+  },
+  "developmentEvaluation": {
+    "baselines": ["FROZEN_SELECTOR_ONLY", "CURRENT_ENTRY", "MSH_ENTRY_LONG_V1"],
+    "metrics": [
+      "FIRST_ENTRY_COVERAGE",
+      "ENTRIES_PER_SESSION",
+      "PRECISION_PLUS_1_PLUS_2_PLUS_3_PLUS_5",
+      "PRESERVATION_PLUS_1_PLUS_2_PLUS_3_PLUS_5",
+      "PRESERVED_OPPORTUNITIES_PER_SESSION_PLUS_1_PLUS_2_PLUS_3_PLUS_5",
+      "HIGH_PRIMARY_LABEL_METRICS",
+      "CLOSE_SUPPORTING_METRICS",
+      "MFE",
+      "TRUE_MAE",
+      "LATENCY",
+      "CONSUMED_RETURN",
+      "FOLD_STABILITY"
+    ],
+    "completionGatePhilosophy": [
+      "CURRENT_ENTRY_PRESERVATION_AND_THROUGHPUT_IMPROVE_MATERIALLY",
+      "SELECTOR_ONLY_ENTRY_QUALITY_IS_HELD_OR_ENRICHED",
+      "RESULT_DOES_NOT_DEPEND_ON_ONLY_ONE_OF_PLUS_1_PLUS_2_PLUS_3_PLUS_5",
+      "NO_LARGE_EFFECT_DIRECTION_REVERSAL_ACROSS_FOLDS",
+      "LATENCY_AND_CONSUMED_RETURN_DO_NOT_DESTROY_SELECTOR_EDGE"
+    ]
+  },
+  "dataProtection": {
+    "developmentSessions": 76,
+    "developmentOnly": true,
+    "validationSealed": true,
+    "oosSealed": true,
+    "exitAccessAllowed": false,
+    "projectDataFitPerformedByFreezeAudit": false,
+    "projectPredictionsGeneratedByFreezeAudit": 0,
+    "providerRequestsByFreezeAudit": 0
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false,
+    "shortAllowed": false,
+    "marginAllowed": false,
+    "leverageAllowed": false
+  },
+  "exactNextAction": "STOP_AFTER_FREEZE. A separate explicit instruction is required for implementation wiring, Project Development fit, chronological CV, OOF generation, threshold evaluation, and Development evaluation."
+}

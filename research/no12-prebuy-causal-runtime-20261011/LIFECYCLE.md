@@ -1,0 +1,9 @@
+# No.1.2 synthetic READ ONLY event lifecycle
+
+This is an independent research implementation, not a production/strategy-replacement certificate. It accepts *only* SYNTHETIC_OFFLINE_ONLY pre-buy candidates that have passed observed-source clocks and excludes PULLBACK/SHARP_DROP, missing state, personal EXTERNAL symbols and 15:20-or-later BUY intents. No original H2/H3/H5 R0 proof or OOS economic results are claimed.
+
+The pure event loop processes a synthetic BUY_INTENT, a separate strictly later BUY_FILL, SELL_INTENT and separate strictly later SELL_FILL with explicit order IDs. First actual positive synthetic SELL fill stops new BUY for the session, including a BUY candidate at the same known-at timestamp. SELL_INTENT alone does not trigger that stop nor release cash or positions. MAX3 counts filled positions and pending orders; cash is reserved at intent, debited only at a later separately observed fill and credited only on a SELL fill. Zero buying power stops BUY, not the research system. External user holdings are never in Ark positions.
+
+100-share *order* lots are enforced. Partial BUY fill without independently reconciled exchange state halts the synthetic scenario; partial SELL reduces only actually filled quantity and latches the same-session BUY stop. Order prices are represented in tenths of a yen, cash in integer sen with 0.05% synthetic side costs; this is not a byte-for-byte replacement of the Frozen Decimal fills. Failed/risk events never cause a real broker order. No auto reset, Safety release, live order ID or Excel RSS write.
+
+This deliberately provides an executable, regression-tested synthetic integration path, not historical profitability evidence, real data source receipt-time validation, or a fully commissioned live trading strategy. A separate precommitted forward evaluation and MarketSpeed II broker execution-ID/cash/ownership E2E remain outstanding.

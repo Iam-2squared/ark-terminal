@@ -1,0 +1,106 @@
+name: Phase57 LONG-only Candidate v1 v2 Paired Comparison
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-long-only-v2-paired-comparison.yml
+      - scripts/prepare_phase57_long_only_v2_datasets.mjs
+      - scripts/run_phase57_long_only_v2_comparison.py
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  paired-comparison:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      BASE_RUN_ID: 34917676944
+      BASE_ARTIFACT: phase57-long-only-l0-replication-34917676944
+      L2_MINUTE_RUN_ID: 34936002178
+      V2_MINUTE_RUN_ID: 34964031692
+      JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+      NODE_OPTIONS: --max-old-space-size=6144
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install one fixed nonlinear implementation
+        run: pip install numpy==2.3.5 pandas==2.2.3 scipy==1.17.0 scikit-learn==1.8.0
+      - name: Download encrypted L0 base
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.BASE_ARTIFACT }}
+          path: ${{ runner.temp }}/base
+          repository: Iam-2squared/ark-terminal
+          run-id: ${{ env.BASE_RUN_ID }}
+          github-token: ${{ github.token }}
+      - name: Download existing C+D Minute checkpoints
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-l2-minute-shard-*-${{ env.L2_MINUTE_RUN_ID }}
+          path: ${{ runner.temp }}/l2-shards
+          merge-multiple: false
+          repository: Iam-2squared/ark-terminal
+          run-id: ${{ env.L2_MINUTE_RUN_ID }}
+          github-token: ${{ github.token }}
+      - name: Download fixed v2 Development checkpoints
+        uses: actions/download-artifact@v4
+        with:
+          pattern: phase57-long-only-v2-minute-shard-*-${{ env.V2_MINUTE_RUN_ID }}
+          path: ${{ runner.temp }}/v2-shards
+          merge-multiple: false
+          repository: Iam-2squared/ark-terminal
+          run-id: ${{ env.V2_MINUTE_RUN_ID }}
+          github-token: ${{ github.token }}
+      - name: Verify request ceiling and mount private cache
+        shell: bash
+        run: |
+          test -n "${JQUANTS_API_KEY:-}"
+          test "$(find "$RUNNER_TEMP/v2-shards" -name acquisition-summary.json | wc -l)" = "2"
+          jq -s '[.[].providerRequestsConsumedThisRun]|add' $(find "$RUNNER_TEMP/v2-shards" -name acquisition-summary.json | sort) > "$RUNNER_TEMP/v2-request-count.json"
+          test "$(cat "$RUNNER_TEMP/v2-request-count.json")" -le 300
+          test "$(jq -s '[.[].completedSessions]|add' $(find "$RUNNER_TEMP/v2-shards" -name acquisition-summary.json | sort))" = "20"
+          test "$(jq -s '[.[].unavailableSessions]|add' $(find "$RUNNER_TEMP/v2-shards" -name acquisition-summary.json | sort))" = "0"
+          test "$(jq -s 'map(.sessionListSha256)|unique|length' $(find "$RUNNER_TEMP/v2-shards" -name acquisition-summary.json | sort))" = "1"
+          test "$(jq -r '.sessionListSha256' $(find "$RUNNER_TEMP/v2-shards" -name acquisition-summary.json | sort | head -1))" = "4d8f52faf72e5954f84ea5d2e774d187723c9ae94e1322e956e6ef16aeefca60"
+          cd "$RUNNER_TEMP/base"
+          test "$(cut -d' ' -f1 private-cache.tar.gz.enc.sha256)" = "$(sha256sum private-cache.tar.gz.enc | cut -d' ' -f1)"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -in private-cache.tar.gz.enc -out "$RUNNER_TEMP/base.tar.gz"
+          tar -C "$RUNNER_TEMP" -xzf "$RUNNER_TEMP/base.tar.gz"
+          while IFS= read -r encrypted; do
+            checksum="${encrypted}.sha256"
+            test -f "$checksum"
+            test "$(cut -d' ' -f1 "$checksum")" = "$(sha256sum "$encrypted" | cut -d' ' -f1)"
+            openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:JQUANTS_API_KEY -in "$encrypted" | tar -C "$RUNNER_TEMP/phase57-l0-cache" -xzf -
+          done < <(find "$RUNNER_TEMP/l2-shards" "$RUNNER_TEMP/v2-shards" -name minute-shard.tar.gz.enc | sort)
+      - name: Prepare same-contract private datasets
+        run: node scripts/prepare_phase57_long_only_v2_datasets.mjs --cache-root "$RUNNER_TEMP/phase57-l0-cache" --output-dir "$RUNNER_TEMP/v2-datasets"
+      - name: Fit one shallow nonlinear family and run paired comparison
+        run: |
+          mkdir -p artifacts/phase57-long-only-v2
+          python scripts/run_phase57_long_only_v2_comparison.py --dataset-dir "$RUNNER_TEMP/v2-datasets" --repo-root "$GITHUB_WORKSPACE" --output artifacts/phase57-long-only-v2/v1-v2-paired-report.json
+      - name: Purge private inputs
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p artifacts/phase57-long-only-v2
+          if test -f "$RUNNER_TEMP/v2-request-count.json"; then cp "$RUNNER_TEMP/v2-request-count.json" artifacts/phase57-long-only-v2/request-count.json; fi
+          rm -rf -- "$RUNNER_TEMP/phase57-l0-cache" "$RUNNER_TEMP/v2-datasets" "$RUNNER_TEMP/base.tar.gz" "$RUNNER_TEMP/base" "$RUNNER_TEMP/l2-shards" "$RUNNER_TEMP/v2-shards"
+      - name: Upload sanitized paired evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-long-only-v1-v2-paired-${{ github.run_id }}
+          path: artifacts/phase57-long-only-v2/
+          if-no-files-found: error
+          retention-days: 21

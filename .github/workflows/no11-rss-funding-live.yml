@@ -1,0 +1,32 @@
+name: No11 RSS Funding Live Integration
+on:
+  push:
+    branches: [repair/no11-rss-funding-live-20261103]
+    paths:
+      - '.github/workflows/no11-rss-funding-live.yml'
+      - 'research/no11-rss-funding-live-20261103/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: no11-rss-funding-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Export public tracked sources for isolated validation
+        shell: bash
+        run: |
+          mkdir export
+          git archive HEAD research/no12-prebuy-causal-runtime-20261011 research/no11-clean-rebuild-20261103 research/ark-integrated-no1-1-freeze-20261008 integration/no1-1-msii > export/source.tar
+      - uses: actions/upload-artifact@v4
+        with:
+          name: no11-rss-funding-public-source
+          path: export/source.tar
+          retention-days: 7
+          if-no-files-found: error

@@ -1,0 +1,48 @@
+{
+  "schemaId": "ARK_NO11_2026_RSS_SELECTOR_SOURCE_GAP_PHYSICAL_OBSERVED_20261014_V1",
+  "evidenceSource": "USER_PC_PRIVATE_RECEIPT_SHA256",
+  "localReceiptSha256": "731a5095e605ad17bf9b6e5f128ac912d6cd7dfe3cec5a3e38cdb4068ee75df8",
+  "priorSourceAuditSha256": "04294e96395361e6f7030b68bd008135cbe296c588858d0e01e8023fe800f0a7",
+  "immutableSource5mSha256": "63389666d55a2cb4c21d9f9ba2fb8fbae2a92cdf3044d2b949798c66997d1f74",
+  "sourcePeriod": "2026-10-01..2026-10-13 8 sessions",
+  "inputSymbols": 4327,
+  "with1mBars": 4071,
+  "source1mBars": 3705797,
+  "completeFiveOneMinuteAggregationRows": 337023,
+  "observedIncompleteFiveMinuteGroupsExcluded": 914088,
+  "completeFiveMinuteBarsPerFullRegularSession": 65,
+  "historicalWatch950WithAll8Sessions": 856,
+  "pinnedFrozenL2SelectorFeatures": 15,
+  "priceOrCrossSectionDerivableOnlyUnderResearchAssumptions": 10,
+  "missingMasterOrSectorMetadata": [
+    "segmentStandard",
+    "segmentGrowth",
+    "liquidityLow",
+    "liquidityHigh",
+    "sectorBreadthPositivePct"
+  ],
+  "observedProvisionalDecisionPriceInstancesAll8Days": 59712,
+  "observedProvisionalDecisionPriceInstancesHistoricalWatch950": 8335,
+  "perDecisionSnapshotEligibleNotRealTradingEligible": true,
+  "nativeModelScoreCount": 0,
+  "nativeFirstEntryCount": 0,
+  "certified2026SupervisedExamples": 0,
+  "originalFrozenSourceContracts": {
+    "l0": "requires same-day master common-equity market segment, previous adjusted close, adjustment/corporate-action provenance",
+    "l1": "requires 5m turnover from actual per-minute value (Va), prior adjusted close and sector metadata; RssChart 1M archive only has OHLCV",
+    "frozen5mAggregation": "original normalizeAndAggregateMinuteRows permits partial bars with observedMinutes; current strict 5-of-5 source proxy is deliberately narrower, so not native parity",
+    "observedVendorAvailability": "unknown; local label+1minute is offline assumption",
+    "fiveMinutePriceFullParity": "not certified"
+  },
+  "evaluationOutcome": {
+    "status": "BLOCK_NATIVE_FROZEN_SELECTOR_AND_H2H3H5_ON_2026_SOURCE_ONLY",
+    "nextFeasible": "build independent observed-price-only outcome/coverage scorecard with missing future labels censored; separate future teacher from as-of features",
+    "cannotDo": "create native Frozen Selector rankings, First Entry, State9, H2/H3/H5 supervised rows or live orders from current OHLCV alone"
+  },
+  "safety": {
+    "frozenOriginalUnchanged": true,
+    "mainMerge": false,
+    "orderTransmission": false,
+    "productionReady": false
+  }
+}

@@ -1,0 +1,143 @@
+[
+  {
+    "block": "A",
+    "sessions": 30,
+    "field": "datasetSplit.validation.sessions",
+    "source": {
+      "ref": "649ff89fa8542819d14fa3c5a7337f6dd4fab4a8",
+      "commit": "649ff89fa8542819d14fa3c5a7337f6dd4fab4a8",
+      "path": "predict/long-only/phase57-long-only-data-plan.json",
+      "blobSha": "628703fac4d55057ae6ac402fc71fc3a58265dd0",
+      "sha256": "3ba4ec47a01510fe2b0de3874132824b2533400eaf4582a688b62306568ec526"
+    },
+    "derivation": "Existing Entry Validation requirement retained",
+    "outcomeInputs": 0
+  },
+  {
+    "block": "B",
+    "sessions": 30,
+    "field": "datasetSplit.primaryOos.sessions",
+    "source": {
+      "ref": "649ff89fa8542819d14fa3c5a7337f6dd4fab4a8",
+      "commit": "649ff89fa8542819d14fa3c5a7337f6dd4fab4a8",
+      "path": "predict/long-only/phase57-long-only-data-plan.json",
+      "blobSha": "628703fac4d55057ae6ac402fc71fc3a58265dd0",
+      "sha256": "3ba4ec47a01510fe2b0de3874132824b2533400eaf4582a688b62306568ec526"
+    },
+    "derivation": "New Entry-specific OOS responsibility using existing30-session standard",
+    "outcomeInputs": 0
+  },
+  {
+    "block": "DEV",
+    "sessions": 76,
+    "field": "Frozen Candidate.trainingIdentity.sessionCount / previous draft.existingDevelopmentIdentity",
+    "source": {
+      "path": "predict/research/phase57-msh-entry-long-v1-validation-candidate-v1.json",
+      "sha256": "4a2f52cd6f25f480fe6d7de9db525860ddf3c1600abed06b6222c0990c055a23"
+    },
+    "derivation": "Actual authorized Development identity; shared use mandated by longPlan.datasetSplit.development.integratedReuseRequired",
+    "outcomeInputs": 0
+  },
+  {
+    "block": "C",
+    "sessions": 30,
+    "field": "datasetSplit.validation.sessions",
+    "source": {
+      "ref": "649ff89fa8542819d14fa3c5a7337f6dd4fab4a8",
+      "commit": "649ff89fa8542819d14fa3c5a7337f6dd4fab4a8",
+      "path": "predict/long-only/phase57-long-only-data-plan.json",
+      "blobSha": "628703fac4d55057ae6ac402fc71fc3a58265dd0",
+      "sha256": "3ba4ec47a01510fe2b0de3874132824b2533400eaf4582a688b62306568ec526"
+    },
+    "derivation": "LONG EXIT validation using existing standard; not legacy outcome yield",
+    "outcomeInputs": 0
+  },
+  {
+    "block": "D",
+    "sessions": 30,
+    "field": "datasetSplit.primaryOos.sessions",
+    "source": {
+      "ref": "649ff89fa8542819d14fa3c5a7337f6dd4fab4a8",
+      "commit": "649ff89fa8542819d14fa3c5a7337f6dd4fab4a8",
+      "path": "predict/long-only/phase57-long-only-data-plan.json",
+      "blobSha": "628703fac4d55057ae6ac402fc71fc3a58265dd0",
+      "sha256": "3ba4ec47a01510fe2b0de3874132824b2533400eaf4582a688b62306568ec526"
+    },
+    "derivation": "LONG EXIT outer independent standard",
+    "outcomeInputs": 0
+  },
+  {
+    "block": "E",
+    "sessions": 20,
+    "field": "datasetSplit.validationReplication.sessions",
+    "source": {
+      "ref": "649ff89fa8542819d14fa3c5a7337f6dd4fab4a8",
+      "commit": "649ff89fa8542819d14fa3c5a7337f6dd4fab4a8",
+      "path": "predict/long-only/phase57-long-only-data-plan.json",
+      "blobSha": "628703fac4d55057ae6ac402fc71fc3a58265dd0",
+      "sha256": "3ba4ec47a01510fe2b0de3874132824b2533400eaf4582a688b62306568ec526"
+    },
+    "derivation": "Joint Integration/Capital/Portfolio validation under pre-freeze sharing; not legacy Future20",
+    "outcomeInputs": 0
+  },
+  {
+    "block": "F",
+    "sessions": 30,
+    "field": "datasetSplit.primaryOos.sessions",
+    "source": {
+      "ref": "649ff89fa8542819d14fa3c5a7337f6dd4fab4a8",
+      "commit": "649ff89fa8542819d14fa3c5a7337f6dd4fab4a8",
+      "path": "predict/long-only/phase57-long-only-data-plan.json",
+      "blobSha": "628703fac4d55057ae6ac402fc71fc3a58265dd0",
+      "sha256": "3ba4ec47a01510fe2b0de3874132824b2533400eaf4582a688b62306568ec526"
+    },
+    "derivation": "System-fresh final paired comparison using outer standard",
+    "outcomeInputs": 0
+  },
+  {
+    "block": "G",
+    "sessions": 25,
+    "field": "datasetSplit.freshProspective.targetSessions",
+    "source": {
+      "ref": "649ff89fa8542819d14fa3c5a7337f6dd4fab4a8",
+      "commit": "649ff89fa8542819d14fa3c5a7337f6dd4fab4a8",
+      "path": "predict/long-only/phase57-long-only-data-plan.json",
+      "blobSha": "628703fac4d55057ae6ac402fc71fc3a58265dd0",
+      "sha256": "3ba4ec47a01510fe2b0de3874132824b2533400eaf4582a688b62306568ec526"
+    },
+    "derivation": "Existing prospective target retained",
+    "outcomeInputs": 0
+  },
+  {
+    "rule": "EXIT_DEV_EVENT_MINIMUM",
+    "value": 200,
+    "source": {
+      "ref": "origin/research/phase57-exit-v4-hybrid-msh-large-scale",
+      "commit": "ea15a594103bd6c9146f19a4aebafb83067d869b",
+      "path": "predict/research/phase57-exit-v4-stage2-data-allocation-contract-v1.json",
+      "blobSha": "302a289578abc89d2949e67752637175de23b744",
+      "sha256": "7e2792dfe35998716535bbbe0c9347adf87c9d6179f004b405bf0afd7240faec"
+    },
+    "field": "developmentPolicy.devATargetIndependentFirstEnter",
+    "classification": "Legacy Checkpoint A target explicitly adopted as new LONG adequacy minimum;500/1000/2000 later targets not mandatory minima",
+    "outcomeInputs": 0
+  },
+  {
+    "rule": "EVALUATION_EVENT_MINIMUM",
+    "value": 97,
+    "source": {
+      "path": "docs/evidence/phase57-long-only-e2e-data-responsibility/responsibility-budget-contract.json",
+      "sha256": "028855230bc39ae37fcfda1395bc5e7358b6e8416dc810fce20349b4ef1f2d63"
+    },
+    "field": "budgetDerivation.eventAssumptions",
+    "formula": "ceil(1.96^2*0.5*(1-0.5)/0.10^2)=97",
+    "classification": "Previously declared minimum-viable nominal binary-diagnostic assumption; not power or IID/cluster precision guarantee",
+    "outcomeRatePlugIn": false
+  },
+  {
+    "rule": "BUFFER",
+    "value": 0,
+    "source": "Prior budget design: no session-level loss estimate, no outcome-based expansion",
+    "outcomeInputs": 0
+  }
+]

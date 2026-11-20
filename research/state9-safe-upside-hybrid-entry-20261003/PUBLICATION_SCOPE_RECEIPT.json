@@ -1,0 +1,21 @@
+{
+  "status": "ROW_LEVEL_PUBLICATION_WITHHELD_AFTER_SAFETY_REVIEW",
+  "destination": "Iam-2squared/ark-terminal",
+  "destination_visibility_verified": "public",
+  "branch": "state9-safe-upside-hybrid-entry-20261003-v1",
+  "blocked_action": "Unrestricted push of the entire research directory",
+  "reason": "Large artifacts derived from private market data; first-passage rows contain exact fill prices and opportunity/session identity. Public disclosure is not assumed.",
+  "blocked_action_retried": false,
+  "safer_checkpoint_scope": ["aggregate census", "source code", "contract", "hash-only manifests", "integrity receipts", "checkpoint status"],
+  "new_row_level_payloads_excluded_from_publication": ["FIRST_PASSAGE_LABELS.jsonl.gz", "OOF_*.jsonl.gz", "INNER_OOF_*.jsonl.gz", "ENTRY_CANDIDATE_RECORDS.jsonl.gz", "MODEL_ARITHMETIC/*.npz"],
+  "private_input_payloads_never_publish": ["original raw OHLC", "PRIVATE_SELECTED_SOURCE_TOKENS.json.gz", "H0_SAVED_FEATURES.npy", "original model pickle", "private attachment traces"],
+  "first_passage_labels_bytes": 20168031,
+  "first_passage_labels_sha256": "d4c2767f9a8b6cde27b6de54a8721da368459500b5ff344ac4375074e0f1fbd3",
+  "raw_provider_retrieval": 0,
+  "metric_semantics_changed": false,
+  "model_target_changed": false,
+  "public_full_row_artifact_publication": "REQUIRES_EXPLICIT_APPROVAL",
+  "private_evidence_retention": "Retain exact row-level research outputs privately; make them available in the user-only final deliverable.",
+  "checkpoint_rule_preserved": "Each checkpoint still commits aggregate/status/hash/integrity evidence and verifies actual branch HEAD before the next stage. Private row-level artifact bytes are not sent to public GitHub.",
+  "productionReady": false
+}

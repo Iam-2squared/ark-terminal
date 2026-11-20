@@ -1,0 +1,170 @@
+{
+  "REPORT_predictions_opened": false,
+  "candidates": [
+    {
+      "candidate_id": "C03_STATE_CHART_LOGIT",
+      "config": {
+        "V1_INTERACTIONS": true,
+        "added_families": [
+          "C01"
+        ],
+        "candidate_id": "C03_STATE_CHART_LOGIT",
+        "complexity": [
+          1,
+          12,
+          0,
+          38,
+          0
+        ],
+        "family": "logit",
+        "new_interactions": [
+          {
+            "category": "S.primary",
+            "group": "C03current",
+            "numeric": [
+              "C01.open_progress",
+              "C01.range_position",
+              "C01.connected_efficiency",
+              "C01.mean_value"
+            ]
+          },
+          {
+            "category": "H.primary",
+            "group": "C03history",
+            "numeric": [
+              "C01.from_high",
+              "C01.from_low",
+              "C01.high_update_count",
+              "C01.value_up_fraction"
+            ]
+          },
+          {
+            "binary": "Q.current_state_available",
+            "group": "C03available",
+            "numeric": [
+              "C01.direction_agreement",
+              "C01.tail_vs_full_efficiency",
+              "C01.mean_volume",
+              "C01.support_fraction"
+            ]
+          }
+        ],
+        "parent_id": "C01_CHART_LOGIT",
+        "regularization_multiplier": 1.0
+      },
+      "operating_point": 95,
+      "role": "PRIMARY",
+      "search_metrics": {
+        "M": 172,
+        "MINUS_remaining": 0.872093023255814,
+        "MINUS_removal": 0.12790697674418605,
+        "M_drop": 22,
+        "M_keep": 150,
+        "P": 144,
+        "PLUS_retention": 0.9444444444444444,
+        "P_drop": 8,
+        "P_keep": 136,
+        "UNKNOWN_drop": 0,
+        "UNKNOWN_keep": 6,
+        "ZERO_drop": 0,
+        "ZERO_keep": 0,
+        "target_integer": false
+      }
+    },
+    {
+      "candidate_id": "C04_HGB_B",
+      "config": {
+        "V1_INTERACTIONS": true,
+        "added_families": [
+          "C01"
+        ],
+        "candidate_id": "C04_HGB_B",
+        "complexity": [
+          1,
+          12,
+          2,
+          100,
+          0
+        ],
+        "family": "HGB",
+        "hgb_options": {
+          "categorical_features": null,
+          "early_stopping": false,
+          "l2_regularization": 1.0,
+          "learning_rate": 0.05,
+          "loss": "log_loss",
+          "max_depth": 4,
+          "max_iter": 200,
+          "max_leaf_nodes": 15,
+          "min_samples_leaf": 30,
+          "random_state": 570107
+        },
+        "new_interactions": [
+          {
+            "category": "S.primary",
+            "group": "C03current",
+            "numeric": [
+              "C01.open_progress",
+              "C01.range_position",
+              "C01.connected_efficiency",
+              "C01.mean_value"
+            ]
+          },
+          {
+            "category": "H.primary",
+            "group": "C03history",
+            "numeric": [
+              "C01.from_high",
+              "C01.from_low",
+              "C01.high_update_count",
+              "C01.value_up_fraction"
+            ]
+          },
+          {
+            "binary": "Q.current_state_available",
+            "group": "C03available",
+            "numeric": [
+              "C01.direction_agreement",
+              "C01.tail_vs_full_efficiency",
+              "C01.mean_volume",
+              "C01.support_fraction"
+            ]
+          }
+        ],
+        "parent_id": "C03_STATE_CHART_LOGIT",
+        "regularization_multiplier": 1.0
+      },
+      "operating_point": 99,
+      "role": "SECONDARY",
+      "search_metrics": {
+        "M": 172,
+        "MINUS_remaining": 0.936046511627907,
+        "MINUS_removal": 0.06395348837209303,
+        "M_drop": 11,
+        "M_keep": 161,
+        "P": 144,
+        "PLUS_retention": 0.9513888888888888,
+        "P_drop": 7,
+        "P_keep": 137,
+        "UNKNOWN_drop": 0,
+        "UNKNOWN_keep": 6,
+        "ZERO_drop": 0,
+        "ZERO_keep": 0,
+        "target_integer": false
+      }
+    }
+  ],
+  "clock": {
+    "JST": "2026-10-07T06:52:54.669437+09:00",
+    "UTC": "2026-10-06T21:52:54.669437+00:00"
+  },
+  "frozen_input_registry_sha256": "c3976345852ff428db93587f5e44e8ab7803da9bc7e7c85b06ac0910fc0b789d",
+  "interaction_registry_sha256": "29bf73aaff8b2b489ef8ac7a4eb290d243a3728f87f837536ea32c15697927a4",
+  "primary_never_replaced_by_report_results": true,
+  "report_fit_budget": 6,
+  "search_future_cycles": "C05..C08 NOT_STARTED; no automatic deadline extension",
+  "search_stopped_at_original_06JST_limit": true,
+  "selection_only_first40": true,
+  "source_cutoff_QA": "All1600 C01 prefix and future mutation QA6402 PASS + unchanged V1 certified semantics; same family used by both candidates",
+  "status": "PINNED_BEFORE_REPORT"
+}

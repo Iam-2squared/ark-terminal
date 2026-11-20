@@ -1,0 +1,24 @@
+{
+  "schema": "phase57-r54-resource-plan-v1",
+  "savedUtc": "2026-09-28T00:12:47Z",
+  "actualReadiness": {
+    "sourceRows": 656247,
+    "groups": 3848,
+    "numericFeatures": 42,
+    "pattern187": 187,
+    "declaredOneHot": 139,
+    "horizonMax": 7,
+    "largestTrainLongFormRowsApprox": 756662,
+    "largestSingleFloat32FullMatrixApproxBytes": 1119859760,
+    "baseArrayApproxBytes": 624747144
+  },
+  "threading": "OPENBLAS_OMP_MKL_VECLIB_NUMEXPR=1",
+  "approach": "ONE_FAMILY_FOLD_ARM_VARIANT_MATRIX_AT_A_TIME; PREDICT_CHUNKS_20K; MODEL_SAVE_EACH_FIT; GC_BETWEEN_GROUPS",
+  "worstCase": "FULL_7X_EXPANSION_FORBIDDEN; NO_PROMISE_360_MIN_ACTION_RUNNER_COMPARABLE_RESOURCES",
+  "maxRealFits": 176,
+  "maxSyntheticFits": 3,
+  "finiteWorkflowTimeoutMinutes": 360,
+  "onResourceFailure": "PRESERVE_MANIFEST_AND_PARTIAL_ARTIFACT; DO_NOT_REDUCE_ROWS_HORIZONS_MODEL_POST_PERFORMANCE",
+  "temporaryOutputs": "GitHub Actions artifacts; no raw provider redistribution in public Git tree",
+  "safety9AllFalse": true
+} 

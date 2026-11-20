@@ -1,0 +1,40 @@
+{
+  "schema": "phase57-ccmg-potential-feature-recovery-v1",
+  "status": "POTENTIAL_FEATURE_RECOVERY_PASS",
+  "method": "deterministic byte-identical regeneration from frozen Development sources; original feature member was absent from published ZIP",
+  "sourceArtifactId": 10851958443,
+  "sourceArtifactZipSha256": "33a0f64d48d25701215dadb82b9769a9c3bde2b9fec3d82d9879706f8f90e1a0",
+  "sourceCommit": "fad3ba8bbcf518fe84454a660e62f6d879a2a4c4",
+  "input": {
+    "substrateManifestMembersVerified": 152,
+    "substrateMismatchN": 0,
+    "rawPathSha256": "37853e73799544be6fd6eb955de514073dd13671692426291a9fdb6d80056c6b",
+    "oneMinuteReferenceArtifactId": 10732168448,
+    "oneMinuteReferenceMemberSha256": "de8ee035d2c2949e6ecbd5315d393de8794ca7d0e36ace49a6ccfe720a65a844",
+    "transformSourceSha256": "61196610c302e83e40d328c9c8d128db4c1fbe3e347c970498fe619e1786ddcb",
+    "trainSourceSha256": "b6cca53dfc12d31047151f4f8a014f4acc91924fa816f3fb296e6f984f244fda"
+  },
+  "frozenVsRegeneratedSha256": {
+    "features.npy": "54bf771f6a090eb3e8035f7ee433ca1fbd617c165d77955ab71054b4e259a3fe",
+    "feature-names.json": "57040ed4cb0cc008c3b2b33b32ae71d721c755a2e8a3ffa0455941c83bbd4275",
+    "rows.json": "54f7dbb8bd0c9f8974ccccb7a949c0b7ebf0bbe46581be7778f1607f9d9d8cb6",
+    "folds.json": "3342c68cc8a1987e11dda6f6c07757a47ff43d1e7f7f1506cb2e1ca0b3b41021",
+    "summary.json": "f3b6e6775c159afc6dc06796858ef4314deea9017e6166c27ba3a1b8366248ec",
+    "sources.json.gzFrozen": "7e8de9df9853d7d66a511db5212a0058a7c32b07e6b362edbc5b965b6f22bbc7",
+    "sources.json.gzRegeneratedPython312": "f1d61bc546427dc61881a3173582e665457f9b62a7a13d09b669a97f6a63fcd6"
+  },
+  "auxiliarySourcesGzipHeader": "Python 3.12 gzip.compress(mtime=0) OS header byte=3; replace only byte 9 with 255 (original Python 3.13) to obtain frozen SHA-256 7e8de9df9853d7d66a511db5212a0058a7c32b07e6b362edbc5b965b6f22bbc7. Decompressed payload and CRC are unchanged. No auxiliary sources consumed as Entry feature values.",
+  "matrix": {"rows": 149900, "columns": 566, "dtype": "float64", "frozenOuterFolds": 5},
+  "frozen24SessionEntryMapping": {
+    "IM": {"uniqueRow": 819, "strictComputedThroughBeforeEntry": 819, "quoteAvailable": 819},
+    "R1": {"uniqueRow": 795, "strictComputedThroughBeforeEntry": 795, "quoteAvailable": 795},
+    "finiteFeatureColumnsPerEntryMin": 345,
+    "finiteFeatureColumnsPerEntryMedian": 503,
+    "finiteFeatureColumnsPerEntryMax": 563
+  },
+  "featureArrayPersistedInRepo": false,
+  "interpretation": "Exact frozen feature bytes and causal row identity were recovered; the auxiliary gzip header difference is identified and does not change the feature matrix. Label lineage and OOF skill remain separate gates.",
+  "newEstimatorFits": 0,
+  "providerRequests": 0,
+  "restrictedPartitionsOpened": 0
+}

@@ -1,0 +1,42 @@
+{
+  "schema": "phase57-r50-winner-lifecycle-precommit-v1",
+  "status": "FROZEN_BEFORE_PERFORMANCE",
+  "basisHead": "f4c2173134a94d83e6d722546de0094c3b997d9e",
+  "objective": "Harvest an already armed Winner only after causal post-peak deterioration, while holding continuation, ordinary pullback, and recovery.",
+  "entryFreezeSha": "4878a1cc53430e816261dea0fb16aeb53b3c238d",
+  "entryArms": ["IMMEDIATE", "ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF"],
+  "developmentExposure": {"opportunities": 2155, "outcomeExposed": true},
+  "primaryEvaluatorSlice": {"name": "POST_ENTRY_UPSIDE_GE5", "predicate": "entryToPostEntryHighPct>=5.0", "decisionInput": false, "expectedSupport": {"IMMEDIATE": 222, "ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF": 200}},
+  "canonicalSlice": {"name": "CANONICAL_L2H_GE5", "decisionInput": false, "support": {"IMMEDIATE": 387, "ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF": 381}},
+  "replaySource": {"runId": 36251316248, "artifactId": 10909618948, "artifactSha256": "d3936171002e7579e431568b9900ee5fa1fc8ade3dae0bf6de92870c8dbe4b38", "predictionSha256": "0bf849f4c9d9e90ef05e86ed2d5fd1cfea2eec7214a3b28a8824a1a1daaee6fc", "rawPathSha256": "37853e73799544be6fd6eb955de514073dd13671692426291a9fdb6d80056c6b", "modelFits": 0, "predictionRefits": 0},
+  "facts": {"allowlist": ["certifiedMfePct", "certifiedGivebackPp", "timeSincePeak", "barsHeld", "currentReturnPct", "momentum5Pct", "weakRun", "stateRecovery", "failedRecovery", "signalTrueN", "signalFalseN", "signalLossN", "signalRecoveryN", "newPeak"], "strictNow": true, "completeOwnedPrefixRequiredForMfeAndGiveback": true, "incompleteGiveback": null, "unknownSignalIsFalse": false},
+  "futureDenylist": ["POST_ENTRY_UPSIDE_GE5", "CANONICAL_L2H_GE5", "futureHigh", "futureLow", "futureState", "futurePivot", "futureMFE", "futureMAE", "finalPnL", "oracleExit", "capture", "label", "labelAvailability", "target", "postEntryHighKnownAt"],
+  "lifecycle": {
+    "states": ["UNARMED", "WINNER_ARMED", "CONTINUATION", "ORDINARY_PULLBACK", "RECOVERY_ATTEMPT", "RECOVERY_CONFIRMED", "MATURE_DETERIORATION", "FAILED_RECOVERY", "HARVEST_INTENT", "TERMINAL", "MISSING_HOLD"],
+    "winnerArmed": {"certifiedMfePctMin": 3.0, "source": "R49_C frozen pre-performance value"},
+    "newPeak": "HOLD and reset deterioration/recovery counters",
+    "continuation": {"predicate": "momentum5Pct>=0 AND signalTrueN>=1", "action": "HOLD"},
+    "recoveryAttempt": {"predicate": "stateRecovery==1 OR signalRecoveryN>=1", "action": "HOLD"},
+    "recoveryConfirmed": {"predicate": "recoveryAttempt AND momentum5Pct>=0 AND signalTrueN>=1", "confirm": 2, "action": "HOLD_AND_RESET"},
+    "ordinaryPullback": "Armed but matureDeterioration predicate is false; HOLD",
+    "matureDeterioration": {"certifiedGivebackPp": "max(3.0, 0.50*certifiedMfePct)", "timeSincePeakMin": 12, "barsHeldMin": 50, "momentum5PctMax": 0.0, "signalFalseNMin": 3, "confirm": 2, "sources": ["R49_B frozen pre-performance values"]},
+    "failedRecovery": {"predicate": "failedRecovery==1 AND weakRun>=4", "source": "R49_C frozen pre-performance weakRun value"},
+    "priority": ["FORCE_TERMINAL", "MISSING_HOLD", "RECOVERY_CONFIRMED", "CONTINUATION", "RECOVERY_ATTEMPT", "MATURE_DETERIORATION", "ORDINARY_PULLBACK"],
+    "roles": {"stateV3": "transition/recovery context; DROP alone cannot exit", "signals": "tri-state persistence/loss/recovery; one loss cannot exit", "momentum": "corroboration only", "pattern187": "not admitted for R50 decisions", "gen3ContinuationScore": "diagnostic only; no veto", "gen3DeteriorationScore": "diagnostic only; not mandatory"}
+  },
+  "candidateCount": 2,
+  "candidates": [
+    {"candidateId": "R50_A_LIFECYCLE", "architecture": "DETERMINISTIC_WINNER_LIFECYCLE", "harvestAuthority": "two consecutive matureDeterioration observations outside continuation/recovery"},
+    {"candidateId": "R50_B_FAILED_RECOVERY", "architecture": "LIFECYCLE_PLUS_EXPLICIT_FAILED_RECOVERY", "harvestAuthority": "two consecutive matureDeterioration observations and explicit failedRecovery"}
+  ],
+  "terminalHoldControl": {"candidateId": "TERMINAL_HOLD_CONTROL", "selectable": false},
+  "execution": {"intentAtClosedKnownCheckpoint": true, "ordinaryExit": "exact next scheduled OPEN", "missingOpen": "HOLD and re-evaluate; no forward search", "terminal": "frozen terminal auction contract", "sellCostPp": [0.05, 0.10, 0.20], "costAppliedOnce": true},
+  "gatePerEntryArm": {"supportMin": 50, "medianPostEntryUpsideCaptureMinPct": 50.0, "meanNetMinPct": 3.25, "medianNetMinPct": 2.0, "prematureRateMax": 0.10},
+  "requiredDiagnostics": ["terminal-hold paired comparison", "negative capture share", "High-to-Exit gap", "winner profit retention", "cost stress", "concentration", "reproducibility", "IM/R1", "common paired"],
+  "selection": {"mustPassEveryGateBothEntryArms": true, "ranking": ["max-min median capture", "max-min mean net", "min-max premature rate"], "exactTie": "NO_SELECTION", "zeroPass": "NO_SELECTION_STOP", "bestOfFailingProhibited": true},
+  "performanceBeforeFreezeAllowed": false,
+  "candidateAfterPerformanceAllowed": false,
+  "capital": {"prepareBeforeSelection": true, "portfolioPerformanceBeforeFinalExitFreeze": false, "initialCashJpy": 1000000, "lotShares": 100, "longOnly": true, "cashOnly": true, "primary": "MAX3", "sensitivity": ["MAX4", "MAX5"]},
+  "exposure": {"allowed": "Development only", "protectedOpened": 0, "providerRequests": 0, "r49DecodedAllowlistExternalPayloads": 3220, "claimZeroOutOfScopeAccess": false},
+  "safety": {"executionAllowed": false, "brokerWriteAllowed": false, "excelOrderWriteAllowed": false, "rssOrderFunctionAllowed": false, "liveTradingAllowed": false, "paperTradingAllowed": false, "automaticPromotionAllowed": false, "productionUpdateAllowed": false, "transmitted": false}
+}

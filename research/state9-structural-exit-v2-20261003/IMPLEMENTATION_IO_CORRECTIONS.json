@@ -1,0 +1,27 @@
+{
+  "additional_fits": 0,
+  "additional_provider": 0,
+  "audit_refits": 0,
+  "changes": [
+    {
+      "after_sha256": "7d399acdf339652493d2d162eb0a7be05ed481ebe142fc22d4bc0d8bb1b8eb99",
+      "before_sha256": "9ded8066dd715a0a180352c79e5fb84a3e9604ca8ac71e8e82af8179b8c1e2cd",
+      "file": "independent_audit.py"
+    },
+    {
+      "after_sha256": "a76bd0c418f9b71908f38163b06ae4c903695c9ca0bb230ac063576473120f15",
+      "before_sha256": "731d00c88b8b8e1ec9d369eb6f282efa74a8abe7ae93faf1d177bb4b4fecd86f",
+      "file": "replay.py"
+    }
+  ],
+  "contract_sha256_unchanged": true,
+  "corrections": [
+    "replay summary: serialize absent sell-source category as UNRESOLVED instead of non-string None dictionary key",
+    "audit schema access: exact Frozen Pivot.extremum_t, correcting a validator field-name typo; no expected semantics or market values changed",
+    "73 incomplete/empty gzip containers deterministically regenerated to the original recorded exact SHA; all1600 full stream/hash checks completed"
+  ],
+  "definition_threshold_policy_state_entry_changes": 0,
+  "frozen_source_hashes_unchanged": true,
+  "policy_lifecycle_sha256_unchanged": true,
+  "saved_at_jst": "2026-10-03T18:32:10.868188+09:00"
+}

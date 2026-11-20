@@ -1,0 +1,193 @@
+{
+  "reviewId": "PHASE57_GLOBAL_BUDGET_INTEGRITY_REVIEW_V1",
+  "dateJst": "2026-09-16",
+  "sourceHead": "b7e9e54350d1c008a11bace444ab6f6e14065b2a",
+  "latestMain": "b7801ce2c13772cbc3f5b51506819c119fe868ea",
+  "method": "Independent implementation + source provenance + computational counterfactual replay; same assistant, not an external human or separate blinded reviewer.",
+  "methodLimit": "Causal non-influence conclusion covers reproducible budget data flow and source-supported decisions, not unobservable cognition. No claim that the historical display did not occur.",
+  "incident": {
+    "priorRecord": "docs/evidence/phase57-long-only-e2e-data-responsibility/audit-incident.json",
+    "priorRecordSha256": "5c6d935ff8db4203d0d05d17942546f4dc910f16ead57c92ee78421c0226c291",
+    "exactSource": "predict/research/phase57-msh-entry-long-v1-validation-candidate-v1.json",
+    "field": "trainingIdentity.classCounts",
+    "historicalCommand": "python: c=json.load(open(candidate_path)); print(json.dumps(c['trainingIdentity'],indent=2)); print('selector',json.dumps(c['selector'],indent=2))",
+    "parser": "stdlib json.load then unrestricted printing of parent trainingIdentity object",
+    "historicalToolOutputChunkId": "ffa0b9",
+    "historicalReportLocation": "docs/evidence/phase57-long-only-e2e-data-responsibility/REPORT.md incident paragraph and audit-incident.json",
+    "description": "Previously saved Development ordinal label class-count aggregate displayed once; no values repeated here. Display command did not write derivation input/output.",
+    "previousOccurrences": 1,
+    "displayOccurrencesThisReview": 0,
+    "previousIncidentPreserved": true,
+    "dataFlow": {
+      "budgetCalculation": {
+        "classification": "NOT_USED",
+        "evidence": "Archived builder AST/reference audit + outcome-free full replay + independent allowlisted derivation"
+      },
+      "sessionRequirements": {
+        "classification": "NOT_USED",
+        "evidence": "Archived builder AST/reference audit + outcome-free full replay + independent allowlisted derivation"
+      },
+      "reuseRules": {
+        "classification": "NOT_USED",
+        "evidence": "Archived builder AST/reference audit + outcome-free full replay + independent allowlisted derivation"
+      },
+      "freshnessRules": {
+        "classification": "NOT_USED",
+        "evidence": "Archived builder AST/reference audit + outcome-free full replay + independent allowlisted derivation"
+      },
+      "eventMinimum200": {
+        "classification": "NOT_USED",
+        "evidence": "Archived builder AST/reference audit + outcome-free full replay + independent allowlisted derivation"
+      },
+      "eventMinimum97": {
+        "classification": "NOT_USED",
+        "evidence": "Archived builder AST/reference audit + outcome-free full replay + independent allowlisted derivation"
+      },
+      "buffer": {
+        "classification": "NOT_USED",
+        "evidence": "Archived builder AST/reference audit + outcome-free full replay + independent allowlisted derivation"
+      },
+      "acquisitionPlan": {
+        "classification": "NOT_USED",
+        "evidence": "Archived builder AST/reference audit + outcome-free full replay + independent allowlisted derivation"
+      }
+    }
+  },
+  "dataFlowVerdict": "NOT_USED",
+  "causalInfluence": "NONE_IN_AUDITED_BUDGET_DERIVATION",
+  "counterfactual": {
+    "sourceSha256": "1f287bf621d7842030134f330082f38c0ee8231866302a41f4789e69e4e01702",
+    "candidateOutcomeFieldsSupplied": 0,
+    "candidateFieldAccesses": [
+      "trainingIdentity.sessionCount",
+      "trainingIdentity.sessionListSha256",
+      "trainingIdentity.trainingSessions"
+    ],
+    "priorContractSha256": "028855230bc39ae37fcfda1395bc5e7358b6e8416dc810fce20349b4ef1f2d63",
+    "replayedContractSha256": "028855230bc39ae37fcfda1395bc5e7358b6e8416dc810fce20349b4ef1f2d63",
+    "priorContractByteIdentical": true,
+    "budgetExpressionsModified": 0,
+    "researchExecution": false,
+    "outputWritesToRepository": 0,
+    "scope": "Deterministic computational counterfactual; not a claim of a separate human reviewer or proof of unobservable cognition."
+  },
+  "questions": [
+    {
+      "id": "Q1",
+      "result": "PASS",
+      "finding": "No classCounts reference in calculation/session/reuse/freshness/event/buffer/acquisition input flow; Candidate only contributes approved session identity fields."
+    },
+    {
+      "id": "Q2",
+      "result": "PASS",
+      "finding": "Original builder without candidate outcome fields reproduces entire previous contract byte-for-byte; independent arithmetic matches all budgets and acquisition estimates."
+    },
+    {
+      "id": "Q3",
+      "result": "PASS",
+      "finding": "Every numeric budget and event rule mapped to an existing source or explicitly predeclared design assumption."
+    },
+    {
+      "id": "Q4",
+      "result": "PASS",
+      "finding": "30+30+30+30+20+30+25=195. Existing76 excluded from fresh; no credit from future20, UNKNOWN, SEALED or RESERVED."
+    },
+    {
+      "id": "Q5",
+      "result": "PASS",
+      "finding": "E20 counted once for three joint claims; DEV76 counted once for three Development consumers; no duplicate unique blocks."
+    },
+    {
+      "id": "Q6",
+      "result": "PASS",
+      "finding": "All ten required stage roles covered by eight block identities including DEV; no omitted Entry/EXIT/Integration/Capital/Portfolio/comparison/prospective responsibility."
+    },
+    {
+      "id": "Q7",
+      "result": "PASS",
+      "finding": "Existing76 explicitly shared for component Development, never component/system-fresh evaluation."
+    },
+    {
+      "id": "Q8",
+      "result": "PASS",
+      "finding": "F30 and G25 require SYSTEM_FRESH and no upstream tuning exposure; actual dates must be certified later."
+    },
+    {
+      "id": "Q9",
+      "result": "PASS",
+      "finding": "A30 and B30 disjoint; no Validation-driven OOS redesign."
+    },
+    {
+      "id": "Q10",
+      "result": "PASS",
+      "finding": "C30 and D30 disjoint from one another and DEV76."
+    },
+    {
+      "id": "Q11",
+      "result": "PASS",
+      "finding": "E20 shared only for one evaluation with all rules/artifacts/metrics frozen beforehand; no Portfolio/Capital adaptation or three-independent-replications claim."
+    },
+    {
+      "id": "Q12",
+      "result": "PASS",
+      "finding": "F30 paired arms use same session/universe/cost/cadence/capital/execution assumptions; LONG cash-only, no prior tuning."
+    },
+    {
+      "id": "Q13",
+      "result": "PASS",
+      "finding": "G25 is later prospective confirmation, disjoint from F, no component modification after F/G."
+    },
+    {
+      "id": "Q14",
+      "result": "PASS",
+      "finding": "200 traced to legacy stage2 Checkpoint A target; new LONG minimum explicitly declared, larger checkpoints not mandated."
+    },
+    {
+      "id": "Q15",
+      "result": "PASS",
+      "finding": "97 independently recalculated using worst-case p=0.5 and declared1.96/0.10 assumptions, no Development observed rate plugged in."
+    },
+    {
+      "id": "Q16",
+      "result": "PASS",
+      "finding": "Full fixed blocks; event shortfall INCONCLUSIVE, no extension or early stop at an event quota."
+    },
+    {
+      "id": "Q17",
+      "result": "PASS",
+      "finding": "Legacy Future20 retained separately, no budget credit or allocation transfer."
+    },
+    {
+      "id": "Q18",
+      "result": "PASS",
+      "finding": "UNKNOWN101 still excluded; no identity inference in this review."
+    },
+    {
+      "id": "Q19",
+      "result": "PASS",
+      "finding": "SEALED25 and RESERVED4 ownership maintained, zero credit and zero release."
+    },
+    {
+      "id": "Q20",
+      "result": "PASS",
+      "finding": "No Candidate/EXIT/Portfolio performance field used for numeric budget derivation; prior display incident retained and classified separately."
+    }
+  ],
+  "integrityVerdict": "A_NON_MATERIAL_OUTCOME_DISPLAY_INCIDENT",
+  "materialOutcomeContaminationFound": false,
+  "unresolvedInputs": [],
+  "budgetChanges": 0,
+  "performanceDerivedInputs": 0,
+  "regression": {
+    "newTests": 23,
+    "pass": 23,
+    "fail": 0,
+    "skip": 0,
+    "forbiddenFieldInsertionSubcases": 48,
+    "priorMetadataChecks": 50,
+    "priorPass": 50,
+    "kernelNetworkGuard": true,
+    "scope": "Metadata only; not full model/performance regression"
+  },
+  "blockers": []
+}

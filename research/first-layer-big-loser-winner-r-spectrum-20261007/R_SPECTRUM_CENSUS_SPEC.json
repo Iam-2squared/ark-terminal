@@ -1,0 +1,190 @@
+{
+  "document_id": "ARK_FIRST_LAYER_BIG_LOSER_WINNER_R_SPECTRUM_WORK_20261007",
+  "purpose": "Evaluator-only read of saved canonical Entry→Frozen EXIT/EOD net R and sealed legacy C11 decisions",
+  "primary": "S1/S2 DEV_COMPARE deduplicated union; before FIRST LAYER decision",
+  "cohorts": [
+    "S1",
+    "S2",
+    "UNION"
+  ],
+  "points": {
+    "CAL95": "CAL95",
+    "M80": "CAL_MINUS_KEEP_80",
+    "M60": "CAL_MINUS_KEEP_60",
+    "M40": "CAL_MINUS_KEEP_40",
+    "M20": "CAL_MINUS_KEEP_20",
+    "M10": "CAL_MINUS_KEEP_10"
+  },
+  "reference": "ALL_KEEP_DEFINITIONAL_ONLY; one reference point, not model performance",
+  "newFirstLayer": "NEW_FIRST_LAYER_NOT_RUN",
+  "legacy_labels": [
+    "LEGACY_DIAGNOSTIC_ONLY",
+    "NEGATIVE_EVIDENCE",
+    "NOT_A_NEW_PARENT"
+  ],
+  "source_refs": {
+    "public_repository": "Iam-2squared/ark-terminal",
+    "public_ref": "8c9988157680aa4dec40bf984b789a5309a4904c",
+    "private_repository": "Iam-2squared/ark-capital-private-",
+    "private_ref": "b7fb211ba62e966a4f9dc4d37567851c238cc63c",
+    "source_branch": "research/first-layer-c09-c10-nonlinear-chart-20261007",
+    "current_source_HEAD_confirmed": true
+  },
+  "identity": "Complete saved entry_id; exact joins only; no symbol/date deduplication; S1/S2 canonical membership from SPLITS_S1_S2.json",
+  "outcome_contract": {
+    "source": "CANONICAL_CAPITAL_R: same Frozen FIRST trade target, unit100 basis; no portfolio allocation",
+    "native_field": "R_native_fraction_decimal",
+    "native_unit": "fraction",
+    "primary_percent_fields": [
+      "R_pct_numerator",
+      "R_pct_denominator"
+    ],
+    "primary_R_formula": "Fraction(int(numerator), int(denominator)) in percentage points",
+    "independent_R_formula": "Decimal(native_fraction_decimal) * 100 exactly",
+    "original_unit_field": "R_unit = percent",
+    "quantity_basis": "saved 100-share basis preserved; no allocations",
+    "teacher_recomputed": false
+  },
+  "missing": {
+    "R": "return_available=false => FORMAL_R_UNAVAILABLE; available null/NaN/invalid => distinct reason; never imputed",
+    "decisions": "Only saved KEEP or DROP tokens; absent/unrecognized => decision UNKNOWN; no score or threshold application",
+    "zero": "Exact zero separate"
+  },
+  "boundaries": [
+    [
+      "L5_PLUS",
+      "-5%以下",
+      "R_pct <= -5"
+    ],
+    [
+      "L4_5",
+      "-5%超～-4%以下",
+      "-5 < R_pct <= -4"
+    ],
+    [
+      "L3_4",
+      "-4%超～-3%以下",
+      "-4 < R_pct <= -3"
+    ],
+    [
+      "L2_3",
+      "-3%超～-2%以下",
+      "-3 < R_pct <= -2"
+    ],
+    [
+      "L1_2",
+      "-2%超～-1%以下",
+      "-2 < R_pct <= -1"
+    ],
+    [
+      "L0_1",
+      "-1%超～0%未満",
+      "-1 < R_pct < 0"
+    ],
+    [
+      "ZERO",
+      "0%ちょうど",
+      "R_pct == 0"
+    ],
+    [
+      "P0_1",
+      "0%超～+1%未満",
+      "0 < R_pct < 1"
+    ],
+    [
+      "P1_2",
+      "+1%以上～+2%未満",
+      "1 <= R_pct < 2"
+    ],
+    [
+      "P2_3",
+      "+2%以上～+3%未満",
+      "2 <= R_pct < 3"
+    ],
+    [
+      "P3_4",
+      "+3%以上～+4%未満",
+      "3 <= R_pct < 4"
+    ],
+    [
+      "P4_5",
+      "+4%以上～+5%未満",
+      "4 <= R_pct < 5"
+    ],
+    [
+      "P5_PLUS",
+      "+5%以上",
+      "R_pct >= 5"
+    ],
+    [
+      "R_UNKNOWN",
+      "正式R不明",
+      "R unavailable/invalid"
+    ]
+  ],
+  "rates": {
+    "keep": "KEEP/N",
+    "drop": "DROP/N",
+    "coverage": "(KEEP+DROP)/N",
+    "composition": "bucket_DROP/all_DROP including R UNKNOWN",
+    "known_share": "bucket N/R-known cohort N, R UNKNOWN=N/A",
+    "total_share": "bucket N/cohort N",
+    "empty": "N=0 or mass denominator=0 => N/A"
+  },
+  "cumulative_groups": [
+    "ALL_MINUS",
+    "R_LE_NEG1",
+    "R_LE_NEG2",
+    "R_LE_NEG3",
+    "R_LE_NEG4",
+    "R_LE_NEG5",
+    "ALL_PLUS",
+    "R_GE_POS1",
+    "R_GE_POS2",
+    "R_GE_POS3",
+    "R_GE_POS4",
+    "R_GE_POS5"
+  ],
+  "mass": {
+    "negative": "sum(max(-R_pct,0))",
+    "positive": "sum(max(R_pct,0))",
+    "net": "sum(R_pct)",
+    "unit": "pp-sum; equal weight descriptive accounting only",
+    "partitions": [
+      "ALL",
+      "KEEP",
+      "DROP",
+      "DECISION_UNKNOWN"
+    ],
+    "accounting": "Known R AND known decision mask only: net_KEEP-net_ALL_KNOWN_DECISION = -net_DROP"
+  },
+  "independent_audit": "Same author, separate implementation; source records re-read; do not import main bucket or consume aggregates as computational input; not third-party blind audit",
+  "boundary_tests": {
+    "points": [
+      -5,
+      -4,
+      -3,
+      -2,
+      -1,
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "artificial_delta_percentage_points": "0.000000001",
+    "real_epsilon": "NONE"
+  },
+  "runs": {
+    "primary_specifications": 1,
+    "reproduction_runs": 1,
+    "technical_repair_cap": 5,
+    "statistical_tests": 0
+  },
+  "newFirstLayerSelected": null,
+  "productionReady": false,
+  "capitalImprovement": "NOT_EVALUATED",
+  "outputs_directory": "research/first-layer-big-loser-winner-r-spectrum-20261007",
+  "forbidden_execution": "All requested model/features/threshold/Replay/teacher/RAW/provider/protected/orders/production/main/force-push counts stay 0"
+}

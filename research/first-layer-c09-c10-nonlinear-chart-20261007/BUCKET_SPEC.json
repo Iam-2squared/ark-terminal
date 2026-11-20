@@ -1,0 +1,53 @@
+{
+  "R_pct": "actual fixed FIRST Entry -> EXITv3/EOD, after frozen fill/cost; percentage points",
+  "cumulative_percent": [
+    1,
+    2,
+    3,
+    5
+  ],
+  "epsilon": 0,
+  "exclusive": [
+    {
+      "interval": "R<0",
+      "name": "MINUS"
+    },
+    {
+      "interval": "R=0",
+      "name": "ZERO"
+    },
+    {
+      "interval": "0<R<1",
+      "name": "PLUS_0_1"
+    },
+    {
+      "interval": "1<=R<2",
+      "name": "PLUS_1_2"
+    },
+    {
+      "interval": "2<=R<3",
+      "name": "PLUS_2_3"
+    },
+    {
+      "interval": "3<=R<4",
+      "name": "PLUS_3_4"
+    },
+    {
+      "interval": "4<=R<5",
+      "name": "PLUS_4_5"
+    },
+    {
+      "interval": "5<=R",
+      "name": "PLUS_5_PLUS"
+    }
+  ],
+  "fraction_to_percent_factor": 100,
+  "known_sign_return_missing": "keep in P/M denominators; separate PLUS_RETURN_UNAVAILABLE / MINUS_RETURN_UNAVAILABLE",
+  "numeric_authority": "follow exact frozen native decimal/rational or native declared specification; never infer bands from a rounded display",
+  "oracle_policy": false,
+  "rounding_for_bucket": false,
+  "sign_R_disagreement": "quarantine identity, do not repair source; stop affected band analysis",
+  "sign_authority": "frozen SIGN_TARGETS unchanged",
+  "unknown_sign": "UNKNOWN_SIGN, excluded from P/M denominators; report KEEP/DROP",
+  "zero_denominator": "NA"
+}

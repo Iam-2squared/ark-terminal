@@ -1,0 +1,126 @@
+{
+  "id": "MSH_ENTRY_LONG_V2_P0_ARCHITECTURE_DIAGNOSTIC_ONLY",
+  "sourceHead": "159e472a4a0ec069c4e433e5d43e2f5dc7003c09",
+  "mainAtStart": "8bc850d1bbee4bae4dd3cfaefebab7ef189fc64e",
+  "referenceHandoff": "Named PDF not supplied; complete user instructions plus pinned Repo evidence used. No inferred PDF contents.",
+  "exposure": "HISTORICAL_DEVELOPMENT_IN_SAMPLE_OUTCOME_EXPOSED",
+  "phase": "NO_FIT_NO_PREDICTION_NO_SELECTION",
+  "sourcePins": {
+    "docs/evidence/phase57-msh-entry-long-v1-upstream-freeze/manifest.json": "b1755d173e25267f00c9ab89f2ab3f2cfb82bbaf841d2d88dc6ad19421284a32",
+    "docs/evidence/phase57-msh-entry-long-v1-upstream-freeze/historical-enter-identities.json": "72224ac9fd073f7da45c488aaf8ca999752b466e715837c21440e7dd93970236",
+    "docs/evidence/phase57-msh-entry-long-v1-preimplementation-feasibility-events.ndjson.gz": "73e566aba4d1a3f5af33b74be52ae90736c088b1091841f1eb44e93d5476084c",
+    "docs/evidence/phase57-long-only-current-entry-transfer-v1-events.ndjson.gz": "a36eecfed29aa0e9da50b051839578ca2e8f3a37d500de17bd6c3acfd8ce3a53",
+    "docs/evidence/phase57-msh-entry-long-v1-historical-remeasurement/path-diagnostics.json.gz": "e0fe63e033104c384094892cc91ffeb403a0863a9d23401424b37d79db4c8be6",
+    "docs/evidence/phase57-msh-entry-long-v1-historical-remeasurement/frozen-predictions.ndjson.gz": "a11313909248d2c8aa1c39bac807f8a5c476c19c0be75a0e15dde41690cdb8be",
+    "docs/evidence/phase57-long-exit-v345-paired/paths.json.gz": "1ffd7e5e3d650a676e06507faf26226ad236ec4de4a0c0446873ee16f7408959",
+    "docs/evidence/phase57-long-portfolio-bottleneck-v1/diagnostic.json": "93a7e5730adf52a846d0fae247253a130021db2288fb9d753c85eec397107663",
+    "docs/evidence/phase57-long-capital-integration-v1/measurement.json.gz": "3e1ae0ed34d2fdfb61908b41ca5eb3228468dc26d7424f63ad6889e7e07300d1",
+    "docs/evidence/phase57-long-exit-continuation-v1/development-final.json": "e69b4257ec9a9895c939f873740924665fe8b00550bc6ea676054cf23c1f4460",
+    "docs/evidence/phase57-long-exit-continuation-v1/replay-ledger.json": "8aee762a5ebde23b1b2b4c5eb7c206f624579d3c2b6fceb91a7fd5becaae1a14",
+    "predict/research/phase57-long-capital-integration-v1.json": "a5c28df18cea2e32e4ac1c03b8666f10804c8d889a11179d6e416d5b9bc7e464",
+    "scripts/phase57_long_capital_integration.py": "93ae549e6cdbc88180c2c8a304ffd8c739aaa2ccaf0afadc94061816dddc68ae",
+    "scripts/phase57_long_capital_weights.mjs": "7ee646c7e2f7abd37f6995b083a6261d721e55e6e8dd74407484c6d7d09b5c97",
+    "scripts/lib/phase57-capital-allocation-v3-entrytime.mjs": "42fb520531701a3c30f82392e2fa4238af33337649ea91c1f65a57ca14c96595",
+    "predict/research/phase57-capital-allocation-v3-entrytime-contract.json": "4eb720fa3e868cef7965e91fa239a7d5b6e190ee396adf547a2d59402d8baeab",
+    "predict/research/phase57-long-only-global-data-budget-v1.json": "b91699704f80ef7fda60fe0596e8f8736a181cd00dc879f5070f9caed4d4a62f",
+    "predict/research/phase57-long-only-frozen-selector-v1.json": "d93b3560f4be7dd231b88780f7d6d51cf8ecda85d4f599debcdd22c0c3feb5c8",
+    "predict/long-only/phase57-long-only-entry-preimplementation-feasibility.js": "d785c6cadfe95fd8a2f8ee5620edfb4e4edf9748ad071829f782c197affbf10e",
+    "predict/long-only/phase57-long-only-l1-labels-features.js": "0346317867e43e8d1168ff8b66de00862803ac47e6760911b3dc830692af5656",
+    "predict/long-only/phase57-long-only-l1-cross-section.js": "734080b2a429ea892703fbbe692a411f1b01013dc44801470338b06c21186589",
+    "predict/long-only/phase57-long-only-l2-selector-v1.js": "fa3ea32e9cc6b43f4e18db2205133bef1f10fdae63222da6f649aa280955c744",
+    "predict/long-only/phase57-long-only-integrated-dataset.js": "390e2df4ddc0be571d285e05754ce9ad90f2618eb5902797cf8e7bae4a5f667f",
+    "scripts/run_phase57_long_only_entry_transfer_diagnostic.mjs": "fd637bc9c0f401d390b585f8ddf4f2a99b7cd36c7b7e87d7ef5ce7a94c5ef4b4"
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "cohortBoundarySource": "User-specified before new diagnostic outcomes",
+  "maeBuckets": {
+    "SAFE_LOW_ADVERSE": "MAE > -1",
+    "MILD_ADVERSE": "-2 < MAE <= -1",
+    "MODERATE_ADVERSE": "-5 < MAE <= -2",
+    "SEVERE_ADVERSE": "-10 < MAE <= -5",
+    "EXTREME_FAILURE": "MAE <= -10"
+  },
+  "mfeBuckets": [
+    "MFE < 1",
+    "1 <= MFE < 2",
+    "2 <= MFE < 3",
+    "3 <= MFE < 5",
+    "MFE >= 5"
+  ],
+  "strict30m": "181 frozen entries; 30 wall-clock minutes complete regular5m path; lunch not converted to market minutes; HIGH/LOW diagnostic, last completed CLOSE return less frozen0.05pp cost separately from chosen EXIT.",
+  "quantiles": "4 equal-count rank cutpoints via linear interpolation over181 strict30m entries; ties kept together. No thresholds become policy. Compare all277 score distribution separately.",
+  "timingGroups": {
+    "OPEN": [
+      "09:30"
+    ],
+    "MORNING": [
+      "10:00",
+      "10:30"
+    ],
+    "PRE_LUNCH": [
+      "11:00",
+      "11:30"
+    ],
+    "AFTERNOON_OPEN": [
+      "13:00"
+    ],
+    "AFTERNOON": [
+      "13:30",
+      "14:00"
+    ],
+    "CLOSE": [
+      "14:30",
+      "15:00"
+    ]
+  },
+  "descriptiveSignalPanel": [
+    "decisionPrice",
+    "directionalMomentum3Pct",
+    "directionalPullback6Pct",
+    "relativeVolume5",
+    "directionalVwapDistancePct",
+    "decisionPriceAgeMinutes"
+  ],
+  "panelRationale": "Six existing fields: price scale, recent direction, pullback, volume activity, VWAP relation, freshness. Chosen by semantic complementarity before cohort distributions; no feature search/ranking or new engineered predictor. Other fields inventoried only.",
+  "separation": "Cliff delta P(tail feature>non-tail)-P(<), equal ties0; distributions with availability, range overlap and same-symbol deltas. Include all severity cohorts and +3/+5 winners. No fitted model/AUC optimization/cutoff.",
+  "concentration": "Both net-contribution shares (can exceed100%) and gross positive/negative symbol-contribution HHI. Major contributors=baseline top5 net-profitable symbols, fixed once. Existing top1/top3 cash stress reused; other removals fixed-quantity additive diagnostic, NOT portfolio replay.",
+  "prohibited": [
+    "model_fit",
+    "prediction_generation",
+    "threshold_search",
+    "performance_feature_selection",
+    "symbol_rule",
+    "new_provider",
+    "fresh",
+    "oos",
+    "component_mutation"
+  ],
+  "counters": {
+    "entryV2Fit": 0,
+    "entryV2Prediction": 0,
+    "entryV1Fit": 0,
+    "entryV1Prediction": 0,
+    "thresholdSearch": 0,
+    "featureSelection": 0,
+    "freshAccess": 0,
+    "oosAccess": 0,
+    "prospectiveAccess": 0,
+    "jquantsRequests": 0,
+    "yahooRequests": 0,
+    "otherProviderRequests": 0,
+    "forwardFill": 0,
+    "interpolation": 0,
+    "futureSubstitution": 0,
+    "frozenComponentChanges": 0
+  }
+}

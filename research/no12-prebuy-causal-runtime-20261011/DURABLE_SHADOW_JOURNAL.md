@@ -1,0 +1,7 @@
+# No12 crash recovery: durable local research journal
+
+The code records **SYNTHETIC_OFFLINE_ONLY** event IDs on a machine-local private directory. Each daily journal pins the exact scenario fingerprint, maintains a monotonically numbered SHA-256 chain and atomically replaces its own single local JSON file. A second same-event retransmission is idempotent; a changed payload with the same event ID is rejected. Duplicate writers are blocked with a private directory lock.
+
+This is *not* a full production-grade integrity signature (anyone with local write privileges could rewrite the file and its unkeyed checksum); it is designed for crash recovery and accidental corruption detection. The implementation cannot submit orders, reset a Safety Ledger, create a live token, or overwrite ownership/account data. An unrelated No1.1 private ledger or Excel workbook is not opened. A remaining lock directory after hard power loss requires forensic diagnosis; never silently delete it and risk a parallel writer.
+
+An eventual real broker controller must additionally reconcile every startup with broker-originated order numbers, cumulative filled quantities, actual cash/positions and the local trusted device identity. It cannot just replay last-known synthetic events and assume a BUY was not transmitted before a power cut. The source dataset and new No12 ranking still require forward/OOS validation. Not productionReady.

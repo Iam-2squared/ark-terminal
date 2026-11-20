@@ -1,0 +1,62 @@
+name: Phase57 Comprehensive Entry Bounded Research
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-comprehensive-entry.yml'
+      - 'scripts/phase57_comprehensive_entry.py'
+      - 'scripts/report_phase57_comprehensive_entry.py'
+      - 'scripts/verify_phase57_comprehensive_entry.py'
+      - 'scripts/test_phase57_comprehensive_entry.py'
+      - 'docs/evidence/phase57-comprehensive-entry-v1/**'
+permissions:
+  contents: read
+jobs:
+  verify-entry:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      ARK_TEST_OFFLINE: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Pinned research dependencies
+        run: python -m pip install numpy==2.3.5 scikit-learn==1.8.0 pandas==2.3.3
+      - name: Entry causal tests and frozen upstream regression
+        run: python scripts/offline/kernel_exec.py python -m unittest -v scripts.test_phase57_comprehensive_entry scripts.test_phase57_new_long_entry_two_opportunity scripts.test_phase57_selector_min_price75 scripts.test_phase57_new_long_exit_candidate_a scripts.test_phase57_new_long_exit_candidate_a_robustness
+      - name: Frozen evidence integrity without v1 retraining
+        run: |
+          set -euo pipefail
+          python scripts/offline/kernel_exec.py python - <<'PY'
+          import json
+          from pathlib import Path
+          from unittest.mock import patch
+          from scripts import phase57_comprehensive_entry as m
+          from scripts.verify_phase57_comprehensive_entry import verify
+          with patch.object(m.Model, 'fit', side_effect=AssertionError('FROZEN_V1_NO_REFIT')):
+              p, *_ = m.sources()
+              for directory in ('measurement', 'report'):
+                  verify(m.BASE/directory, m.BASE/directory)
+              manifest = m.read(m.BASE/'measurement/manifest.json')
+              assert manifest['protocolSHA256'] == m.sha(m.BASE/'protocol.json')
+              assert manifest['codeSHA256'] == m.sha(m.__file__)
+              assert all(x is False for x in p['safety'].values())
+          out = Path('/tmp/comprehensive-entry')
+          out.mkdir()
+          (out/'frozen-audit.json').write_text(json.dumps({'status':'PASS','researchFitCalls':0,
+              'savedModelAndLedgerHashesVerified':True,'freshOOSOpened':False},sort_keys=True)+'\n')
+          PY
+          git diff --exit-code
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-comprehensive-entry-${{ github.event.pull_request.head.sha }}
+          path: /tmp/comprehensive-entry/
+          if-no-files-found: error
+          retention-days: 30

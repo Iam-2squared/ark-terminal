@@ -1,0 +1,89 @@
+{
+  "current_repair_cycles": 5,
+  "fill_eligibility_cost_or_candidate_definition_changed": false,
+  "new_intent_generated_N": 0,
+  "new_repair_cycle_completions": [
+    {
+      "at_UTC": "2026-10-07T09:28:08.075205+00:00",
+      "changes": "cache members before close; logging only; extraction hashes verified",
+      "cycle": 1,
+      "event": "COMPLETE",
+      "full_resolver_row_N": 0,
+      "stage": "repair"
+    },
+    {
+      "at_UTC": "2026-10-07T09:30:13.483206+00:00",
+      "cycle": 2,
+      "event": "COMPLETE",
+      "regression_PASS": true,
+      "root_cause": "string numeric ingress",
+      "stage": "repair"
+    },
+    {
+      "at_UTC": "2026-10-07T09:30:53.343759+00:00",
+      "changes": "synthetic15:24 case now includes750 first-PM observation; frozen opening-mixed exclusion unchanged",
+      "cycle": 3,
+      "event": "COMPLETE",
+      "regression_PASS": true,
+      "stage": "repair"
+    },
+    {
+      "at_UTC": "2026-10-07T09:35:38.859847+00:00",
+      "changes": "set undefined TOTAL R-known-denominator composition to N/A; all bucket counts/R/decisions unchanged",
+      "cycle": 4,
+      "event": "COMPLETE",
+      "full_fill_replays": 0,
+      "stage": "repair"
+    },
+    {
+      "at_UTC": "2026-10-07T09:47:09.447651+00:00",
+      "changes": "CSV timestamp transport retains original ISO+09:00 text after identical instant check; original intent/fill/R unchanged",
+      "cycle": 5,
+      "event": "COMPLETE",
+      "full_fill_replays": 0,
+      "stage": "repair"
+    }
+  ],
+  "new_repair_cycle_starts": [
+    {
+      "at_UTC": "2026-10-07T09:28:08.075102+00:00",
+      "cycle": 1,
+      "event": "START",
+      "root_cause": "tar.getmembers after context close in recovery summary only",
+      "stage": "repair"
+    },
+    {
+      "at_UTC": "2026-10-07T09:28:08.446546+00:00",
+      "cycle": 2,
+      "event": "START",
+      "root_cause": "native string prices compared with integer zero; normalize numeric ingress to Decimal before unchanged frozen valid_raw",
+      "stage": "repair"
+    },
+    {
+      "at_UTC": "2026-10-07T09:30:11.562755+00:00",
+      "cycle": 3,
+      "event": "START",
+      "root_cause": "test fixture omitted earlier PM raw observation; 15:24 became frozen first-PM opening mixed",
+      "stage": "repair"
+    },
+    {
+      "at_UTC": "2026-10-07T09:35:37.575355+00:00",
+      "cycle": 4,
+      "event": "START",
+      "root_cause": "TOTAL contains unknown R so composition against R-known denominator is not a defined rate; only aggregate display fix",
+      "stage": "repair"
+    },
+    {
+      "at_UTC": "2026-10-07T09:43:17.445025+00:00",
+      "cycle": 5,
+      "event": "START",
+      "root_cause": "Artifact cell roundtrip for private72 row table differs from requested input types; investigate transport only",
+      "stage": "repair"
+    }
+  ],
+  "parent_repair_cycles": 5,
+  "saved_failed_reproduction_1": true,
+  "sealed_intent_unchanged": true,
+  "status": "TECHNICAL_REPAIR_COMPLETE_SAME_SPEC",
+  "total": 10
+}

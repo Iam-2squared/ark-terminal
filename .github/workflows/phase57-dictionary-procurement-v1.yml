@@ -1,0 +1,40 @@
+name: Phase57 Dictionary Procurement Foundation v1
+on:
+  pull_request:
+    paths:
+      - 'scripts/phase57_dictionary_prospective.py'
+      - 'scripts/test_phase57_dictionary_prospective.py'
+      - 'scripts/report_phase57_dictionary_procurement.py'
+      - 'docs/evidence/phase57-dictionary-procurement-v1/**'
+      - '.github/workflows/phase57-dictionary-procurement-v1.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    if: github.event.pull_request.number == 587
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      ARK_TEST_OFFLINE: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: pip install fastapi pytest httpx numpy==2.3.5 scipy==1.17.0 pandas==2.2.3
+      - name: Foundation and inherited input contracts
+        run: python scripts/offline/kernel_exec.py python -m unittest -v scripts.test_phase57_dictionary_prospective scripts.test_phase57_dictionary_pit_recovery scripts.test_phase57_behavior_dictionary
+      - name: Metadata-only evidence reproducibility
+        run: |
+          python scripts/offline/kernel_exec.py python scripts/report_phase57_dictionary_procurement.py --verify
+      - name: Existing offline regression
+        run: python scripts/run_offline_regression.py --output-dir "$RUNNER_TEMP/procurement-regression"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dictionary-procurement-regression-${{ github.sha }}
+          path: ${{ runner.temp }}/procurement-regression

@@ -1,0 +1,642 @@
+ARK TERMINAL — V5 Capital × 新メインSHARP_DROP EXIT
+20営業日・100万円開始の最終資産比較 Work指示書
+
+文書ID: ARK_V5_MAIN_CAPITAL_SHARP_DROP_EXIT_RESET20_WORK_20261007
+版: V1.0
+作成日: 2026-10-07
+作業区分: 新規の有限・研究用統合比較。旧研究の再開やパラメータ探索ではない。
+開始位置: V5 Capital本線復帰済み／SHARP_DROP新メインEXIT凍結済み。
+終了位置: 同一V5・旧EXIT対新EXITの資産比較、損失診断、独立検算、再現確認、GitHub保存・実読戻し。
+
+このファイルを受け取ったWorkは、以下で定める研究用接続実装と有限比較を実行する。
+指示書作成だけ、設計だけ、72件の再計算だけで終了しない。
+ただし、データや実装が本当に不足する場合は未測定を隠さず、成立する独立窓を先に完了して保存する。
+
+======================================================================
+0. 最上位目的・変更してよいもの
+======================================================================
+
+問いは一つ。
+「Capital V5の買い方を変えず、EXITだけ今回凍結したSHARP_DROP版へ変えると、
+  100万円から20営業日後の総資産、赤字、損失尾部がどう変わるか。」
+
+最終目的は資産増加。AUC、潜在Winner数、等重みR合計の改善を口座の利益に読み替えない。
+ユーザーは損失、特に大Loserの抑制を強く重視し、新EXITを明示選択済みである。
+その選択を検証の成否と混ぜず、資産が悪化した場合も正確な金額を報告する。
+利益取り逃しと実損は分ける。新EXITなら無損失、大Loser消滅、月次2倍になるとは主張しない。
+
+今回の自由変数は「旧EXITか、新SHARP_DROP複合EXITか」だけ。
+Capitalは両armともCapital v5 MAX3 Slot Intelligenceの同一原本。
+V5.1、V6以降の配分・q2/q3/MRETによる新制約、score向き変更等を混ぜない。
+Selector/Frozen FIRST ENTRY、State9意味契約、PIT、cost、lot、cash制約は継承する。
+Phase 0、RAW recovery、全Freezeの再監査、旧研究の全面再走行へ戻らない。
+必要なのは指定原本と今回adapterの局所的なbinding確認であり、基盤を作り直す作業ではない。
+
+本Workでは新FIRST LAYERを作らず、旧FIRST LAYERのV1/C03/C05/C06/C08/WB01/C09/C10/C11も復活させない。
+これはCapital V5のnative score/rank資産の利用禁止とは別の系譜である。
+購入前SHARP_DROP除外P1は別の保存済み候補。今回新しく作動させない。
+Primaryの両armとも「旧V5に存在しない追加購入前filterなし」で固定する。
+P1を片側だけ追加、保存306件だけへの母集団縮小、P1の再選定はしない。
+
+======================================================================
+1. 必ず参照する原本・系譜（今回の探索起点）
+======================================================================
+
+公開repo: Iam-2squared/ark-terminal
+非公開repo: Iam-2squared/ark-capital-private-
+現在の本線宣言branch:
+  research/exit-sharp-drop-overlay-counterfactual-20261007
+
+[S1] Capital本線復帰
+  公開commit: 0447d1fd80d36552a0697420b032e5bbcb6b073e
+  非公開commit: 6f1692aaf18c2d298075b8888e9dee77ad0f7a25
+  path: research/CURRENT_MAIN_CAPITAL.json
+  Git blob: 67a5d04a0cec543c5a30e4e88fde089901f8398f
+  main_capital_policy_id: CAPITAL_MAX3_SLOT_RESERVE_V1
+  capacity_policy_id: CAPITAL_MAX_CONCURRENT_3_RESEARCH_POLICY_V1
+
+[S2] V5原本
+  公開commit: 710656491be06235901b45c50a8b5cbd714ba4eb
+  report: docs/evidence/capital-v5-max3-slot-intelligence-20261004-v1/REPORT_FINAL-ja.md
+  report Git blob: 2ac3d70b085d5e525d314ee69d327b725a2a56c9
+  code: research/capital-v5-max3-slot-intelligence-20261004-v1/
+  allocation.py Git blob: c48283ead2c1dc369281c734ee2006d1ea479fac
+  execution.py Git blob: 311fa97b4dccf5ce74af5a81e17d39c986c97573
+  arrival.py Git blob: 83bc678b7cbddfcb8cb8951d91df45c76fc1a264
+  POLICY_PRECOMMIT、ARRIVAL_TABLE、score stream、models、split、cash/MTM/decision ledgersは
+  この原本のmanifestを辿り、実在memberとhashを結び付ける。ファイル名を推測して再作成しない。
+
+[S3] 新メインEXITの正式Freeze
+  公開commit: 30519cc85042a36097db54a70471de7bc679794e
+  path: research/exit-sharp-drop-overlay-counterfactual-20261007/MAIN_EXIT_FREEZE_20261007.json
+  SHA256: a9845422555b478fe1ed34a95b97fa185f83c2c487c19926f72dbe628eec590d
+  Git blob: 555592b474bd1ad0b93aae2a48db9f131cc82140
+  selectedExitReplacement: SHARP_DROP_FIRST_OBSERVED_EXIT_V0
+  pointer: research/CURRENT_MAIN_EXIT.json
+
+[S4] 72件の修復完了版（失敗した旧fill実装ではない）
+  公開Evidence commit: 03c0ecb07811de25315c9366966163b036fbd2a9
+  非公開Evidence commit: 03c013cd4d9b4f94340cda8f14d1927ac68b9531
+  directory: research/exit-sharp-drop-overlay-counterfactual-20261007/technical-resume-72-20261007/
+  公開report: 上記directoryのREPORT-ja.md
+  非公開manifest: 上記directoryのPRIVATE_CARRIER_MANIFEST.json
+  manifest Git blob: 57191d5d6de8c456edfcfeecf865a45d3059f15f
+  carrier: PRIVATE_TECHNICAL_COMPLETION_EVIDENCE.tar.xz（28part）
+  carrier bytes: 16,492,220
+  SHA256: 293da80200312d6ae1c17175010fdfc4ef1005a863bf68bacd997dc5384be73d
+  この修復完了版から、State prefix、sealed intent、Decimal価格adapter、fill/return、依存manifestを再利用する。
+  前回の最終publication receipt未認証という制限は、今回の局所読戻し確認と分けて記録する。
+  「旧receiptがない」だけで測定済み72件を捨てたり、旧部分報告へ戻したりしない。
+
+[S5] 旧Controlの構造・canonical実行契約
+  Structural EXIT v3 Freeze: 1ecbcc43f75279fa302f19fd896add2aac15b537
+  V3 Evidence: c7a5e5c25eb19cbd58b45c3e4ffff977f4648fad
+  V3 contract SHA256: ee573737833ca000beb543da617ce7c4d3815d92108d728a48baa725481381a3
+  canonical execution source commit: 4a0b6d5fef69ecee34a05c36789c57478ab37a7a
+  canonical execution SHA256: 7f084415ed92344fb99ef26e27ac48f2beeb868e643fba720bb61355339a8bc8
+  V3単体15:30 SESSION_CLOSEのRを、Capitalのcanonical 15:20 EODのRへ代入しない。
+
+[S6] 既存RESET20とwindow原本
+  発見branch: capital-main-reallocation-20261005
+  結果commit: 53da6486b612a652a4d2b133713818f7af762e20
+  directory: docs/evidence/capital-v51-reset20-r5r10-20261006-v1/
+  必要資料: REPORT-ja.md、FINAL_WINDOW_COMPARISON.csv、COVERAGE_AND_WINDOWS.json、
+            FINAL_COMPARISON.json、ACTUAL_GET_RECEIPT.jsonとそこから辿るV5側台帳・reset実装。
+  REPORT-ja.md Git blob: b2a37cf1292e7d354e0067c740fdc4aa81d7a6b8
+  FINAL_WINDOW_COMPARISON.csv Git blob: d12f1030469d635f5c8731619b3afe44e191d73a
+  COVERAGE_AND_WINDOWS.json Git blob: 7b9f07a76aa783f4a56126fc7a0f423396c3d48e
+  V5.1側の新配分は再利用しない。V5 controlとreset/calendar/coverage wrapperだけを利用する。
+
+今回の開始時に、現在branch HEADをactual GETし、上記immutable原本と比較する。
+変更があれば内容と理由を記録し、研究対象を勝手に別policyへ切り替えない。
+現行pointerの宣言と将来Workの実行完了状態は区別する。
+本書末尾の出典URLと上記pinsをSOURCE_BINDING.jsonへ転記し、取得したexact bytes/hashで確定する。
+
+======================================================================
+2. 比較するのは2 armだけ
+======================================================================
+
+C = V5_OLD_EXIT_CONTROL
+  V5 native Capital + Structural EXIT v3 Local Guard + canonical 15:20 EOD。
+  保存済み旧V5のControl。旧結果・旧teacherは変更しない。
+
+E = V5_SHARP_DROP_MAIN_EXIT
+  同一V5 native Capital + SHARP_DROP_FIRST_OBSERVED_EXIT_V0。
+  新メインEXITとして既に選択済み。今回測るのはCapitalへ統合したときの資産効果。
+
+購入前filter = 両armとも追加なし。
+保有上限 = MAX3。100株lot。LONG現物cash-only。SHORT・信用・leverageなし。
+Re-entry、過去の見送りEntry復活、任意の買い増し、部分EXITは追加しない。
+既存policyから許可される後続の別Entryは、枠・cashが空けば通常どおり判定する。
+
+2 armの意図的相違はEXIT拡張だけ。
+ただしEXITが変われば、その後のcash・equity・保有枠・採用ID・数量が変わってよい。
+これを抑え込んで同じ150取引・同じ数量に固定したものを、正式Capital比較にしてはいけない。
+
+======================================================================
+3. Primary: 100万円から始める既存RESET20の9窓
+======================================================================
+
+各windowの開始前にcash=1,000,000円、保有0、pending order0で独立に初期化。
+その窓内の20市場営業日はcashを繰り越して複利連結する。日次100万円resetはしない。
+資産額をresetしても、StateのPIT履歴や既存過去学習の情報まで恣意的にresetしない。
+State9の初期化・session/reset/gap規則は元の市場側契約を守る。
+Frozen model/tableのblock対応は元sessionのまま。窓開始を理由に再fitやblock番号付替えをしない。
+
+既に対照の終点が出ている以下の9窓を、結果前にそのまま固定する。[S6]
+
+窓ID  開始session  終了session  営業日数  保存V5旧EXIT・終点cash円
+W13   2025-07-15   2025-08-13   20         1,126,452.85000
+W14   2025-07-16   2025-08-14   20         1,145,355.75000
+W15   2025-07-17   2025-08-15   20         1,199,393.40000
+W16   2025-07-18   2025-08-18   20         1,239,139.15000
+W17   2025-07-22   2025-08-19   20         1,249,800.75000
+W18   2025-07-23   2025-08-20   20         1,288,307.35000
+W19   2025-07-24   2025-08-21   20         1,303,682.80000
+W20   2025-07-25   2025-08-22   20         1,256,361.35000
+W21   2025-07-28   2025-08-25   20         1,245,688.10000
+
+保存Control9窓: 最小1,126,452.85／平均約1,228,242.39／中央値1,245,688.10／最大1,303,682.80円。
+これは一致確認用の旧値。新EXITの期待値や達成目標ではない。
+差分・Gate・集計は丸め前原本で計算する。
+
+元の予定集合は21窓。W01〜W12は7/11・7/14を含むcoverage未確定として、一覧に残す。
+この12窓を削除して「全21窓完走」にしない。0%や候補0へ補完せず、今回の再取得・復旧もしない。
+9窓は過去のcoverage契約による固定集合であり、今回Eの成績や約定成否で選び直さない。
+旧Cで9窓完了していても、新Eで同じ9窓完了する保証はない。
+Eで新たにsource不足の銘柄をfundした場合、該当窓を未測定として残し、後知恵で買わなかったことにしない。
+
+同じ9窓でも期間が重なる。独立9か月の実績・月次成功率の推定とは呼ばない。
+実際の日付、20営業日、暦日幅を併記し、「1暦月」と完全同一とは言わない。
+
+======================================================================
+4. Secondary: 約29万円増との直接比較用・旧38-session chain
+======================================================================
+
+Primaryと別に、[S2]の旧OOF38-session列・同じ初期100万円の連結chainを、C/Eで1本ずつ扱う。
+Primary9窓の完了または各窓の明確なblock記録を先にGitHubへ保存する。
+その後、独立したsource契約が成立する限り、このSecondaryを実行する。
+Primaryの良否を見てSecondaryの実行可否、窓、候補を選ばない。
+
+旧38-session最終: 1,477,436.15円。
+旧19個の正規化20-session窓: 中央値約1,199,154円、最大約1,297,031円。[S2]
+
+保存式: 1,000,000 ×（窓末ending_cash / 窓開始starting_cash）。
+各窓の実資金100万円resetとは違う。元の選定session列には市場営業日の未評価日があり、
+「20連続営業日」やPrimary RESET20に格上げしない。
+38-sessionの最終資産を1か月成績にしない。
+
+必ず出す比較:
+・旧最大1,297,031円を出した【同じ開始・終了window】で、Eならいくらか。
+・19個すべての対応窓のC/E/差額。
+・CとEそれぞれのmin/mean/median/maxと、元の窓ID。
+・38-session全体のC/E/差額は参考として別欄。
+
+「Eの最大−Cの最大」は、異なる窓ならpaired効果ではない。
+旧最高窓は既に結果で選ばれた参照である。そこだけを成功条件にしない。
+Secondaryでblockが出た場合、最後の完了session・保有/pendingを保存し、正式Finalはnull。
+影響後の窓を途中cashで埋めない。欠測のない前半だけを全期間の成績にしない。
+
+======================================================================
+5. V5のどこを固定するか
+======================================================================
+
+V5原score stream、元H2/H3/H5 model・preprocessing・rank化・block対応、ARRIVAL_TABLEを再利用。
+新EXITのRでV5 model、base_rate、quantile、arrival tableを作り直さない。
+保存native scoreがbindingできる場合、推論の再実行も不要。
+保存値が本当に不足する場合だけ、該当ID・該当過去blockの凍結model再推論を1回許可し、再fit0を守る。
+その限定再推論は新モデル性能ではなく原推論の再現として別計上する。
+
+V5 allocation原本[S2]で確認できる契約:
+・score<1/非finiteはnativeの非採用処理。
+・S/A/Bの境界、scoreによるbatch順・比例weightは原本どおり。
+・候補equity cap S45% / A35% / B25%。
+・基準target S68% / A56% / B44%、breadth増分5.5pp、上限92%。
+・100株単位切捨て。water-fillは最初に100株以上配分された候補だけ。
+・first-pass0株へ後からbackfillしない。
+・reserveは現在occupancyと同batchの先行admission、過去trainingのarrival tableを使う。
+・cash/lot失敗を理由に同batch候補の選び直しをしない。
+・既存holdingsへの後付けtop-upはしない。
+・V5でdiagnostic-onlyのLiquidityを新たな拒否条件に戻さない。
+
+上記は要約であり、手書きの似たallocatorへ置換する許可ではない。
+原本関数と原本POLICY_PRECOMMITの意味を優先し、数値差は黙って吸収しない。
+
+======================================================================
+6. 新EXITの発火・約定・時刻順序
+======================================================================
+
+[S3]の測定済み仕様そのものを使う。
+
+・buy fill後、保有中の最初の有効State9 Primary==SHARP_DROP観測で全量SELL_INTENT。
+・PRE_UP_STRUCTUREでもACTIVEでも発火。UPを先に観測してarmする条件を追加しない。
+・含み益でも発火。含み損限定、損失%条件、連続確認、猶予、再判定を追加しない。
+・State遷移edgeは必須にしない。最初の合法なpost-fill有効観測で足りる。
+・buy以前・同時のStateを保有後の新観測としてコピーしない。
+・同じcheckpointで旧Controlも発火、または旧Controlの意図が先行ならControl優先。
+・intent発行後はlatched。反発や将来Winnerを見て取消ししない。
+・単なるDROP、DROP_STOP、PULLBACK、fast_flagだけでは新overlayを発火させない。
+・SHARP_DROPがなければ、旧構造EXITとcanonical15:20 EODへ委譲。
+・状態品質不良は凍結の正当な利用不能として扱い、そのcheckpointのoverlayを棄権。
+  旧構造観測のsuspend/resetも原本どおり。欠測を市場RANGE・DROPへ置換しない。
+
+「即切り」は、Stateが分かった瞬間に売却意図を出すこと。
+State判定に使った足のCloseで売れた扱い、足の途中へbackdate、最安/最良価格の選択はしない。
+修復済みDecimal adapterと凍結fill規則を使い、次の適格regular raw Open、
+opening-mixed排除、pending処理、locked terminal、canonical15:20 EODの優先関係を継承する。
+新overlayが15:20の前後を跨ぐケースは修復版原本の契約を使う。新しい都合のよいfallbackを作らない。
+
+buy debit = quantity × raw buy reference × 1.0005。
+sell credit = quantity ×合法sell raw reference × 0.9995。
+commission=0。費用は片道各1回。保存effective priceへさらに5bpsを重ねない。
+価格の有効性、Vo/Va、session/auction識別、release時刻は元契約どおり。
+100株診断のreference price/returnを、大きな数量でも実市場で必ず全量約定する証明にしない。
+今回は同一historical execution modelでの比較であり、板depthや実受信を新たに認証しない。
+
+cash・枠はSELL_INTENTでは解放しない。
+凍結契約のfillとそのassumed-available/releaseイベントで初めて解放する。
+同時刻の処理順は元のevent orderを維持し、その時点で既に確認可能な売却だけを後続BUYへ回す。
+実受信時刻UNKNOWNはUNKNOWN。Historical PITをlive受信の証明へ格上げしない。
+
+======================================================================
+7. 一番重要な統合条件：過去の取引一覧に差額を足すだけにしない
+======================================================================
+
+誤った方法:
+・旧V5の150funded取引だけを早売りし、損益差だけを旧Finalへ加算。
+・前回の322 Entry・72介入・18大LoserだけをCapitalの対象にする。
+・全取引100株のpp-sumをそのまま円利益や口座returnへ変換。
+・Eでも旧V5の保有期間・cash拘束・後続数量を固定する。
+
+必要な方法:
+・V5の正規の全Frozen候補streamを、許可済みsession範囲のまま使う。
+・各armが自身のcash/equity/open positions/pending stateを持つevent-driven replay。
+・Eで早く売れたら、以後の新しい候補到着に同じV5 allocatorを適用。
+・各armの資金とoccupancy差に応じ、funded ID・株数・reserve/MAX3/cash拒否が変わることを許す。
+・Eだけが新たにfundした銘柄にも、新EXITの保有後State/fill観測を適用する。
+・後続候補の将来到着、将来売却・実現Rはallocatorから見せない。
+
+前回72介入は検算fixtureであり、今回の介入数の固定目標ではない。
+前回322で6件不明、全V5 sourceで別の不明件数がある場合、それぞれのID母集団を区別する。
+正規streamの遅いEntryなどnative非採用理由と、将来EXITが取得できない理由を混同しない。
+未来のexecution availabilityを購入判断へ追加しない。
+
+======================================================================
+8. State・source・データ露出範囲
+======================================================================
+
+許可するのは、上記Capital/RESET20原本に属する既露出Developmentと、その既存過去context。
+旧split内でtestというkey名のOOF blockも、正式なexposure台帳でDevelopmentと確認できる範囲に限る。
+名称だけを見てProtected TESTを開かない。Fresh、Holdout、Validation、Prospective、保護REPORTの新開封0。
+新provider取得0。大型RAW一括scan0。全データの再復旧0。
+
+入力が既にある箇所は、その確定済み原本を使う。
+保有中State prefixはexact symbol/session/cutoffで保存traceを優先。
+今回の許可済みDevelopmentでtraceが未materializeの場合に限り、同じ凍結kernel・profileを
+既存causal sourceへ1回適用することを許す。これは新State設計・fit・閾値変更ではない。
+必要lookback、closed bar、session/lunch、reset/gap/missingnessはそのまま。
+windowごとに同一の市場Stateを9回作り直さず、source/kernel/cutoff keyedのimmutable cacheを共用する。
+windowごとに変わるportfolio状態はcacheで共用しない。
+
+品質の分離:
+A. 有効State証拠あり → そのStateで判定。
+B. 凍結kernelによる正当なINITIALIZING/不足/品質棄権 → overlayなし、Control継続。
+C. 必要保存証跡が未取得・破損・系譜不明 → EVIDENCE_GAP。Bへ偽装しない。
+D. funded後の合法fill source不足 → execution unresolved。予測で穴埋めしない。
+
+C/Dは影響するEntry・window・時点を明記する。
+合法なno-trade/missing入力処理と、ファイルを読めていないことを分ける。
+未funded候補の将来価格が欠けていることだけで、全Capitalが自動的に失敗とはしない。
+ただしそれをruntimeで知ったことにして候補を除外しない。
+
+======================================================================
+9. Controlの保存再利用・局所parity
+======================================================================
+
+最速経路は、成立済みControl台帳を再利用し、Eの実計算に集中すること。
+ただし、旧Control summaryの金額を手入力するだけではparity認証にならない。
+
+保存Controlを正式Cとして利用できる条件:
+・window/session/初期cash/保有0/reset仕様が同一。
+・全候補ID/order、score/table、V5 native code、cost/MTM/EODが同一原本。
+・保存decision、実数量、売買、release、日次と終点のhash/会計を結び付けられる。
+・新runnerのoverlay-OFF部分が元V5の意味を変更していないと局所テストで確認。
+
+この条件を満たすCはREUSED_VERIFIED_CONTROLとし、新たな正式Control Replayは不要。
+条件が足りず再現が必要なら、該当C pathだけ1回実行し、旧保存台帳と照合する。
+終点だけ一致してもdecision/quantity不一致ならparity PASSにしない。
+Controlが一致しない場合、Eの性能を比較確定せず、意味を変えないadapter修復へ戻る。
+
+過去の「38-session 1,477,436.15円」と「RESET20 W13..W21」を同一Controlとして比較しない。
+一致判定はmoney/quantity/ID/timeはexact。浮動小数は原本の固定許容差を継承し、都合よく広げない。
+
+======================================================================
+10. 必須の最終資産表（報告の一番上）
+======================================================================
+
+表A: Primary21窓台帳。W01〜12は旧coverage未確定を明示。
+W13〜21について:
+  window_id／開始／終了／20営業日／coverage status／C status／E status
+  初期100万円／C最終総資産円／E最終総資産円／差額E−C
+  C利益円／E利益円／Creturn%／Ereturn%
+  CとEの赤字か否か（Final<100万円）／200万円到達か否か
+  C/E MaxDD、未決済数、funded数、SHARP_DROP intent/fill数、State evidence coverage
+
+「総資産」は元本込み。「利益」はFinal−1,000,000。
+原則、各20日終点で全量決済済みならFinal=ending_cash。
+未決済・価値不明を最終cashだけで総資産へ置換しない。
+確定的な評価原本がない終点はnull、理由を表示。
+
+表B: 同じpaired-complete maskの集計
+  planned21／primary固定9／C complete／E complete／both complete／unknown
+  C/Eのmin／mean／median／max／利益の同統計
+  paired差額のmin／mean／median／max
+  改善／同値／悪化window数
+  赤字window数／最悪window損失円／worst daily loss／MaxDD
+  200万円以上の窓数（既知分母と不明数を分離）
+
+median(E)−median(C) と median(E−C) は両方出して区別する。
+9窓すべて揃わない場合、旧9窓Cの中央値と新Eの少ない窓の中央値を差し引かない。
+片側だけ完了した値は表Aに残し、表Bへ都合よく混ぜない。
+
+表C: Secondary旧正規化19窓・38-session参考
+  19窓の対応C/E/差、旧29万円窓の固定paired値、各profileの全窓統計、Final38。
+  指標ラベルをLEGACY_NORMALIZED20／CHAIN38とし、RESET20と別表にする。
+
+======================================================================
+11. マイナス・大Loser・利益取り逃しを円で分解
+======================================================================
+
+各window・各armの実funded取引について、Entry→実EXITの費用後Rを以下に分ける。
+Rは百分率、境界判定は表示前の正式値。epsilonで境界を動かさない。
+
+L5_PLUS  R <= -5
+L4_5     -5 < R <= -4
+L3_4     -4 < R <= -3
+L2_3     -3 < R <= -2
+L1_2     -2 < R <= -1
+L0_1     -1 < R < 0
+ZERO     R == 0
+P0_1     0 < R < 1
+P1_2     1 <= R < 2
+P2_3     2 <= R < 3
+P3_4     3 <= R < 4
+P4_5     4 <= R < 5
+P5_PLUS  R >= 5
+R_UNKNOWN 正式R不明
+
+各帯:
+  funded N、R既知比・funded全件比、quantity/lot、BUY debit、実現PnL円、
+  正PnL総和、負PnL絶対和、R中央値、pp-sum（補助）、資金拘束円×分。
+累積R<=-1/-2/-3/-4/-5とR>=+1/+2/+3/+4/+5も保存。
+
+Primaryで先に見る損失指標:
+  ALL_MINUS件数・割合／gross loss円／R<=-3,-4,-5件数と負PnL円／最悪1取引損失円・R
+  マイナス日数／最悪日円損失／20日赤字窓数／EOD・分足MTM MaxDD
+実損が減っても正PnLがもっと減れば、Finalは悪化し得る。両方を報告する。
+
+Winnerは元CのID集合で固定した対照診断も必須:
+  元>=+5、4〜5、3〜4、2〜3、1〜2、0〜1の各帯について、
+  Eでも購入／Eでは未購入／same-ID利益改善／同値／利益悪化／赤字転落／R不明。
+  「Eで未購入」はEXITによる直接利益悪化と混ぜず、funding-set変化として分離。
+  +10%→+5.1%も利益損傷に数え、bucket維持だけで無傷としない。
+
+元C大Loserについても、Eで未購入と、購入後の損失軽減・tail脱出を分ける。
+元Cではtail外だったEntryのE新規tail流入、新規fundedのtail流入も全件表示。
+各arm自身のR帯と、元Cに固定した比較帯の定義を併記する。
+Entry→HighのU5/U10は別の潜在値幅であり、実現Winnerの集計に使わない。
+
+windowが重なるため、9口座の取引件数合計と市場のunique Entry Nを分ける。
+各窓別、unique ID一覧、重複窓込み集計の3種類を識別する。
+
+======================================================================
+12. EXIT単体効果と後続資金効果の分解
+======================================================================
+
+正式性能は実event replayのFinal差。以下はそれを説明する会計診断であり、別policyではない。
+
+各windowのC/E funded集合:
+  COMMON = 両方購入したEntry ID
+  C_ONLY = Cのみ購入
+  E_ONLY = Eのみ購入
+  ALSO_NEITHER = どちらも未購入（必要な拒否理由診断だけ）
+
+同一Entry価格・費用契約を前提に、1株当たりnet損益をu_C,u_E、数量をq_C,q_Eとする。
+
+COMMONの実PnL差を固定分解:
+  q_C*(u_E-u_C)  …… C数量での直接EXIT差
+  (q_E-q_C)*u_E  …… E価格を基準にした数量差
+合計は q_E*u_E - q_C*u_C にexact一致する。
+
+全体:
+  Final_E - Final_C
+  = COMMON直接EXIT差 + COMMON数量差
+    + sum(E_ONLY実PnL) - sum(C_ONLY実PnL)
+ただし、同じ初期資金・追加入出金0・両arm全決済・全PnL既知の同一maskでのみ照合する。
+分解順序を選んだ恒等式であり、一意な因果帰属とは呼ばない。
+
+追加で、早期SELL意図→fill/release→空き枠/cash→後続BUYの時刻traceを保存。
+同時刻処理の因果順、cash増加、後続採用/数量変化を確認する。
+単に空き枠が増えた数や、早く売った件数だけを資産改善としない。
+C_ONLYの利益をそのまま「回収可能利益」と呼ばない。
+
+最初の差分はtimestamp/固定tie順で一意に示す。好成績例を選ばない。
+損失軽減最大、Winner損傷最大、新規tail最悪の例も、事前定義した順位で各1件を示す。
+これらを使って同cycleで条件を変えない。
+
+======================================================================
+13. 独立検算・人工境界・再現確認
+======================================================================
+
+人工テストを本計算より先にまとめて行う:
+・価格文字列/Decimal/整数、null、空文字、NaN、Infinity、非正値、不正OHLC。
+・SHARP_DROPの初回観測、PRE/ACTIVE、非SHARP_DROP、利用不能、証跡欠損。
+・buy前/同時Stateを再利用しない、Control先行/同時優先、pending取消し禁止、二重SELLなし。
+・closed bar→State→intent→fill→release→次BUY、lunch、寄付mixed、15:20/15:25/15:30境界。
+・100株、cash=lotちょうど/不足、0株backfill禁止、既存bandとtarget/MAX3境界。
+・cash resetと市場State履歴の分離、窓越しのportfolio持越し禁止。
+・未知fillがruntime未来availability gateになっていない。
+・-5..+5%の直前/同値/直後33境界、ZERO/UNKNOWN分離。
+・無overlay入力でCと同じ、既存72件修復版と同じsource上でintent/fill/R一致。
+
+別実装は元ID・保存source・State・元V5入力から、trigger、優先順、quantity、cash、
+release、MTM、全窓終点、R帯、資産差分を照合する。
+主計算の最終表を入力として足し直すだけの検算にしない。
+money/quantity/ID/timeはexact。主allocator/overlay/evaluatorのimportによる同じバグの追認を避ける。
+同じState kernelを使う場合は共有基盤として明記し、kernel自体を外部独立認証したとは言わない。
+同一作者による別実装なら、その旨を表示。第三者盲検監査とは呼ばない。
+
+再現確認は凍結同一入力・同一仕様で1回。
+成果物のdeterministic payloadをbyte/hash一致で確認し、作成時刻/commit receiptは別ファイルに分離。
+正式replay、Control検証、独立再構成、再現確認、失敗attemptを別カウンタで残す。
+同じ市場sourceが本物であることや将来の実約定まで検算が証明するとは言わない。
+
+======================================================================
+14. 有限実行予算と効率
+======================================================================
+
+Policy候補数: C/Eの2だけ。
+Primary: 固定9窓×2 arm、最大18 portfolio paths。reuse認証済みCは新Replay不要。
+Secondary: 同じ旧38-session列×2 arm、最大2 paths。reuse認証済みCは新Replay不要。
+Primary+Secondaryの正式計算は最大20 paths、各path1回。技術修復時は未完了stageから再開する。
+完了済みpathを成績を変える目的で再走行しない。
+独立再構成は各path1回、再現確認は1campaignのみ。これらは正式policy候補数へ混ぜない。
+
+new fit/refit/calibration = 0。
+new score/threshold/policy search = 0。
+new model teacher generation = 0。
+既存/新EXITのreference returnやR帯の評価用materializationは許可するが、学習teacherへ戻さない。
+外部provider = 0。保護partition = 0。注文 = 0。
+追加技術修復は最大20cycle。1cycleは原因固定→最小修正→影響範囲テスト。
+ログや保存receiptの追記をmodel探索と混ぜず、エラー再試行は正直に回数を記録する。
+前回5cycleや72件修復の履歴は残す。この新統合Workの予算と混同しない。
+
+高速化:
+・最初に依存をexact member単位で一括binding。全repo/全RAWを毎stage走査しない。
+・価格・State・score等のimmutable入力を一度だけ用意し、窓間で共有。
+・Cの保存結果は根拠付きで再利用。Eのcash/occupancyは窓ごとに別状態。
+・windowは固定ID順で進め、1窓のsource blockで他の独立窓まで止めない。
+・定義が共通に壊れた場合だけ、そのadapterを使う未完了全窓を一時停止。
+・途中報告は金額・loss・unknownを先に保存。装飾図や長文のために核心結果を未保存にしない。
+・CI待ちがある場合は入力棚卸し、独立検算準備、結果schema等の非依存工程を進める。
+・今回の研究用保存は本番workflowを起動させない。新規workflowやdispatchは不要。
+
+======================================================================
+15. 中断に強い保存（今回は必須）
+======================================================================
+
+新規研究用branch/directoryの提案:
+  research/capital-v5-sharp-drop-exit-reset20-20261007
+新branchは開始時actual GETした本線宣言側HEADをbaseにし、V5等はimmutable inputとして参照。
+同名branchが存在すればCURRENT_STATEとreceiptを読み、既完了Workを重複開始しない。
+
+最初に保存:
+  00_READ_FIRST.txt（本書）、WORK_SPEC.json、SOURCE_BINDING.json、WINDOW_ALLOWLIST.json、
+  RUN_AUTHORIZATION.json、CURRENT_STATE.json、RESUME_NEXT_ACTION.txt。
+
+保存checkpoint:
+  P0: source/window/仕様の局所binding
+  P1: adapterと人工テスト・Control parity
+  P2: Primary各windowの終了ごと（完了・blockの両方）
+  P3: Primaryの資産表とloss診断
+  P4: Secondary chainと旧29万円窓比較
+  P5: 独立検算
+  P6: 再現確認
+  P7: 最終report/成果物保存・actual GET
+
+各session終了時と例外直前に、原子的なlocal checkpointも残す。
+  window/arm/event cursor、cash、holdings、pending SELL、State/guard参照、
+  入力hash、code/spec hash、未完了義務、完了stage、次の1commandを保存。
+非公開データ・ログはprivate保存。共有market cacheはcontent-addressedで再利用し、巨大rawを毎回複製しない。
+
+最低でも各window完了時にGitHubへcommitしてactual GETする。
+Work終了予兆・時間制限・修復予算尽きでは、完了窓と再開manifestの保存を最優先。
+「最終reportを作るまで全部メモリ内」は禁止。
+もし保存APIが失敗したら、成功を装わず、local checkpoint/packageを添付して未pushを明示する。
+
+公開側: 集計、契約、入力/実装hash、status、読戻しreceipt。
+非公開側: 個別Entry、State、価格、原R、quantity、全取引/決定台帳、失敗証跡、再現用依存。
+旧Freeze/旧teacher/旧閉鎖報告を上書きしない。main merge・force push・本番コード変更なし。
+
+READBACK_RECEIPT_PUBLICATION.jsonに実commitとpath/bytes/SHA256/Git blobを記録。
+公開・非公開の必要全成果物をactual GETで照合し、失敗404や不足partを未確認のまま完了と呼ばない。
+receipt自身は、自分自身のhashを書き込む循環を作らず、後続確認記録で参照する。
+元branchの古い完了報告だけを見て、新branchの保存完了と認定しない。
+
+======================================================================
+16. 成果物・報告の順序
+======================================================================
+
+最低限の成果物（少数ファイルへ統合可。ただし内容は省略しない）:
+  CURRENT_STATE.json / RESUME_NEXT_ACTION.txt
+  SOURCE_BINDING.json / WINDOW_ALLOWLIST.json / EXPOSURE_LEDGER.json
+  IMPLEMENTATION_AND_PARITY.json / SYNTHETIC_TEST_RESULTS.json
+  RESET20_WINDOW_RESULTS.csv / RESET20_SUMMARY.json
+  CHAIN38_AND_LEGACY20_RESULTS.json / LEGACY20_PAIRED_WINDOWS.csv
+  RETURN_SPECTRUM_BY_WINDOW.csv / TAIL_AND_LOSS_METRICS.csv
+  ORIGINAL_C_WINNER_LOSER_TRANSITIONS.csv
+  FUNDING_AND_PNL_DECOMPOSITION.csv / FIRST_DIVERGENCE.json
+  STATE_EVIDENCE_COVERAGE.json / UNRESOLVED_LEDGER.json
+  INDEPENDENT_AUDIT.json / REPRODUCTION_RECEIPT.json
+  TECHNICAL_REPAIR_LEDGER.jsonl / EXECUTION_RECEIPT.json
+  REPORT-ja.md / public package / private package manifest
+  READBACK_RECEIPT_PUBLICATION.json
+
+報告本文の順序:
+1. 「旧V5では100万円→いくら、新EXITでは→いくら、差額いくら」。Primary全9窓と集計。
+2. 赤字窓・負け日・gross loss円・大Loser件数/損失円がどう変わったか。
+3. Winnerの利益減少・赤字化・Eで未購入を分けた結果。
+4. 早期資金解放と新規funding/quantity差の説明。
+5. 旧約29万円窓を同じ条件で置き換えた結果と、全38-session参考。
+6. coverage/未知/独立検算/再現/保存状態。
+7. 結論。条件の追加・再fit・再選定へ進まない。
+
+図を作る場合はPrimary9窓の終点資産比較を先にする。
+38-session資産曲線や旧正規化20の図は別図。異なる初期条件を1本の月次実績に連結しない。
+未来最適選択Oracleや架空の「全Winnerなら」資産は不要。
+
+======================================================================
+17. 判定・STOP・本線の保持
+======================================================================
+
+別々に記録する:
+・INTEGRITY: 実装/時点/会計/独立検算が成立したか。
+・COVERAGE: 固定9窓と旧予定21窓のどこまで正式終点が得られたか。
+・WEALTH_EFFECT: paired比較の資産差。中央値差・paired差・平均・全窓分布。
+・DOWNSIDE_EFFECT: gross loss、尾部、赤字窓、最悪日、DDの各増減。
+・WINNER_EFFECT: 利益損傷・失ったfunding・赤字化。
+・SELECTION: V5 Capitalと新SHARP_DROP EXITはユーザー選択済みとして保持。
+
+例:
+資産増加かつ損失減少 → 観測された同時改善として報告。
+損失減少だが資産悪化 → そのtrade-offを金額で報告。資産改善PASSとはしない。
+資産増加だが尾部/赤字悪化 → downsideとのtrade-offとして報告。
+未測定が残る → partial。完了subsetだけの数字を全9窓/全21窓へ外挿しない。
+
+本Workは採用決定を自動やり直ししない。
+結果が悪くても旧EXITへ勝手に戻さず、新しい損切り条件・猶予・含み損限定を追加しない。
+結果が良くても注文/本番を解禁しない。必要な次仮説は最後に1つだけ文章で提案し、実行しない。
+
+最終状態に必須:
+  mainCapital = CAPITAL_MAX3_SLOT_RESERVE_V1
+  mainExit = SHARP_DROP_FIRST_OBSERVED_EXIT_V0
+  priorCapitalAndExitArtifactsPreserved = true
+  oldResultsRelabelled = false
+  additionalPreBuyFilterActivated = false
+  freshValidation = NOT_RUN
+  productionReady = false
+  runtimeProductionConfigChanged = false
+  selectionPointersRewrittenByThisComparison = false
+
+Safety9は全false:
+  executionAllowed / brokerWriteAllowed / excelOrderWriteAllowed /
+  rssOrderFunctionAllowed / liveTradingAllowed / paperTradingAllowed /
+  automaticPromotionAllowed / productionUpdateAllowed / transmitted
+
+offline research replayの許可は上記安全flagと別のスコープとして明記する。
+全成果物保存・読戻しまで完了したらSTOP。
+残る技術的不足があれば、失敗を保存し、最後の確定checkpointから再開可能な状態でSTOP。
+「再度最初から」は次工程にしない。
+
+======================================================================
+出典（本書の確認済み原本。実行時はexact commit/path/hashへbinding）
+======================================================================
+
+S1 Capital復帰pointer:
+https://github.com/Iam-2squared/ark-terminal/blob/0447d1fd80d36552a0697420b032e5bbcb6b073e/research/CURRENT_MAIN_CAPITAL.json
+
+S2 V5 report / native allocation・arrival:
+https://github.com/Iam-2squared/ark-terminal/blob/710656491be06235901b45c50a8b5cbd714ba4eb/docs/evidence/capital-v5-max3-slot-intelligence-20261004-v1/REPORT_FINAL-ja.md
+https://github.com/Iam-2squared/ark-terminal/blob/710656491be06235901b45c50a8b5cbd714ba4eb/research/capital-v5-max3-slot-intelligence-20261004-v1/allocation.py
+https://github.com/Iam-2squared/ark-terminal/blob/710656491be06235901b45c50a8b5cbd714ba4eb/research/capital-v5-max3-slot-intelligence-20261004-v1/arrival.py
+
+S3 新EXIT Freeze（S4/S5の原本pinsも収録）:
+https://github.com/Iam-2squared/ark-terminal/blob/30519cc85042a36097db54a70471de7bc679794e/research/exit-sharp-drop-overlay-counterfactual-20261007/MAIN_EXIT_FREEZE_20261007.json
+
+S6 RESET20報告と全window台帳:
+https://github.com/Iam-2squared/ark-terminal/blob/53da6486b612a652a4d2b133713818f7af762e20/docs/evidence/capital-v51-reset20-r5r10-20261006-v1/REPORT-ja.md
+https://github.com/Iam-2squared/ark-terminal/blob/53da6486b612a652a4d2b133713818f7af762e20/docs/evidence/capital-v51-reset20-r5r10-20261006-v1/FINAL_WINDOW_COMPARISON.csv
+
+注: 本書の作成時に実行したのは既存原本の読取りと指示書作成だけ。
+この文書自体は、Capital比較・接続実装・独立検算・GitHubへの本書保存を既に実行した証拠ではない。
+本書の有限実行予算・成果物設計は今回の仕様であり、過去のV5や新EXITに遡及して課されたものではない。

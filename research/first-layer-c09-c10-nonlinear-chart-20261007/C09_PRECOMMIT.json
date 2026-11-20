@@ -1,0 +1,125 @@
+{
+  "C10_field_registry_sha256": null,
+  "Entry_N": 322,
+  "Fresh_OOS": 0,
+  "REPORT501_new_score": 0,
+  "additional_fields": 0,
+  "base_input_receipt_sha256": "fa7045881a8ce1485557314e7dc56cd7bbf89404dd8e116d247b6ef4263c3786",
+  "blocks": [
+    "S1",
+    "S2"
+  ],
+  "causal_QA_scope_Entry_N": null,
+  "class_weight": null,
+  "clock": {
+    "JST": "2026-10-07T08:58:24.202655+09:00",
+    "UTC": "2026-10-06T23:58:24.202655+00:00"
+  },
+  "exposure": "ADAPTIVE_DEVELOPMENT",
+  "fit_N": 2,
+  "formal_spec_source_pin": {
+    "blob": "e58ebc6545d60c2af602ab8fc659520ab56cce9b",
+    "bytes": 9850,
+    "sha256": "1acc9967e0f64f2d8576fd13dcfa33cd011a780f621463e2ce5e4592d044a4bd"
+  },
+  "hypothesis": "Model effect: unchanged C08 inputs with inherited fixed HGB7",
+  "implementation_pins": {
+    "common.py": {
+      "blob": "c8130102543828946a90c26eb0962b5229897937",
+      "bytes": 3113,
+      "sha256": "b3a3a48ca96c24e3d95736377edf2382e2677b1e472f5be75da2e6d41d69716e"
+    },
+    "direct_registry.py": {
+      "blob": "97588a166ec669145cb9d78a312f503a3413e2fb",
+      "bytes": 7392,
+      "sha256": "a090c9d75f605d1272beb1d31703353acdc275e1e9b791b5103e06bdad9e8a97"
+    },
+    "operating_policy.py": {
+      "blob": "bfbbd969a0250838d1600feb61642c6916b19227",
+      "bytes": 2133,
+      "sha256": "3fac8e3bd32ffc4dec5b79b0ac3c548f14e9057bbeb59eae935f4cb787adca5e"
+    },
+    "prepare_contract.py": {
+      "blob": "7b24d55fc2d1106bcfb37c10eab922a4f9ce87d8",
+      "bytes": 10071,
+      "sha256": "bae5867f149994216655dbfad891d0c3ca0087db59a6c90f7e39d5436adba0ed"
+    },
+    "prepare_inputs.py": {
+      "blob": "1b6b588b55f16e4beaff1d73386b2ea99eaefc54",
+      "bytes": 6399,
+      "sha256": "423da1a00ca531ad6dc47de3c8d6890382fffe333a9ca13c96eb97357cf1d66a"
+    },
+    "run_model.py": {
+      "blob": "b41ffcfc928ebefe33e7eb47a30b267f860e44d7",
+      "bytes": 10071,
+      "sha256": "ea378b21d72d332da9e7675b213170f62b6ea0f3afd33f1769def4d47f9efde4"
+    }
+  },
+  "mandatory_C10_QA_before_fit": false,
+  "model_family": "HistGradientBoostingClassifier",
+  "new_TOTAL_CAL_calculation_N": 12,
+  "new_aggressive_threshold_N": 10,
+  "new_fixed_CAL95_reference_N": 2,
+  "option_authority": "Inherited formal C04_HGB_A small7-leaf spec; only full library defaults are made explicit",
+  "options": {
+    "categorical_features": null,
+    "class_weight": null,
+    "early_stopping": false,
+    "interaction_cst": null,
+    "l2_regularization": 1.0,
+    "learning_rate": 0.05,
+    "loss": "log_loss",
+    "max_bins": 255,
+    "max_depth": 3,
+    "max_features": 1.0,
+    "max_iter": 200,
+    "max_leaf_nodes": 7,
+    "min_samples_leaf": 30,
+    "monotonic_cst": null,
+    "n_iter_no_change": 10,
+    "random_state": 570107,
+    "scoring": "loss",
+    "tol": 1e-07,
+    "validation_fraction": 0.1,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "parameter_changes_after_results": 0,
+  "parent_HEADs": {
+    "private": "90866d528835236bfb7d666709466936513d2b40",
+    "public": "f609fc212fc05573fe6f32f8ad627911b84c0b1c"
+  },
+  "preprocessing_fit_N": 0,
+  "preprocessor": "Reuse exact inherited C08 Pipeline/COLUMN_SELECTION for base; no refit",
+  "proceed_C10_even_if_C09_bad": true,
+  "runtime": {
+    "numpy": "2.3.5",
+    "python": "3.12.14",
+    "sklearn": "1.8.0",
+    "sklearn_implementation_pin": {
+      "blob": "4a4fa319f4ab7c5c520fd11afc7897565049e9e7",
+      "bytes": 97408,
+      "sha256": "5ccdc2f1692a8bb419ddc5136b269f0692c04b9f0209142081fb361e04cf0b3c"
+    },
+    "threads": 1
+  },
+  "sample_weight": null,
+  "score": "decision_function; classes_[0,1], high eta => PLUS",
+  "stage": "C09",
+  "sweeps": 0,
+  "teacher": "fixed mature sign only; PLUS1/MINUS0; no R/bucket/weights",
+  "thresholds": {
+    "CAL95": "sort mature CAL PLUS eta asc; k=floor(5*N_plus/100); tau=a[k]; KEEP ties",
+    "aggressive": "WB01 mature CAL MINUS integer floor + nextafter(boundary,+infinity); tied boundary all DROP; same missing KEEP fallback",
+    "points": [
+      "ALL_KEEP",
+      "CAL95",
+      "CAL_MINUS_KEEP_80",
+      "CAL_MINUS_KEEP_60",
+      "CAL_MINUS_KEEP_40",
+      "CAL_MINUS_KEEP_20",
+      "CAL_MINUS_KEEP_10"
+    ],
+    "winner_or_DEV_truth_for_cutoff": false
+  }
+}

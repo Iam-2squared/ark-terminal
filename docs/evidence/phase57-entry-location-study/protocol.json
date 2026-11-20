@@ -1,0 +1,70 @@
+{
+  "id": "PHASE57_ENTRY_LOCATION_STUDY_V1",
+  "status": "DESCRIPTIVE_PROTOCOL_BEFORE_NEW_AGGREGATES",
+  "date": "2026-09-17",
+  "head": "c8d935d5f3153d7f10ab2b4293fa1c044e555b63",
+  "latestMain": "1013a6c1a41f73bcc798c9aa463c7abd1be4b3ab",
+  "sourcePins": {
+    "docs/evidence/phase57-msh-entry-long-v1-preimplementation-feasibility-events.ndjson.gz": "73e566aba4d1a3f5af33b74be52ae90736c088b1091841f1eb44e93d5476084c",
+    "docs/evidence/phase57-msh-entry-long-v2-development/paths.json.gz": "9b051b630c1e5ac59fac42f0da32830f38e07c48ded56a26e2dec4c054a4b7ba",
+    "docs/evidence/phase57-long-only-current-entry-transfer-v1-events.ndjson.gz": "a36eecfed29aa0e9da50b051839578ca2e8f3a37d500de17bd6c3acfd8ce3a53",
+    "predict/research/phase57-long-only-frozen-selector-v1.json": "d93b3560f4be7dd231b88780f7d6d51cf8ecda85d4f599debcdd22c0c3feb5c8",
+    "docs/evidence/phase57-5m-conditional-timing-followup-2026-09-17.md": "1111467cdba8cc69ad11757921c13ef3794f09d207691e300b50b871ec8bf1fd",
+    "docs/evidence/phase57-5m-timing-only-fast-fail-2026-09-17.md": "40e1c327e1b5840900466eb829ec105d3806017e027302c0aedf53ade772d1cf",
+    "docs/evidence/phase57-timing-only-selector-census-2026-09-17.md": "f9047664dc5d013c09d8f0eaae4ad2eb95f527fa30aee7d7fca427203dfc7d71"
+  },
+  "selector": {
+    "commit": "565d74b3dea823581fdb32380113aac5913a248d",
+    "payload": "3dc6d222d4039737c0dcfdcfa4a83372202152e29b582225419ab97c00610d59",
+    "ridge": "994f1dbaba1d32e97458d5dd9d4c646ef443fbb37128650e8166001d8deabefb",
+    "training": "Y30: 6 closed5m trading observations endpoint",
+    "opportunity": "decisionPrice -> same-session future HIGH, not Y30"
+  },
+  "universe": "3800 events ->2743 first symbol-session anchors; outcome-independent first selection",
+  "policies": [
+    "IMMEDIATE",
+    "WAIT5",
+    "WAIT10",
+    "DIP_CLOSE_FALLBACK10",
+    "OBSERVE5_DELAY_DIP10"
+  ],
+  "reference": "scheduled interval OPEN; conditional first completed CLOSE compared to pinned decisionPrice. No LOW fills, no decision-CLOSE fills; zero-latency/queue optimistic reference, not proven execution",
+  "primary": "same878 continuous selection+60m paths; own Entry+5/10/15/30 equal-time risk and own+30 upside; common selection+60 upside/capture",
+  "secondary": "own Entry+60 all-policy paired complete paths (up to selection+70m) separate population; saved regular-session-end all-policy paired; full2743 observed lower bounds",
+  "missing": "NULL unknown, no fill/interpolation. Missing HIGH without hit not failure. No crossing continuous-session boundary for Entry or fixed wall-clock windows. Saved same-session can span lunch using known regular bars",
+  "price": "improvement=100*(1-buy/immediateOpen), positive cheaper; latePrice=-improvement; selectionPriceShift=100*(buy/decisionPrice-1)",
+  "outcomes": "MFE=max(0,100*(maxHigh/buy-1)); D=max(0,100*(1-minLow/buy)); include entry interval OHLC; same-bar HIGH/LOW order unknowable",
+  "statistics": "linear interpolated quantiles, ES95 mean of largest ceil(.05*N); no ratio target; fixed jointbins upside1/2/3/5, downside1/2/5/10",
+  "cohorts": "dip: firstclose<decisionPrice; no-dip >=; firstclose>=+1%; firsthigh>=+3%; primary common60 immediate +3/+5 winners and complete non+1; all are post-selection diagnostic labels; dip only known at+5",
+  "segment": "dated Master via frozen transfer; exact release clock unproven. Diagnostic only, no PIT certified signal",
+  "robustness": "four chronological19-session blocks; per-symbol differences; remove top1/top3 by anchor count only descriptive; complete underlying-minute-count5 per bar sensitivity (no actual1m access)",
+  "verdict": "study completion based on integrity and requested measurements, no new Entry GO gate; reject blanket waits as completed entry if location/opportunity tradeoff remains; no promotion",
+  "zeroCounters": {
+    "selectorChanges": 0,
+    "entryRuntimeChanges": 0,
+    "modelFit": 0,
+    "modelPrediction": 0,
+    "fresh": 0,
+    "oos": 0,
+    "prospective": 0,
+    "priceProviderRequests": 0,
+    "minuteResearch": 0,
+    "exitReplay": 0,
+    "exitTuning": 0,
+    "capitalTuning": 0,
+    "portfolioTuning": 0,
+    "claudeReview": 0,
+    "mainMerge": 0
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

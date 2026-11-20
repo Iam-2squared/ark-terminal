@@ -1,0 +1,24 @@
+name: Phase57 LONG EXIT Continuation Development Integrity
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-long-exit-continuation.yml
+      - predict/long-only/phase57_long_exit_*.py
+      - scripts/*phase57_long_exit_continuation*
+      - docs/evidence/phase57-long-exit-continuation-v1/**
+permissions:
+  contents: read
+jobs:
+  development-final-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Offline causal runtime, saved evidence and frozen upstream
+        run: ARK_TEST_OFFLINE=1 python3 scripts/offline/kernel_exec.py python3 -m unittest scripts/test_phase57_long_exit_continuation.py scripts/test_phase57_msh_entry_upstream_freeze.py

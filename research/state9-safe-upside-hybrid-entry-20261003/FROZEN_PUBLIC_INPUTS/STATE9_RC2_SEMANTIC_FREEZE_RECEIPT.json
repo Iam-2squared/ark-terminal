@@ -1,0 +1,145 @@
+{
+  "status": "STATE9_RC2_SEMANTIC_FREEZE_CANDIDATE",
+  "cycle": "STATE9_RC2_MARKET_SEMANTIC_AUDIT_20261001_V1",
+  "layer": "Final adjudication; earlier ready/blocked/prep layers preserved, not overwritten",
+  "created_at_jst": "2026-10-02T00:36:38.696646+09:00",
+  "authority_document": "WORK_STATE9_RC2_FINAL_SEMANTIC_FREEZE_ADJUDICATION_20261002_V1",
+  "frozen_identities": {
+    "RC2_CONTRACT.txt": "45859122a62ccdc946b31bb5709f3fc080ea4a4f935958afd8f1ca895f75b6ff",
+    "profile.json": "77ee61ba1808a2c17614439fe7d14212a53cbfa7358c032ce16989eeb5248922",
+    "source_snapshot.json": "08e1a20a4d022a1429b74387169dd8729a2eaeb4dc0008f3af2b52ec0e661c23",
+    "M0.md": "08cad3ca8316ccab644872e3d843e2d491ac6a953a03193d5c391be3bcf73bb3"
+  },
+  "metrics": {
+    "reviewed_N": 29,
+    "contract_classification_agreement_N": 29,
+    "observed_null_agreement_N": 29,
+    "determinate_primary_N": 18,
+    "null_N": 11,
+    "state_counts": {
+      "DROP": 1,
+      "REBOUND": 1,
+      "RISE": 7,
+      "DROP_STOP": 1,
+      "SHARP_RISE": 2,
+      "RANGE": 1,
+      "PULLBACK": 1,
+      "RISE_STOP": 2,
+      "SHARP_DROP": 2
+    },
+    "coverage_Primary_N": 9,
+    "future_seen_declared_violation_N": 0,
+    "ark_label_seen_declared_violation_N": 0,
+    "private_before_fixation_declared_violation_N": 0,
+    "engine_mismatch_N": 0,
+    "direct_IO_mismatch_N": 0,
+    "saved_trace_rows_compared": 5060,
+    "reviewed_unique_security_session_N": 21,
+    "observed_unique_security_session_N": 10,
+    "historical_blindness_externally_certified": false,
+    "attestation_basis": "reviewer declarations; actual source/input/final/available commitment hashes independently checked",
+    "original_first_canonical_file_present_case_N": 2,
+    "first_commitment_reproducible_case_N": 17,
+    "C016_C027_original_first_canonical_missing_case_N": 12,
+    "new_engine_runs": 0,
+    "new_classifications": 0
+  },
+  "criteria": [
+    {
+      "criterion": "Synthetic closure維持",
+      "decision": "PASS",
+      "basis": "原本FINAL_RECEIPT + final full run12/14 receipts維持、再テスト0、RC1 16 FAIL保持"
+    },
+    {
+      "criterion": "Frozen identities変更0",
+      "decision": "PASS",
+      "basis": "Contract/profile/source snapshot/M0 actual SHA256一致、凍結source9body hash一致"
+    },
+    {
+      "criterion": "9/9 observed実市場Blind case",
+      "decision": "PASS_WITH_ATTESTED_PROVENANCE_LIMITATION",
+      "basis": "観測済み18case、9Primary全て独立回答一致。C016–C027の初回原本制限を付して採用"
+    },
+    {
+      "criterion": "Ark/reviewer classification unresolved disagreementなし",
+      "decision": "PASS",
+      "basis": "29/29（formal null11含む）、Primary観測分18/18"
+    },
+    {
+      "criterion": "engine/direct I/O unresolved mismatchなし",
+      "decision": "PASS",
+      "basis": "29caseの保存trace5060行/35field一致、元direct receipts errors0。新engine実行0"
+    },
+    {
+      "criterion": "observed/null unresolved contradictionなし",
+      "decision": "PASS",
+      "basis": "29/29。carried/initializing11件を第10State・現在Stateと数えない"
+    },
+    {
+      "criterion": "Primary boundary unresolved contradictionなし",
+      "decision": "PASS_IN_EXAMINED_SCOPE",
+      "basis": "保存Evidence内0。旧10本guardの既存RC1 δ_break定義と凍結実装を出典で確認、全入力域証明ではない"
+    },
+    {
+      "criterion": "context-reset裁定",
+      "decision": "CONTEXT_RESET_ACCEPTED_AS_DEFINED",
+      "basis": "local/context/Rangeを分けた説明scopeで管理可能。旧context再生・ロジック変更不要"
+    },
+    {
+      "criterion": "representation concern裁定",
+      "decision": "EXPLANATORY_SCOPE_SUFFICIENT_NO_SEMANTIC_REVISION",
+      "basis": "名称からseverity/未来継続/売買意味を推論しない。単独ラベル表示は承認しない"
+    },
+    {
+      "criterion": "provenance gap裁定",
+      "decision": "NONBLOCKING_PROVENANCE_LIMITATION_C016_C027",
+      "basis": "元canonical未回収を永久記録。入力対応・現在回答根拠・分類再現を実質検証可能。初回cryptographic履歴認証ではない"
+    },
+    {
+      "criterion": "Future/Entry/EXIT/profitによる意味調整なし",
+      "decision": "PASS",
+      "basis": "新評価各0。契約閾値/意味変更0、旧Designer露出を隠さない"
+    }
+  ],
+  "context_reset_adjudication": "CONTEXT_RESET_ACCEPTED_AS_DEFINED",
+  "representation_scope_adjudication": "EXPLANATORY_SCOPE_SUFFICIENT_NO_SEMANTIC_REVISION",
+  "provenance_adjudication": "NONBLOCKING_PROVENANCE_LIMITATION_C016_C027",
+  "missing_material": "MISSING_ORIGINAL_FIRST_ANSWER_CANONICAL_BYTES_C016_C027",
+  "provenance_closed": false,
+  "canonical_missing_original_not_generated": true,
+  "reviewer_attestation_not_external_history_certification": true,
+  "unresolved_primary_boundary_contradiction_N_in_examined_evidence": 0,
+  "semantic_revision_required": false,
+  "scope": "Historical final-bar reconstruction; fixed accepted-input Contract current-meaning reproducibility. No universal-domain/market-scale/live PIT/predictive/strategy/production certification.",
+  "representation_notes_required_for_use": true,
+  "RC2_profile_M0_changed": 0,
+  "productionReady": false,
+  "main_merge": false,
+  "next_proposed_stage": "State Path / Transition",
+  "next_stage_started": false,
+  "current_work_hard_zero_actuals": {
+    "new_market_sample": 0,
+    "new_provider": 0,
+    "new_draw": 0,
+    "State_scan": 0,
+    "State_reclassification": 0,
+    "engine_run": 0,
+    "old_synthetic_retest": 0,
+    "threshold_tuning": 0,
+    "protected_payload_open": 0,
+    "Holdout_OOS_open": 0,
+    "Future_classifier_input": 0,
+    "Future_predictiveness": 0,
+    "MFE_MAE": 0,
+    "Entry_EXIT_Signal": 0,
+    "profit_Capital_Portfolio": 0,
+    "external_AI_auto_send": 0,
+    "GitHub_write": 0,
+    "Actions_run": 0,
+    "main_merge": 0,
+    "broker_order": 0,
+    "reviewer_answer_edit": 0,
+    "fabricated_missing_canonical": 0
+  },
+  "budget_no_reset": true
+}

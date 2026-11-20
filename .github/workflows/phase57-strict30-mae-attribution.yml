@@ -1,0 +1,55 @@
+name: Phase57 Strict30 MAE Attribution
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-strict30-mae-attribution.yml'
+      - 'scripts/phase57_strict30_mae_attribution.py'
+      - 'scripts/report_phase57_strict30_mae_attribution.py'
+      - 'scripts/test_phase57_strict30_mae_attribution.py'
+      - 'docs/evidence/phase57-strict30-mae-attribution-v1/**'
+permissions:
+  contents: read
+jobs:
+  audit:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Attribution and causal comparator regression
+        env:
+          ARK_TEST_OFFLINE: '1'
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: python3 scripts/offline/kernel_exec.py python3 -m unittest -v scripts.test_phase57_strict30_mae_attribution scripts.test_phase57_exit_loss_state_study scripts.test_phase57_new_long_exit_candidate_a scripts.test_phase57_exit_cc_freeze_audit
+      - name: Regenerate only attribution and verify all committed bytes
+        env:
+          ARK_TEST_OFFLINE: '1'
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          set -euo pipefail
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.phase57_strict30_mae_attribution --out /tmp/mae-attribution-measurement
+          for file in summary.json ledger.json.gz worst-paths.json manifest.json; do
+            cmp /tmp/mae-attribution-measurement/$file docs/evidence/phase57-strict30-mae-attribution-v1/measurement/$file
+          done
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.report_phase57_strict30_mae_attribution --source /tmp/mae-attribution-measurement --out /tmp/mae-attribution-report
+          for file in REPORT.md trade-path-attribution.csv manifest.json; do
+            cmp /tmp/mae-attribution-report/$file docs/evidence/phase57-strict30-mae-attribution-v1/decision/$file
+          done
+          python3 scripts/verify_phase57_development_preservation.py
+          git diff --exit-code
+      - name: Preserve diagnostic (green is not validation or performance PASS)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-strict30-mae-attribution-${{ github.event.pull_request.head.sha }}
+          path: |
+            /tmp/mae-attribution-measurement
+            /tmp/mae-attribution-report
+          if-no-files-found: error
+          retention-days: 30

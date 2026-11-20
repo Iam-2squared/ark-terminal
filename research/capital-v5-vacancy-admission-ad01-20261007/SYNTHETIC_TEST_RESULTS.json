@@ -1,0 +1,114 @@
+{
+  "checkpoint_restore_scope": "H1/H2 complete within-session execution state, intent/release/flat boundaries; E0 uses original flat-session carrier",
+  "code_hashes": {
+    "admission_adapter.py": {
+      "bytes": 14984,
+      "git_blob": "6bebeef1192f6427c269c17d99e8cb6610b9affc",
+      "sha256": "1041c57232c52f946f15c8654838bbdc9760035ab71e779661227e4e395b6646"
+    },
+    "baseline_adapter.py": {
+      "bytes": 8080,
+      "git_blob": "2798add9f23de55fd89fe050b794a6ff12449ce5",
+      "sha256": "fbbf8e2a13fd654e4a5dbdd5816776cc8f84143eec3125dee2cfd158297d9436"
+    },
+    "io_utils.py": {
+      "bytes": 2057,
+      "git_blob": "9dde56b50f833781c30cbd5dc90145ca174e3f16",
+      "sha256": "11d881a5fbbef6a70bd7e044d5b4509f1c5594f80db484ea86d59cd79191ebbf"
+    },
+    "synthetic_tests.py": {
+      "bytes": 15986,
+      "git_blob": "781a97fe63ce12ad9f3abba0d03473ac62f4350b",
+      "sha256": "5621326494fe26fe36bfa3e3faaa3270b2bc017a2899458f232213a461b5b669"
+    }
+  },
+  "errors": 0,
+  "failures": 0,
+  "real_replay_runs": 0,
+  "real_result_inspections": 0,
+  "scope": "ARTIFICIAL_FIXTURES_ONLY",
+  "status": "PASS",
+  "test_N": 20,
+  "tests": [
+    {
+      "status": "PASS",
+      "test": "__main__.AdmissionContracts.test_01_gate_guard_occupancy_rank_cross_product"
+    },
+    {
+      "status": "PASS",
+      "test": "__main__.AdmissionContracts.test_02_exact_rank_boundaries"
+    },
+    {
+      "status": "PASS",
+      "test": "__main__.AdmissionContracts.test_03_native_sort_stable_ties"
+    },
+    {
+      "status": "PASS",
+      "test": "__main__.AdmissionContracts.test_04_h1_all_vacancy_events"
+    },
+    {
+      "status": "PASS",
+      "test": "__main__.AdmissionContracts.test_05_h1_no_late_relaxation"
+    },
+    {
+      "status": "PASS",
+      "test": "__main__.AdmissionContracts.test_06_intent_no_full_release_no_guard"
+    },
+    {
+      "status": "PASS",
+      "test": "__main__.AdmissionContracts.test_07_h2_release_same_timestamp_lunch_multiple_sd_reset"
+    },
+    {
+      "status": "PASS",
+      "test": "__main__.AdmissionContracts.test_08_foreign_unfunded_future_plans_ignored"
+    },
+    {
+      "status": "PASS",
+      "test": "__main__.AdmissionContracts.test_09_h2_native_b_gate_before_release"
+    },
+    {
+      "status": "PASS",
+      "test": "__main__.AdmissionContracts.test_10_rejected_b_no_pending_slot_and_no_cash_backfill"
+    },
+    {
+      "status": "PASS",
+      "test": "__main__.AdmissionContracts.test_11_empty_rejected_empty_jsonl"
+    },
+    {
+      "status": "PASS",
+      "test": "__main__.AdmissionContracts.test_12_lot_cap_cash_max3_same_symbol"
+    },
+    {
+      "status": "PASS",
+      "test": "__main__.AdmissionContracts.test_13_e0_exact_on_off_predecessor_and_exit_semantics"
+    },
+    {
+      "status": "PASS",
+      "test": "__main__.AdmissionContracts.test_14_common_entry_exit_r_costs_equal"
+    },
+    {
+      "status": "PASS",
+      "test": "__main__.AdmissionContracts.test_15_state_abstention_vs_true_gap"
+    },
+    {
+      "status": "PASS",
+      "test": "__main__.AdmissionContracts.test_16_unfilled_invalid_prices_no_fake_cash"
+    },
+    {
+      "status": "PASS",
+      "test": "__main__.AdmissionContracts.test_17_future_books_plans_do_not_change_prior_funding"
+    },
+    {
+      "status": "PASS",
+      "test": "__main__.AdmissionContracts.test_18_window_id_label_invariance"
+    },
+    {
+      "status": "PASS",
+      "test": "__main__.AdmissionContracts.test_19_all_r_boundaries_unknown_zero"
+    },
+    {
+      "status": "PASS",
+      "test": "__main__.AdmissionContracts.test_20_midday_checkpoint_exact_no_duplicate_cash_trade"
+    }
+  ]
+}

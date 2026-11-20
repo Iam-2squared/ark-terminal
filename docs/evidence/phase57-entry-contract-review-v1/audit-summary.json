@@ -1,0 +1,412 @@
+{
+  "auditedHead": "aa4dab3d79c26b89e0f699def30e9c4bc65752ff",
+  "availabilityBySegmentAge": {
+    "30-59": {
+      "n": 3042,
+      "w15": {
+        "available": 1450,
+        "pct": 47.66600920447074
+      },
+      "w30": {
+        "available": 1118,
+        "pct": 36.75213675213675
+      },
+      "w60": {
+        "available": 0,
+        "pct": 0.0
+      }
+    },
+    "60+": {
+      "n": 10060,
+      "w15": {
+        "available": 3127,
+        "pct": 31.083499005964214
+      },
+      "w30": {
+        "available": 2613,
+        "pct": 25.974155069582505
+      },
+      "w60": {
+        "available": 1854,
+        "pct": 18.429423459244532
+      }
+    }
+  },
+  "buyFinalReason": {
+    "DEADLINE": 19,
+    "E5": 1626
+  },
+  "buyPriorWaitReasons": {
+    "['BUY_ORDER_UNFILLED_NO_SOURCE_TRADE', 'LEARNED_NEXT_STEP_ADVANTAGE', 'STALE_OR_MISSING_REFERENCE']": 4,
+    "['BUY_ORDER_UNFILLED_NO_SOURCE_TRADE', 'LEARNED_NEXT_STEP_ADVANTAGE']": 25,
+    "['BUY_ORDER_UNFILLED_NO_SOURCE_TRADE', 'STALE_OR_MISSING_REFERENCE']": 57,
+    "['BUY_ORDER_UNFILLED_NO_SOURCE_TRADE']": 183,
+    "['LEARNED_NEXT_STEP_ADVANTAGE', 'STALE_OR_MISSING_REFERENCE']": 1,
+    "['LEARNED_NEXT_STEP_ADVANTAGE']": 178,
+    "[]": 1197
+  },
+  "codeClockExamples": {
+    "660": [
+      660,
+      665,
+      670,
+      675,
+      680,
+      685
+    ],
+    "665": [
+      665,
+      670,
+      675,
+      680,
+      685
+    ],
+    "670": [
+      670,
+      675,
+      680,
+      685
+    ],
+    "675": [
+      675,
+      680,
+      685
+    ],
+    "680": [
+      680,
+      685
+    ],
+    "685": [
+      685
+    ],
+    "690": []
+  },
+  "emptySelectionTime": {
+    "11:30": 201
+  },
+  "evaluationDecisionRows": 13114,
+  "gateBoundsWithEmptyRepair": {
+    "3": {
+      "currentE5PlusEmptyWinner": 618,
+      "oracleSavedPlusEmptyWinner": 655,
+      "pct": 86.07095926412615
+    },
+    "5": {
+      "currentE5PlusEmptyWinner": 342,
+      "oracleSavedPlusEmptyWinner": 364,
+      "pct": 89.2156862745098
+    }
+  },
+  "gridLengths": {
+    "0": 201,
+    "5": 179,
+    "6": 218,
+    "7": 1557
+  },
+  "inputHashes": {
+    "measurement/metrics.json": "19bf1962961a9699958f8ea5f38d4278ede846ce27e8ce76d5b40dfd48f253e1",
+    "measurement/trades.json.gz": "5dc3012e98255506afb8fa3778fda09eb8eb542e10857e827e6e32072a1a268d",
+    "substrate/features.json.gz": "35fd35c9c7bd0c54d38a1ca3f73558a57d76cf7f7f58da9e4e625a01e029ecd7",
+    "substrate/opportunities.json.gz": "6334ebf16e323496b49abf38754bd4f3b056eff8cace4eceafe92ecb02989d88",
+    "substrate/outcomes.json.gz": "33f12956133fa86e975adba77a0535ff1003d32d7ccf8a0ef96303d586fad327"
+  },
+  "limitations": [
+    "No new raw source acquisition",
+    "Retry baseline uses exactly existing saved grid, quotes, fills and prices",
+    "Oracle capture ceilings are threshold-specific, not an attainable learned policy",
+    "No training, feature, threshold, decision ledger or clock changes",
+    "No Common Holdout or sealed access"
+  ],
+  "lunchGridLengths": {
+    "6": 218
+  },
+  "n": 2155,
+  "newEligibleRows": 13102,
+  "noEntryByEligibleTick": {
+    "EMPTY_GRID": 201,
+    "LEARNED_WAIT_MISSED_AVAILABLE_TICK": 7,
+    "NO_FILL_PRICE_AT_ANY_TICK": 245,
+    "NO_QUOTE_AND_FILL_SAME_TICK": 57
+  },
+  "noEntryReasons": {
+    "BUY_ORDER_UNFILLED_NO_SOURCE_TRADE": 103,
+    "EMPTY_GRID": 201,
+    "STALE_OR_MISSING_REFERENCE": 206
+  },
+  "retryBUY": 1652,
+  "retryMetrics": {
+    "capture": {
+      "1": {
+        "baselineWinners": 1496,
+        "captured": 1100,
+        "missedOrUnknownPct": 26.470588235294112,
+        "pct": 73.52941176470588,
+        "unknownEntered": 0
+      },
+      "2": {
+        "baselineWinners": 1054,
+        "captured": 788,
+        "missedOrUnknownPct": 25.237191650853884,
+        "pct": 74.76280834914611,
+        "unknownEntered": 0
+      },
+      "3": {
+        "baselineWinners": 761,
+        "captured": 565,
+        "lowThenHighPct": 76.89463955637709,
+        "missedOrUnknownPct": 25.75558475689882,
+        "pct": 74.24441524310119,
+        "unknownEntered": 0
+      },
+      "5": {
+        "baselineWinners": 408,
+        "captured": 315,
+        "lowThenHighPct": 79.20792079207921,
+        "missedOrUnknownPct": 22.79411764705882,
+        "pct": 77.20588235294117,
+        "unknownEntered": 0
+      }
+    },
+    "downsideRates": {
+      "1": 55.529775715390564,
+      "2": 31.47718484145398,
+      "3": 18.40680587780356
+    },
+    "enterCount": 1652,
+    "enterPerSession": 28.482758620689655,
+    "entryImprovement": {
+      "mean": -0.163060450801899,
+      "median": -0.04999999999999449,
+      "n": 1652,
+      "p01": -2.514394267847829,
+      "p05": -1.1512694933742695,
+      "p10": -0.6820479204339944,
+      "p25": -0.23536371366727482,
+      "p75": -0.02798789103801158,
+      "p90": 0.2568548417403505,
+      "p95": 0.567099483489319,
+      "p99": 1.3229076423014308,
+      "worst5Mean": -2.2074876340220206,
+      "worst5Median": -1.8783991228070285
+    },
+    "mae30": {
+      "mean": -1.8936932535806423,
+      "median": -1.1908123300429563,
+      "n": 1293,
+      "p01": -10.831106861688665,
+      "p05": -6.1508759945301605,
+      "p10": -4.2135090504348405,
+      "p25": -2.4130666715678872,
+      "p75": -0.5105742059845486,
+      "p90": -0.13320558817759443,
+      "p95": -0.04997501249375258,
+      "p99": -0.04997501249374148,
+      "worst5Mean": -9.420457294631603,
+      "worst5Median": -8.263460862161509
+    },
+    "mae60": {
+      "mean": -2.544978782274286,
+      "median": -1.6950626199429442,
+      "n": 960,
+      "p01": -13.647488148938974,
+      "p05": -7.841758284461462,
+      "p10": -5.795510723143498,
+      "p25": -3.3650944946952506,
+      "p75": -0.7483173936532556,
+      "p90": -0.28570750656340954,
+      "p95": -0.09236854592790093,
+      "p99": -0.04997501249374148,
+      "worst5Mean": -11.385174472021063,
+      "worst5Median": -10.007716130315098
+    },
+    "maeEnd": {
+      "mean": -3.1674098937491464,
+      "median": -1.9037621838230767,
+      "n": 1643,
+      "p01": -17.907782067984524,
+      "p05": -10.066971404273414,
+      "p10": -7.621040800371685,
+      "p25": -4.188943117754567,
+      "p75": -0.7732821209443574,
+      "p90": -0.23277297507091635,
+      "p95": -0.04997501249375258,
+      "p99": -0.04997501249374148,
+      "worst5Mean": -14.747432930792955,
+      "worst5Median": -14.236430172010762
+    },
+    "mfeEnd": {
+      "mean": 3.4676771045629673,
+      "median": 1.9898214158227123,
+      "n": 1643,
+      "p01": 0.0,
+      "p05": 0.0,
+      "p10": 0.19092652577891833,
+      "p25": 0.7354899051940755,
+      "p75": 4.108118429386664,
+      "p90": 7.760141217105631,
+      "p95": 12.17247450341975,
+      "p99": 26.722655787438224,
+      "worst5Mean": 0.0,
+      "worst5Median": 0.0
+    },
+    "noEntryPct": 23.341067285382834,
+    "opportunities": 2155,
+    "populationObjective": -0.29727503098273317,
+    "positive30Pct": 46.48105181747873,
+    "return30": {
+      "mean": -0.07912650469214824,
+      "median": -0.09995002498749272,
+      "n": 1293,
+      "p01": -8.284932588500938,
+      "p05": -3.8913536811684306,
+      "p10": -2.515647326354641,
+      "p25": -1.062842072939418,
+      "p75": 0.9152943853276696,
+      "p90": 2.371512749370426,
+      "p95": 3.473860966818665,
+      "p99": 7.581438285509085,
+      "worst5Mean": -6.751710950039451,
+      "worst5Median": -5.597459223956378
+    },
+    "returnEnd": {
+      "mean": -0.2512921110798668,
+      "median": -0.32960531228637535,
+      "n": 1643,
+      "p01": -16.258937725390297,
+      "p05": -7.902010287017224,
+      "p10": -5.35784739209343,
+      "p25": -2.294597620265712,
+      "p75": 1.3254095579862266,
+      "p90": 3.941587779864761,
+      "p95": 7.303876207288813,
+      "p99": 21.795966543446056,
+      "worst5Mean": -12.067590948051318,
+      "worst5Median": -10.723094428965851
+    },
+    "symbolConcentration": [
+      [
+        "52550",
+        16
+      ],
+      [
+        "57210",
+        14
+      ],
+      [
+        "65730",
+        14
+      ],
+      [
+        "65740",
+        13
+      ],
+      [
+        "55970",
+        13
+      ],
+      [
+        "45840",
+        12
+      ],
+      [
+        "30700",
+        12
+      ],
+      [
+        "27430",
+        12
+      ],
+      [
+        "98780",
+        12
+      ],
+      [
+        "49350",
+        11
+      ]
+    ],
+    "utility": {
+      "mean": -0.38370277785598605,
+      "median": -0.2063299560410723,
+      "n": 1293,
+      "p01": -12.47544568360979,
+      "p05": -6.0579868298133945,
+      "p10": -3.813058576369764,
+      "p25": -1.7183715834390343,
+      "p75": 1.2001691461961455,
+      "p90": 2.987908398295627,
+      "p95": 4.378933094075548,
+      "p99": 8.460061984261358,
+      "worst5Mean": -10.170977033541687,
+      "worst5Median": -8.901105003054035
+    },
+    "waitMinutes": {
+      "mean": 1.7554479418886197,
+      "median": 0.0,
+      "n": 1652,
+      "p01": 0.0,
+      "p05": 0.0,
+      "p10": 0.0,
+      "p25": 0.0,
+      "p75": 0.0,
+      "p90": 5.0,
+      "p95": 15.0,
+      "p99": 25.0,
+      "worst5Mean": 0.0,
+      "worst5Median": 0.0
+    }
+  },
+  "status": "READ_ONLY_SAVED_ARTIFACT_DIAGNOSTIC_NOT_CONTRACT_VNEXT",
+  "thresholds": {
+    "3": {
+      "captureCounts": {
+        "E5": 546,
+        "Immediate": 502,
+        "Retry": 565
+      },
+      "ceiling": 583,
+      "emptyGridWinners": 72,
+      "gateRequired": 685,
+      "lostVsImmediate": 21,
+      "lostVsRetry": 21,
+      "newBothEntry": 2,
+      "newE5OnlyEntry": 63,
+      "newOnlyImmediateReasons": {
+        "BUY_ORDER_UNFILLED_NO_SOURCE_TRADE": 63
+      },
+      "newVsImmediate": 65,
+      "newVsRetry": 2,
+      "optimisticOnlyEmptyRepairCaptured": 618,
+      "remainingToCeiling": 37,
+      "winners": 761
+    },
+    "5": {
+      "captureCounts": {
+        "E5": 304,
+        "Immediate": 279,
+        "Retry": 315
+      },
+      "ceiling": 326,
+      "emptyGridWinners": 38,
+      "gateRequired": 368,
+      "lostVsImmediate": 12,
+      "lostVsRetry": 13,
+      "newBothEntry": 2,
+      "newE5OnlyEntry": 35,
+      "newOnlyImmediateReasons": {
+        "BUY_ORDER_UNFILLED_NO_SOURCE_TRADE": 35
+      },
+      "newVsImmediate": 37,
+      "newVsRetry": 2,
+      "optimisticOnlyEmptyRepairCaptured": 342,
+      "remainingToCeiling": 22,
+      "winners": 408
+    }
+  },
+  "twoByTwo": {
+    "E5=False Immediate=False": 506,
+    "E5=False Immediate=True": 4,
+    "E5=True Immediate=False": 257,
+    "E5=True Immediate=True": 1388
+  }
+}

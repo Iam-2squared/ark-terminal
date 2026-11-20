@@ -1,0 +1,78 @@
+name: Phase57 Gen2 Contract R41
+
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - 'scripts/phase57_exit_gen2*_r41.py'
+      - 'scripts/test_phase57_exit_gen2*_r41.py'
+      - 'scripts/phase57_exit_failure_anatomy_r40.py'
+      - 'scripts/test_phase57_exit_failure_anatomy_r40.py'
+      - 'docs/evidence/phase57-comprehensive-exit-v1/GEN2_PRECOMMIT_R41.json'
+      - '.github/workflows/phase57-exit-gen2-contract-r41.yml'
+      - '.github/workflows/phase57-exit-gen2-r41.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase57-exit-gen2-contract-r41-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  contract-only:
+    if: github.ref == 'refs/heads/research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      ARK_TEST_OFFLINE: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONPATH: '.'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Initialize append-only contract evidence
+        run: |
+          mkdir -p artifacts/gen2-contract
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          Path('artifacts/gen2-contract/workflow-start.json').write_text(json.dumps({
+              'status': 'CONTRACT_WORKFLOW_STARTED_NOT_YET_VERIFIED',
+              'executionHead': os.environ['GITHUB_SHA'], 'runId': os.environ['GITHUB_RUN_ID'],
+              'developmentModelFitsPerformed': 0, 'developmentCandidateReplaysPerformed': 0,
+          }, indent=2, sort_keys=True)+'\n')
+          PY
+      - name: Install frozen estimator dependencies for synthetic tests
+        run: python -m pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.7.2 pandas==2.2.3 joblib==1.5.2
+      - name: Run synthetic and focused tests without Development fits
+        run: |
+          set -euo pipefail
+          python -m unittest discover -v -s scripts -p 'test_phase57_exit_gen2*_r41.py' \
+            2>&1 | tee artifacts/gen2-contract/focused-tests.log
+          python -m unittest -v scripts.test_phase57_exit_failure_anatomy_r40 \
+            2>&1 | tee artifacts/gen2-contract/failure-anatomy-tests.log
+      - name: Record exact protocol and transitive source identity
+        run: |
+          set -euo pipefail
+          python -m scripts.phase57_exit_gen2_preflight_r41 \
+            --mode contract --out artifacts/gen2-contract/receipt.json \
+            2>&1 | tee artifacts/gen2-contract/preflight.log
+          cp docs/evidence/phase57-comprehensive-exit-v1/GEN2_PRECOMMIT_R41.json artifacts/gen2-contract/protocol.json
+      - name: Preserve required pre-performance evidence including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-exit-gen2-contract-r41-${{ github.run_id }}
+          path: artifacts/gen2-contract
+          retention-days: 90
+          overwrite: false
+          if-no-files-found: error

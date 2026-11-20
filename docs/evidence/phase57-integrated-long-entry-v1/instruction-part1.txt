@@ -1,0 +1,1038 @@
+Ark Terminal Phase57 — LONG-only
+COMPREHENSIVE INTEGRATED LONG ENTRY v1
+First Full-Integration Measurement
+
+Date: 2026-09-19 JST
+Repo: Iam-2squared/ark-terminal
+Branch: research/phase57-long-only-cash-equity
+PR: #587
+
+==================================================
+■ 今回の最重要目的
+==================================================
+
+これまでEntry研究を
+
+v1 Teacher-based Comprehensive Entry
+v2 Causal One-Step Entry
+v3 Causal Entry Event / State Transition
+
+と分解して研究してきた。
+
+今回は細かい仮説研究を一旦止める。
+
+これまで得たPIT情報・feature・state・失敗Evidenceを統合し、
+
+「現在のArk Terminalで作れる
+Comprehensive Integrated LONG Entry」
+
+を一本だけ作る。
+
+目的は初回統合版の素の性能を測ること。
+
+今回、
+
+- 結果を見たthreshold修正
+- Near-Miss救済
+- feature追加
+- model変更
+- architecture revision
+- Candidate v2/v3乱造
+
+は行わない。
+
+まず統合版v1を一度だけ作り、
+事前固定した状態のままValidationまで測定し、
+結果をEvidence化してSTOPする。
+
+==================================================
+■ 開始時
+==================================================
+
+必ずGitHub Repo / PR #587 latest stateを直接確認。
+
+直近報告HEAD:
+f935594fa2d6b714f25f045f5c86101054efcbb6
+
+ただし決め打ち禁止。
+
+このhandoff後にHEADが進んでいる可能性があるため、
+GitHub latest stateを正とする。
+
+確認:
+
+- PR #587 Open / Draft / unmerged
+- FROZEN_LONG_SELECTOR_WITH_MIN_PRICE_75
+- Frozen NEW Entry / Opportunity Generator
+- Comprehensive Entry v1 Evidence
+- Comprehensive Entry v2 Evidence
+- Comprehensive Entry v3 Evidence
+- 66-feature inventory
+- 43 PIT feature substrate
+- Candidate A Frozen EXIT
+- TRAIN / VALIDATION / DEV TEST split
+- Safety
+- Fresh/OOS未開封
+
+既存Evidenceを削除・上書きしない。
+
+==================================================
+■ Frozen Upstream
+==================================================
+
+絶対変更禁止:
+
+FROZEN_LONG_SELECTOR_WITH_MIN_PRICE_75
+
+Frozen NEW Entry / Opportunity Generator
+
+INITIAL_ENTRY_OPPORTUNITY
+
+DIP_REPRICE_OPPORTUNITY
+
+Selectorは銘柄Opportunity発見。
+
+Opportunity Generatorは
+INITIAL / DIP Opportunity発行。
+
+今回作るIntegrated Entryは、
+
+Opportunity
+→ Actual Entry Timing / Location
+
+だけを担当する。
+
+==================================================
+■ これまでのEvidenceを全部利用する
+==================================================
+
+ただし「全部利用する」とは、
+
+全featureを無条件にmodelへ投入する
+
+という意味ではない。
+
+既存研究でPIT利用可能性が確認された情報を
+統合Entryのcandidate information universeとして扱う。
+
+最低限確認するfamily:
+
+1. Selector / Opportunity
+
+- Selector score
+- Selector rank
+- INITIAL / DIP
+- Opportunity persistence
+- elapsed time since Opportunity
+- simultaneous candidate breadth
+- Opportunity state
+
+2. Price / Trend
+
+- short momentum
+- medium momentum
+- momentum acceleration
+- trend
+- recent high / low distance
+- HH / HL / LH / LL
+- range location
+- gap / opening context
+- price displacement
+
+3. Pullback / Path
+
+- pullback depth
+- pullback duration
+- low extension
+- adverse acceleration
+- adverse deceleration
+- bounce
+- bounce failure
+- path efficiency
+- directional persistence
+- chop
+
+4. Stabilization
+
+- new-low update停止
+- range contraction
+- deterioration slowdown
+- lower wick
+- close-location recovery
+- failed breakdown
+- support persistence
+
+5. Reclaim / Reversal
+
+- prior-close reclaim
+- prior-high reclaim
+- VWAP reclaim
+- micro-high reclaim
+- higher low
+- higher close
+- momentum sign change
+- momentum acceleration
+- reversal persistence
+
+6. Volatility
+
+- recent range
+- realized volatility
+- ATR / proxy
+- volatility-normalized movement
+- expansion / contraction
+
+7. Volume / Liquidity
+
+PITかつ既存dataで利用可能な:
+
+- volume
+- rolling volume
+- relative volume
+- volume acceleration
+- turnover
+- liquidity proxy
+- price-volume interaction
+
+8. Market / Relative Context
+
+既存PIT sourceが存在する場合のみ:
+
+- market direction
+- market volatility
+- market breadth
+- sector context
+- stock vs market relative strength
+- stock vs sector relative strength
+
+9. Time / Breadth
+
+- minutes since open
+- Opportunity age
+- completed bars
+- morning / afternoon
+- candidate breadth
+
+10. v1〜v3 State Evidence
+
+- Immediate Winner context
+- Pullback state
+- Stabilization state
+- Reclaim state
+- Reversal state
+- Continuation state
+- Failure-like state
+
+future outcome classificationそのものは
+featureへ使用禁止。
+
+==================================================
+■ Feature Integrity
+==================================================
+
+まず既存66-feature inventoryを再確認。
+
+AVAILABLE_PIT
+DERIVABLE_PIT
+MISSING
+FUTURE_ONLY_FORBIDDEN
+
+を維持。
+
+FUTURE_ONLYは禁止。
+
+MISSINGを新providerで補完しない。
+
+DERIVABLE_PITは、
+decision timestamp時点の情報だけから
+再現できることを確認したものだけ使用可能。
+
+今回のためにfuture dataを使って
+新featureを作らない。
+
+==================================================
+■ 今回のEntry Architecture
+==================================================
+
+単一の単純BUY/SKIPだけではなく、
+
+Multi-Route Integrated Entry
+
+として事前設計する。
+
+概念構造:
+
+Opportunity
+        ↓
+Integrated PIT Context
+        ↓
+┌─────────────────────────────┐
+│ Route A: Immediate Entry    │
+│ Route B: Pullback Entry     │
+│ Route C: Short WAIT         │
+│ Route D: Skip / Expire      │
+└─────────────────────────────┘
+        ↓
+Actual Entry
+
+==================================================
+■ Route A — Immediate Entry
+==================================================
+
+目的:
+
+Opportunity発生直後から伸びる
+
+IMMEDIATE_WINNER
+FAST_WINNER
+
+をWAITで逃さない。
+
+Selector / momentum / relative strength /
+market context / volatility / price state等から、
+
+Immediate Entry価値が高い場合は
+BUY_NOWを許可。
+
+future winner labelをruntime featureにしない。
+
+==================================================
+■ Route B — Pullback Entry
+==================================================
+
+目的:
+
+Opportunity発生後に一度逆行するが
+その後上昇するOpportunityを、
+
+Immediateより良いLocationでEntryする。
+
+v3で確認した
+
+Pullback
+Stabilization
+Reclaim
+Reversal
+
+等のstateをContextと組み合わせる。
+
+重要:
+
+Pullback単体をBUY signalにしない。
+
+v3ではPullbackが
+Continued Failure側にも非常に多かったため、
+
+Pullback
++
+Comprehensive PIT Context
+
+として評価する。
+
+==================================================
+■ Route C — Short WAIT
+==================================================
+
+BUY_NOWには弱いが
+SKIPするほどOpportunityが壊れていない場合、
+
+短時間WAITを許可。
+
+v1のような長時間WAIT / EXPIRE biasは禁止。
+
+v2のようにWAIT=0になる構造も避ける。
+
+WAIT semantics / max durationは
+TRAIN測定前に固定。
+
+結果を見て変更しない。
+
+==================================================
+■ Route D — Skip / Expire
+==================================================
+
+Opportunityが
+
+- deterioration
+- failure-like context
+- invalidation
+- data insufficiency
+- session boundary
+
+等でEntry不適と判断された場合。
+
+ただしSKIPによって
+見かけのMAEだけ改善するpolicyを
+成功扱いしない。
+
+==================================================
+■ Model / Decision Architecture
+==================================================
+
+今回は統合版を一本だけ作る。
+
+大量model比較は禁止。
+
+TRAINで、
+
+現在のdata size / coverageに対して
+過度に複雑でないarchitectureを一つ選ぶ。
+
+候補としては:
+
+- regularized linear / logistic
+- compact boosted/tree model
+- state-machine + compact model
+- small multi-head model
+
+等。
+
+ただし最終architectureは
+実測Validationを見る前に固定。
+
+なぜそのarchitectureを選んだかを
+Protocolへ記録。
+
+==================================================
+■ Objective
+==================================================
+
+単一accuracyを最大化しない。
+
+Integrated Entryの目的は:
+
+1. +3/+5 Opportunity Preservation
+2. Immediate/Fast Winner Preservation
+3. Pullback Winner Capture
+4. Entry Price Improvement
+5. post-entry MAE reduction
+6. deep-tail reduction
+7. remaining MFE preservation
+8. reasonable Entry coverage
+9. economic improvement
+
+の総合。
+
+==================================================
+■ Baseline
+==================================================
+
+主Baseline:
+
+B0_IMMEDIATE
+
+Opportunity発生時の
+最初のcausally executable priceでEntry。
+
+Integrated Entryは
+B0と完全pairedで比較。
+
+==================================================
+■ Split
+==================================================
+
+既存:
+
+TRAIN 38
+VALIDATION 19
+DEV TEST 19
+
+を維持。
+
+TRAIN:
+
+architecture設計
+fit
+calibration
+
+VALIDATION:
+
+統合版v1の初回性能測定
+
+DEV TEST:
+
+今回は開かない。
+
+今回の目的は
+初回統合版の素のValidation性能を見ること。
+
+Validation結果を見た修正も行わない。
+
+Fresh/OOSも開かない。
+
+==================================================
+■ 重要：今回はValidation後に修正しない
+==================================================
+
+今回の最大ルール。
+
+Validation結果が:
+
+PASS
+NEAR-MISS
+FAIL
+HARD-FAIL
+
+のどれでも、
+
+その場で修正しない。
+
+例えば:
+
++3 preservation 87%
++5 preservation 88%
+
+でも、
+
+90%にするためthresholdを動かさない。
+
+Entry coverageが少し低くても
+threshold変更しない。
+
+MAEが惜しくても
+feature追加しない。
+
+結果をそのまま保存する。
+
+==================================================
+■ Result Classification
+==================================================
+
+今回の報告では
+結果を記述的に:
+
+PASS
+NEAR_MISS
+FAIL
+HARD_FAIL
+
+へ分類してよい。
+
+ただしNEAR_MISSを
+自動修正許可とはしない。
+
+各metricについて、
+
+target
+observed
+gap
+
+を報告。
+
+次の修正判断は
+ユーザーが結果を見て別途行う。
+
+==================================================
+■ Opportunity Preservation
+==================================================
+
+必須:
+
++1
++2
++3
++5
+
+Baseline winner denominatorに対する
+preservationを出す。
+
+特に:
+
++3
++5
+
+を重視。
+
+さらに:
+
+Immediate Winner
+Fast Winner
+Pullback Winner
+Deep Pullback Winner
+
+を分離。
+
+==================================================
+■ Entry Coverage
+==================================================
+
+- Opportunities
+- Actual ENTER
+- Entry coverage
+- BUY_NOW
+- delayed BUY
+- WAIT
+- SKIP
+- EXPIRE
+
+を出す。
+
+INITIAL / DIP別も必須。
+
+==================================================
+■ Delay
+==================================================
+
+Entry delay:
+
+0m
++5m
++10m
++15m
++20m
++25m
++30m+
+EXPIRE
+
+を出す。
+
+mean / median delayも出す。
+
+==================================================
+■ Entry Location
+==================================================
+
+Immediate Baselineとのpairedで:
+
+- mean price improvement
+- median
+- p25
+- p75
+- favorable rate
+- worse-entry rate
+
+を出す。
+
+プラスがIntegrated Entry有利。
+
+==================================================
+■ Risk
+==================================================
+
+Immediate vs Integrated:
+
+- MAE mean
+- median
+- p10
+- p05
+- worst
+- MAE <= -3%
+- MAE <= -5%
+- MAE <= -10%
+
+を比較。
+
+さらにRisk改善を:
+
+BETTER_ENTRY_LOCATION
+SKIP_AVOIDANCE
+
+へ可能な範囲で分解。
+
+==================================================
+■ Upside
+==================================================
+
+- remaining MFE
+- remaining MFE ratio
+- +1/+2/+3/+5 preservation
+- missed winner
+- winner before Entry
+- no-entry winner
+
+を出す。
+
+==================================================
+■ Pullback Winner
+==================================================
+
+特に重要。
+
+PULLBACK_THEN_WINNER
+DEEP_PULLBACK_THEN_WINNER
+
+について:
+
+- n
+- entered
+- Entry coverage
+- price improvement
+- MAE improvement
+- remaining MFE
+- +3 preservation
+- +5 preservation
+
+を出す。
+
+==================================================
+■ Failure
+==================================================
+
+CONTINUED_FAILUREについて:
+
+- n
+- BUY_NOW
+- delayed BUY
+- SKIP
+- EXPIRE
+
+を出す。
+
+Failure avoidanceが
+どのrouteによるものか確認。
+
+==================================================
+■ Route Attribution
+==================================================
+
+Route A / B / C / Dについて:
+
+- count
+- percentage
+- INITIAL / DIP
+- Entry delay
+- price improvement
+- MAE
+- remaining MFE
+- +3/+5 winner
+
+を出す。
+
+統合版のどのrouteが
+何をしているか分かるようにする。
+
+==================================================
+■ Economic Comparison
+==================================================
+
+統合Entryを
+
+exact Frozen Candidate A
+
+へ接続したcounterfactualを測定する。
+
+B0 Immediate
+→ Candidate A
+
+vs
+
+Integrated Entry
+→ exact Candidate A
+
+Candidate A変更禁止。
+
+最低限:
+
+- paired n
+- Entry n
+- mean net
+- median
+- PF
+- Win Rate
+- p05
+- worst
+- MFE
+- MAE
+- HOLD
+
+を出す。
+
+Capital / Portfolio利益とは呼ばない。
+
+==================================================
+■ Robustness
+==================================================
+
+今回Validation上で可能な範囲で:
+
+- chronological subblocks
+- INITIAL
+- DIP
+- candidate breadth 1〜5
+- symbol concentration
+- top-frequency-symbol exclusion
+- session concentration
+- morning / afternoon
+- volatility context
+
+を記述。
+
+ただし結果を見て
+rule追加しない。
+
+==================================================
+■ No Rescue
+==================================================
+
+Validation測定後:
+
+- threshold変更0
+- feature変更0
+- model変更0
+- objective変更0
+- routing変更0
+- wait cap変更0
+- Gate変更0
+- symbol rule追加0
+- time rule追加0
+
+をmanifestへ記録。
+
+==================================================
+■ DEV TEST
+==================================================
+
+今回は開かない。
+
+たとえValidationが非常に良くても
+DEV TESTへ勝手に進まない。
+
+まず統合版v1のValidation結果を
+ユーザーへ報告する。
+
+DEV TESTを開くかは
+その後ユーザーが決める。
+
+==================================================
+■ Fresh / OOS
+==================================================
+
+絶対に開かない。
+
+==================================================
+■ Capital / Portfolio
+==================================================
+
+変更・最適化しない。
+
+Max3 Prioritizationへ進まない。
+
+==================================================
+■ EXIT
+==================================================
+
+Candidate Aは
+economic evaluatorとしてexact利用のみ。
+
+変更禁止。
+
+新EXIT研究禁止。
+
+==================================================
+■ Safety
+==================================================
+
+全9項目false維持:
+
+executionAllowed=false
+brokerWriteAllowed=false
+excelOrderWriteAllowed=false
+rssOrderFunctionAllowed=false
+liveTradingAllowed=false
+paperTradingAllowed=false
+automaticPromotionAllowed=false
+productionUpdateAllowed=false
+transmitted=false
+
+LONG-only / cash equity only。
+
+SHORT / Margin / Leverage禁止。
+
+==================================================
+■ 絶対禁止
+==================================================
+
+- ¥75 Selector変更
+- Opportunity Generator変更
+- 75円threshold変更
+- Selector retrain
+- future outcome feature
+- future low feature
+- future MFE/MAE feature
+- oracle Entry
+- Validation後threshold修正
+- Validation後feature追加
+- Validation後model変更
+- Validation後routing変更
+- Candidate乱造
+- model zoo
+- hyperparameter sweep
+- outcome-based symbol filtering
+- post-hoc time filtering
+- DEV TEST開封
+- Fresh/OOS
+- new provider
+- 1m研究
+- Candidate A変更
+- EXIT変更
+- Capital tuning
+- Portfolio
+- main merge
+- paper/live
+- broker/RSS/Excel write
+- automatic promotion
+- Evidence上書き
+- Safety弱体化
+
+==================================================
+■ Tests / CI
+==================================================
+
+最低限:
+
+- latest source identity
+- feature PIT causality
+- integrated dataset identity
+- route semantics
+- BUY/WAIT/SKIP determinism
+- execution causality
+- no oracle leakage
+- session boundary
+- missing fail-closed
+- INITIAL/DIP identity
+- no duplicate Entry
+- deterministic training
+- deterministic inference
+- ledger consistency
+- Candidate A unchanged
+- upstream unchanged
+- Safety
+
+を確認。
+
+Targeted tests
+→ train
+→ Validation measurement
+→ evidence audit
+→ regression
+→ CI
+
+まで実施。
+
+CI greenだけで
+performance PASSとしない。
+
+==================================================
+■ 最終成果物
+==================================================
+
+最低限:
+
+protocol.json
+feature-manifest
+training-manifest
+model artifact
+model/scaler digest
+validation ledger
+route ledger
+measurement summary
+economic comparison
+robustness report
+integrity audit
+REPORT.md
+freeze/decision recordではなく
+FIRST_INTEGRATED_MEASUREMENT decision record
+
+を保存。
+
+==================================================
+■ 最終報告
+==================================================
+
+最後に:
+
+Git:
+- exact HEAD
+- PR state
+
+Integrated Entry:
+- architecture
+- features
+- feature families
+- model
+- digests
+- route semantics
+
+Data:
+- TRAIN
+- VALIDATION
+- DEV TEST unopened
+- Opportunities
+- evaluable n
+
+Coverage:
+- BUY_NOW
+- delayed BUY
+- WAIT
+- SKIP
+- EXPIRE
+- Entry coverage
+- delay
+
+Preservation:
+- +1
+- +2
+- +3
+- +5
+- Immediate Winner
+- Fast Winner
+- Pullback Winner
+- Deep Pullback Winner
+
+Location:
+- Entry price improvement
+
+Risk:
+- MAE mean
+- median
+- p05
+- worst
+- <=-3
+- <=-5
+- <=-10
+- better-location vs skip contribution
+
+Upside:
+- remaining MFE
+- remaining MFE ratio
+- missed winners
+
+Routes:
+- Route A/B/C/D attribution
+
+Economic:
+Immediate + Candidate A
+vs
+Integrated + Candidate A
+
+- n
+- mean
+- median
+- PF
+- p05
+- Win
+- MFE
+- MAE
+- HOLD
+
+Robustness:
+- chronological
+- INITIAL/DIP
+- breadth
+- symbol
+- session
+
+Integrity:
+- causal
+- leakage
+- deterministic
+- ledger
+- tests
+- regression
+- CI
+- Safety
+
+各主要metricについて:
+
+TARGET
+OBSERVED

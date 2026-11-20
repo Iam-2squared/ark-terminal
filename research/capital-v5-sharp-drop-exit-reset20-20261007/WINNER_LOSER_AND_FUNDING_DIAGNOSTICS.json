@@ -1,0 +1,150 @@
+{
+  "C_ONLY_profit_not_recoverable_profit_claim": true,
+  "also_neither_reason_pairs": {
+    "CAPITAL_EOD_ENTRY_CUTOFF -> CAPITAL_EOD_ENTRY_CUTOFF": 37,
+    "CASH_OR_LOT_CONSTRAINED -> CASH_OR_LOT_CONSTRAINED": 65,
+    "MAX_POSITION_CAP -> CASH_OR_LOT_CONSTRAINED": 26,
+    "MAX_POSITION_CAP -> MAX_POSITION_CAP": 216,
+    "MAX_POSITION_CAP -> SLOT_RESERVE_REJECT": 181,
+    "SLOT_RESERVE_REJECT -> CASH_OR_LOT_CONSTRAINED": 2,
+    "SLOT_RESERVE_REJECT -> MAX_POSITION_CAP": 20,
+    "SLOT_RESERVE_REJECT -> SLOT_RESERVE_REJECT": 992,
+    "UPWARD_BELOW_BASELINE -> UPWARD_BELOW_BASELINE": 2506
+  },
+  "count_scope": "OVERLAPPING9_PORTFOLIO_ACCOUNTS_NOT_UNIQUE_MARKET_TRADES",
+  "decomposition_sum": {
+    "COMMON_direct_EXIT_jpy": "67966.00000",
+    "COMMON_quantity_jpy": "-63492.60000",
+    "C_ONLY_PnL_jpy": "19064.85000",
+    "E_ONLY_PnL_jpy": "-56729.60000",
+    "paired_PnL_delta_jpy": "-71321.05000"
+  },
+  "early_release_trace_N": 332,
+  "examples_private_hash": {
+    "bytes": 3729,
+    "git_blob": "471ea8c43355d4d01d8874e22014f11d52d92fbf",
+    "sha256": "1decb31a3e936ec2c7e6b0041ea738798b49c2cd60071fb9173f57c758139406"
+  },
+  "examples_redacted": {
+    "largest_loser_mitigation": {
+      "direct_EXIT_jpy": "62968.50000",
+      "window_id": "W13"
+    },
+    "largest_winner_damage": {
+      "direct_EXIT_jpy": "-17491.25000",
+      "window_id": "W14"
+    },
+    "worst_new_tail": {
+      "E_PnL_jpy": "-15500.20000",
+      "set": "E_ONLY",
+      "window_id": "W20"
+    }
+  },
+  "fixed_C_losers": {
+    "C_N": 403,
+    "E_not_purchased_N": 15,
+    "E_purchased_N": 388
+  },
+  "fixed_C_winners": {
+    "C_N": 327,
+    "E_not_purchased_N": 9,
+    "E_purchased_N": 318,
+    "R_unknown_N": 0,
+    "actual_PnL_equal_N": 192,
+    "actual_PnL_improved_N": 25,
+    "actual_PnL_worsened_N": 101,
+    "per_unit_EXIT_equal_N": 218,
+    "per_unit_EXIT_improved_N": 15,
+    "per_unit_EXIT_worsened_N": 85,
+    "positive_to_negative_N": 65
+  },
+  "mask": [
+    "W13",
+    "W14",
+    "W15",
+    "W16",
+    "W17",
+    "W18",
+    "W19",
+    "W20",
+    "W21"
+  ],
+  "not_unique_causal_attribution": true,
+  "potential_U5_U10_not_realized_winners": true,
+  "tail_transitions": [
+    {
+      "C_tail_N": 233,
+      "E_R_unknown_N": 0,
+      "E_not_purchased_N": 2,
+      "E_purchased_N": 231,
+      "after_purchase_loss_mitigated_R_N": 94,
+      "after_purchase_tail_escape_N": 43,
+      "after_purchase_tail_retained_N": 188,
+      "count_scope": "OVERLAPPING9_ACCOUNT_TRADES",
+      "new_tail_E_loss_jpy": "415300.00000",
+      "new_tail_from_C_outside_N": 35,
+      "new_tail_from_E_only_N": 46,
+      "tail_threshold_pct": -1
+    },
+    {
+      "C_tail_N": 135,
+      "E_R_unknown_N": 0,
+      "E_not_purchased_N": 0,
+      "E_purchased_N": 135,
+      "after_purchase_loss_mitigated_R_N": 85,
+      "after_purchase_tail_escape_N": 68,
+      "after_purchase_tail_retained_N": 67,
+      "count_scope": "OVERLAPPING9_ACCOUNT_TRADES",
+      "new_tail_E_loss_jpy": "288465.05000",
+      "new_tail_from_C_outside_N": 5,
+      "new_tail_from_E_only_N": 33,
+      "tail_threshold_pct": -2
+    },
+    {
+      "C_tail_N": 66,
+      "E_R_unknown_N": 0,
+      "E_not_purchased_N": 0,
+      "E_purchased_N": 66,
+      "after_purchase_loss_mitigated_R_N": 45,
+      "after_purchase_tail_escape_N": 35,
+      "after_purchase_tail_retained_N": 31,
+      "count_scope": "OVERLAPPING9_ACCOUNT_TRADES",
+      "new_tail_E_loss_jpy": "113862.40000",
+      "new_tail_from_C_outside_N": 0,
+      "new_tail_from_E_only_N": 11,
+      "tail_threshold_pct": -3
+    },
+    {
+      "C_tail_N": 21,
+      "E_R_unknown_N": 0,
+      "E_not_purchased_N": 0,
+      "E_purchased_N": 21,
+      "after_purchase_loss_mitigated_R_N": 21,
+      "after_purchase_tail_escape_N": 13,
+      "after_purchase_tail_retained_N": 8,
+      "count_scope": "OVERLAPPING9_ACCOUNT_TRADES",
+      "new_tail_E_loss_jpy": "30184.60000",
+      "new_tail_from_C_outside_N": 0,
+      "new_tail_from_E_only_N": 2,
+      "tail_threshold_pct": -4
+    },
+    {
+      "C_tail_N": 4,
+      "E_R_unknown_N": 0,
+      "E_not_purchased_N": 0,
+      "E_purchased_N": 4,
+      "after_purchase_loss_mitigated_R_N": 4,
+      "after_purchase_tail_escape_N": 2,
+      "after_purchase_tail_retained_N": 2,
+      "count_scope": "OVERLAPPING9_ACCOUNT_TRADES",
+      "new_tail_E_loss_jpy": "30184.60000",
+      "new_tail_from_C_outside_N": 0,
+      "new_tail_from_E_only_N": 2,
+      "tail_threshold_pct": -5
+    }
+  ],
+  "unique_market_Entry_N": {
+    "C": 123,
+    "E": 152
+  }
+}

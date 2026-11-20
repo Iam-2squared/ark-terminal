@@ -1,0 +1,4 @@
+status: SHARP_DROP_EXIT_COUNTERFACTUAL_PARTIAL_COVERAGE
+STOP_TECHNICAL_REPAIR_BUDGET_EXHAUSTED
+
+72先行意図sealed、244非介入R同値、72介入R未測定＋元不明6。入力cohort/Control316/State prefixに矛盾なし。未修復TypeError後は追加fill処理禁止。新Workとして人間が実行範囲を決めるまでは、現在の候補結果を成功/失敗へ認定せずSTOP。現行EXIT変更false、採用null、Capital未評価。

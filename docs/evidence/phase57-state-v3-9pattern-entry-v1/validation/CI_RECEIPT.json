@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-09-23T02:13:00Z",
+  "repository": "Iam-2squared/ark-terminal",
+  "pullRequest": 587,
+  "branch": "research/phase57-long-only-cash-equity",
+  "startHead": "35e0b5ec20ca05940f34bbe23a5ba29d6d566f72",
+  "implementationCommit": "3c5198df4d0f8085d39cde751386f167ae90833b",
+  "dedicatedWorkflow": {
+    "name": "Phase57 State v3 Nine-Pattern Entry v1",
+    "runId": 35809193558,
+    "url": "https://github.com/Iam-2squared/ark-terminal/actions/runs/35809193558",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "state-v3-entry",
+        "jobId": 107016677578,
+        "conclusion": "success",
+        "pythonTests": {
+          "run": 78,
+          "passed": 78,
+          "failed": 0,
+          "skipped": 0
+        },
+        "replay": {
+          "population": 2155,
+          "runs": 2,
+          "byteIdenticalToEachOther": true,
+          "byteIdenticalToCommittedMeasurement": true,
+          "status": "PASS"
+        }
+      },
+      {
+        "name": "predict-regression",
+        "jobId": 107016677505,
+        "conclusion": "success",
+        "suites": {
+          "predict": "2765/2765 PASS",
+          "discovery": "26/26 PASS",
+          "foundation": "39/39 PASS",
+          "python": "30/30 PASS",
+          "rss": "89/89 PASS"
+        },
+        "total": "2949/2949 PASS",
+        "unexpectedNetworkAttempts": 0
+      }
+    ],
+    "artifacts": [
+      {
+        "id": 10728553296,
+        "name": "phase57-state-v3-9pattern-entry-v1-replay",
+        "digest": "sha256:693a850af0cfdec0fd79b1cce8f318106f624ae04176548aaddf6699b712417e"
+      },
+      {
+        "id": 10728694656,
+        "name": "phase57-state-v3-entry-predict-regression",
+        "digest": "sha256:50346ac52c1b2b2975aa598341a47a8a4a21b62d10026380c85d14c95b99fe62"
+      }
+    ]
+  },
+  "existingPredictWorkflow": {
+    "name": "Predict Tests",
+    "runId": 35809193323,
+    "url": "https://github.com/Iam-2squared/ark-terminal/actions/runs/35809193323",
+    "conclusion": "success"
+  },
+  "pullRequestWideStatus": {
+    "claim": "NOT_ALL_GREEN",
+    "scopeStatus": "PASS",
+    "unrelatedFailedRunsObserved": [
+      "Phase57 State v2 Bootstrap Audit",
+      "Phase57 State v2 A8 Existing Raw Evidence Recovery",
+      "Phase57 G Five Minute Reference v1",
+      "Phase57 EXIT CC Freeze Audit",
+      "Phase57 Causal Entry Daily Ablation Completion Audit",
+      "Phase57 Causal Entry State Path Anatomy v1"
+    ],
+    "classificationBasis": "The start-to-implementation compare contains one commit and only 21 newly added State-v3 Entry files. None of the failed workflows target those files; their failing steps are pre-existing State-v2/G/EXIT/causal-entry preservation or fail-closed gates."
+  },
+  "providerRequests": 0,
+  "protectedDataOpened": 0,
+  "safety9AllFalse": true,
+  "status": "PASS"
+}

@@ -1,0 +1,87 @@
+name: Phase57 Dual Entry Frozen EXIT Integration R13
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-dual-entry-exit-integration-r13.yml
+      - scripts/phase57_dual_entry_exit_integration_v1.py
+      - scripts/test_phase57_dual_entry_exit_integration_v1.py
+      - docs/evidence/phase57-dual-entry-exit-integration-v1/ADAPTER_CONTRACT_R13.json
+permissions:
+  contents: read
+  actions: read
+jobs:
+  frozen-exit-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      ARK_TEST_OFFLINE: '1'
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Synthetic adapter causality and frozen policy tests
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/dual-entry-exit-r13
+          python -m unittest -v scripts.test_phase57_dual_entry_exit_integration_v1 2>&1 | tee artifacts/dual-entry-exit-r13/tests.log
+      - name: Restore immutable R1 ledger artifact without model execution
+        uses: actions/download-artifact@v4
+        with:
+          repository: Iam-2squared/ark-terminal
+          run-id: 36099497597
+          name: phase57-all-material-r1-afb38b7a5421ca4f6ff6d439bf89096236efd119
+          github-token: ${{ github.token }}
+          path: artifacts/frozen-r1
+      - name: Verify frozen Entry hash and replay both ledgers twice offline
+        run: |
+          set -euo pipefail
+          R1='artifacts/frozen-r1/all-material-r1/ci-run-a/entry-records.json.gz'
+          echo "15ddb5cfc5169024878ee72d9dbecc6e1d9dec24e78afa2dcdf8dea891117fa6  $R1" | sha256sum -c -
+          for RUN in run-a run-b; do
+            python -m scripts.phase57_dual_entry_exit_integration_v1 \
+              --r1-records "$R1" --execution-head '${{ github.sha }}' \
+              --out "artifacts/dual-entry-exit-r13/$RUN"
+          done
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          root = Path('artifacts/dual-entry-exit-r13')
+          names = ['summary.json','entry-envelopes.json.gz','exit-ledgers.json.gz','audit.json','manifest.json']
+          pins = {}
+          for name in names:
+              a = (root/'run-a'/name).read_bytes()
+              b = (root/'run-b'/name).read_bytes()
+              assert a == b, ('RUN_A_B_NOT_BYTE_IDENTICAL',name)
+              pins[name] = hashlib.sha256(a).hexdigest()
+          s = json.loads((root/'run-a/summary.json').read_text())
+          audit = json.loads((root/'run-a/audit.json').read_text())
+          assert s['commonOpportunityPopulation'] == 2155
+          assert s['byEntry']['IMMEDIATE']['fills'] == 1963
+          assert s['byEntry']['ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF']['fills'] == 1885
+          assert all(v is False for v in s['safety'].values())
+          assert s['portfolioMetricsComputed'] is False
+          assert s['entryWinnerSelected'] is False
+          assert audit['rawValuesOutsideWhitelistDeserialized'] == 0
+          assert audit['entryFillTimeOrPriceChanges'] == 0
+          assert audit['providerRequests'] == 0
+          receipt = {'status':'ADAPTER_REPLAY_INTEGRITY_PASS_NOT_POLICY_PROMOTION',
+              'executionHead':'${{ github.sha }}','population':2155,'runABByteIdentical':True,
+              'outputPins':pins,'safety':s['safety']}
+          (root/'CI_RECEIPT.json').write_text(json.dumps(receipt,sort_keys=True,indent=2)+'\n')
+          print(json.dumps(receipt,sort_keys=True))
+          PY
+      - name: Preserve reproducible Development-only evidence including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-dual-entry-exit-r13-${{ github.run_id }}
+          path: artifacts/dual-entry-exit-r13
+          retention-days: 30
+          if-no-files-found: error
+          overwrite: false

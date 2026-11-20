@@ -1,0 +1,73 @@
+{
+  "integratedReplayInvocations": 0,
+  "interpretation": "Coverage gate fails in both nested Winner groups. Conditional known-sample floor-first fractions exceed 50% but cannot be generalized to unknown/ambiguous/Control-terminal-first Entries. NO Guard implementation or replay is authorized.",
+  "newEstimatorFits": 0,
+  "phase0ASha256": "881f0b08bba880c5f8fe8d7dbab5c6314cd59321d9f57b1af68f9c2337e016bd",
+  "phase0BSha256": "b66dcd396e8497ac3b8e2e759fc8335a097dee586873dcb2be901e90807b9ba3",
+  "precommitSha256": "1b7bc9d41333958e3bb1cc5845d044427f107ebf6824f6a8975ab37eaa58293d",
+  "requirements": {
+    "entryWeightedFloorFirstNoGoStrictGreaterThan": 0.5,
+    "exactKnownCoverageMin": 0.8,
+    "knownEntriesMin": 20,
+    "knownSessionsMin": 8,
+    "sessionWeightedFloorFirstNoGoStrictGreaterThan": 0.5
+  },
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "savedJst": "2026-09-28T23:59:15.086461+09:00",
+  "schema": "phase57-mg-guard-feasibility-decision-v1",
+  "selected": null,
+  "status": "GUARD_FEASIBILITY_UNMEASURABLE",
+  "survival": {
+    "alerts": 1646,
+    "coverage": 0.5413122721749696,
+    "exactEndpointKnown": 891,
+    "status": "SURVIVAL_POWER_NO_GO_COVERAGE"
+  },
+  "winner": {
+    "10": {
+      "entryWeightedFloorFirstRate": 1.0,
+      "exactKnownCoverage": 0.23809523809523808,
+      "exactKnownEntries": 30,
+      "floorFirstEntries": 30,
+      "knownSessions": 15,
+      "relevantTransitions": [
+        "1->2",
+        "2->3",
+        "3->5",
+        "5->10"
+      ],
+      "sessionWeightedFloorFirstRate": 1.0,
+      "status": "GUARD_FEASIBILITY_UNMEASURABLE",
+      "totalWinnerEntries": 126,
+      "twoCheckpointUnrecoveredN": 10,
+      "unknownOrControlTerminal": 96
+    },
+    "5": {
+      "entryWeightedFloorFirstRate": 0.8596491228070176,
+      "exactKnownCoverage": 0.1893687707641196,
+      "exactKnownEntries": 57,
+      "floorFirstEntries": 49,
+      "knownSessions": 20,
+      "relevantTransitions": [
+        "1->2",
+        "2->3",
+        "3->5"
+      ],
+      "sessionWeightedFloorFirstRate": 0.9233333333333333,
+      "status": "GUARD_FEASIBILITY_UNMEASURABLE",
+      "totalWinnerEntries": 301,
+      "twoCheckpointUnrecoveredN": 14,
+      "unknownOrControlTerminal": 244
+    }
+  }
+}

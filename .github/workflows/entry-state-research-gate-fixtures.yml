@@ -1,0 +1,22 @@
+name: Entry State Research Gate Fixtures
+on:
+  push:
+    branches:
+      - research/entry-state-universal-exclusion-v1-20261008
+    paths:
+      - .github/workflows/entry-state-research-gate-fixtures.yml
+      - research/entry-state-universal-exclusion-v1-20261008/**
+permissions:
+  contents: read
+jobs:
+  fixtures:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Confirm synthetic gate fixture behavior
+        run: |
+          python --version
+          python -m unittest discover -v -s research/entry-state-universal-exclusion-v1-20261008 -p 'test_entry_state_gate.py'

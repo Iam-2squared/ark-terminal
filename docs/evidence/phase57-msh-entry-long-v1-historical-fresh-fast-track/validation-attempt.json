@@ -1,0 +1,384 @@
+{
+  "schemaVersion": 1,
+  "dateJst": "2026-09-16",
+  "repo": "Iam-2squared/ark-terminal",
+  "branch": "research/phase57-long-only-cash-equity",
+  "pr": 587,
+  "assessedHead": "66278714275733055ce16b2139b59b46e700d406",
+  "latestMain": "b7801ce2c13772cbc3f5b51506819c119fe868ea",
+  "verdict": "MSH_ENTRY_LONG_V1_VALIDATION_INCONCLUSIVE",
+  "phase": "PRE_MEASUREMENT",
+  "stopReason": "HISTORICAL_FRESH_30_UNAVAILABLE_WITHIN_AUDITED_JQUANTS_MINUTE_WINDOW",
+  "performanceVerdictIssued": false,
+  "explanation": "Latest user Fast Track accepted: onlyA30 exact dates required; remaining165 dates and futureG not blockers. Bounded metadata check cannot reasonably find30 consecutive fresh JPX sessions within official2-year minute availability while keeping existing protection/reservations unchanged.",
+  "verification": {
+    "globalBudget": {
+      "path": "predict/research/phase57-long-only-global-data-budget-v1.json",
+      "sha256": "b91699704f80ef7fda60fe0596e8f8736a181cd00dc879f5070f9caed4d4a62f",
+      "expected": "b91699704f80ef7fda60fe0596e8f8736a181cd00dc879f5070f9caed4d4a62f",
+      "pass": true
+    },
+    "candidate": {
+      "path": "predict/research/phase57-msh-entry-long-v1-validation-candidate-v1.json",
+      "sha256": "4a2f52cd6f25f480fe6d7de9db525860ddf3c1600abed06b6222c0990c055a23",
+      "expected": "4a2f52cd6f25f480fe6d7de9db525860ddf3c1600abed06b6222c0990c055a23",
+      "pass": true
+    },
+    "model": {
+      "path": "docs/evidence/phase57-msh-entry-long-v1-final-validation-model/final-model.json",
+      "sha256": "b053a858edda22bee7b9939162648740507964cc5ed8d613c2d778d15534589e",
+      "expected": "b053a858edda22bee7b9939162648740507964cc5ed8d613c2d778d15534589e",
+      "pass": true
+    },
+    "scaler": {
+      "path": "docs/evidence/phase57-msh-entry-long-v1-final-validation-model/final-scaler.json",
+      "sha256": "1e4865915a2ad1ec51dd4ebf2116d48b9f89b9b884f8dc732fdb2861dbf4fe4b",
+      "expected": "1e4865915a2ad1ec51dd4ebf2116d48b9f89b9b884f8dc732fdb2861dbf4fe4b",
+      "pass": true
+    },
+    "fit": {
+      "path": "predict/research/phase57-msh-entry-long-v1-fit-contract-v1.json",
+      "sha256": "64c20d785be5f23b0a9103f419726b191a12a58fd5d3a7ad5185c69f9644a938",
+      "expected": "64c20d785be5f23b0a9103f419726b191a12a58fd5d3a7ad5185c69f9644a938",
+      "pass": true
+    },
+    "developmentEvidence": {
+      "path": "docs/evidence/phase57-msh-entry-long-v1-offline-freeze/development-evidence-freeze.json",
+      "sha256": "68d2a02c988a05b3178e903d628a53662b01bb704fa0700ebcb98e3b32547ead",
+      "expected": "68d2a02c988a05b3178e903d628a53662b01bb704fa0700ebcb98e3b32547ead",
+      "pass": true
+    },
+    "selectorPayload": {
+      "sha256": "3dc6d222d4039737c0dcfdcfa4a83372202152e29b582225419ab97c00610d59",
+      "expected": "3dc6d222d4039737c0dcfdcfa4a83372202152e29b582225419ab97c00610d59",
+      "pass": true
+    },
+    "selectorRidge": {
+      "referenceSha256": "994f1dbaba1d32e97458d5dd9d4c646ef443fbb37128650e8166001d8deabefb",
+      "pass": true,
+      "scope": "Pinned artifact reference verified; external raw Ridge artifact not reacquired"
+    }
+  },
+  "fastTrackScope": {
+    "userAuthorization": "2026-09-16 current turn: historicalA30 selection, acquisition and one-shot evaluation authorized conditionally",
+    "historicalAllowed": true,
+    "globalBudgetBytesUnchanged": true,
+    "globalNewFreshBudget": 195,
+    "entryValidationSessions": 30,
+    "remainingBudget": 165,
+    "remaining165ExactDatesRequiredNow": false,
+    "prospective25DatesUsedAsBlocker": false,
+    "newAllocationMade": false
+  },
+  "freshnessProof": {
+    "verdict": "NO_ADMISSIBLE_CONSECUTIVE_30_IN_AUDITED_PROVIDER_WINDOW",
+    "ledgerPath": "docs/evidence/phase57-long-only-global-data-budget/resolved-master-ledger.json",
+    "ledgerSha256": "106dee1a81c26052b7b347a3b35a9c5df648f3edc0b7c64288c2503eb39ec004",
+    "providerWindowRule": "Official minute API rolling past2 years; nominal bounds at2026-09-16. Actual account cutoff not probed.",
+    "primary": {
+      "start": "2024-09-16",
+      "end": "2026-09-15",
+      "weekdaySupersetCount": 522,
+      "blockedWeekdayCounts": {
+        "EXPOSED": 374,
+        "EXCLUDED": 4,
+        "PURGED": 2,
+        "PROTECTED_DATE_ENVELOPE": 111,
+        "SEALED": 4
+      },
+      "unblockedWeekdayUpperBound": 27,
+      "longestUnblockedWeekdayRun": 4,
+      "unblockedRuns": [
+        [
+          "2024-09-16"
+        ],
+        [
+          "2024-09-23"
+        ],
+        [
+          "2024-10-14"
+        ],
+        [
+          "2024-11-04"
+        ],
+        [
+          "2024-12-31",
+          "2025-01-01",
+          "2025-01-02",
+          "2025-01-03"
+        ],
+        [
+          "2025-01-13"
+        ],
+        [
+          "2025-02-11"
+        ],
+        [
+          "2025-02-24"
+        ],
+        [
+          "2025-03-20"
+        ],
+        [
+          "2025-04-29"
+        ],
+        [
+          "2025-05-05",
+          "2025-05-06"
+        ],
+        [
+          "2025-07-21"
+        ],
+        [
+          "2025-08-11"
+        ],
+        [
+          "2025-09-15"
+        ],
+        [
+          "2025-09-23"
+        ],
+        [
+          "2025-10-13"
+        ],
+        [
+          "2025-11-03"
+        ],
+        [
+          "2025-11-24"
+        ],
+        [
+          "2025-12-31",
+          "2026-01-01",
+          "2026-01-02"
+        ],
+        [
+          "2026-07-20"
+        ],
+        [
+          "2026-08-11"
+        ]
+      ],
+      "freshSessionsCertified": 0,
+      "classificationChanges": 0,
+      "qualifier": "Weekdays include holidays. Unregistered dates are not certified fresh. No UNKNOWN ordinal-to-date mapping."
+    },
+    "widenedBoundarySensitivity": {
+      "start": "2024-09-01",
+      "end": "2026-09-16",
+      "weekdaySupersetCount": 533,
+      "blockedWeekdayCounts": {
+        "RESERVED": 4,
+        "EXPOSED": 374,
+        "EXCLUDED": 4,
+        "PURGED": 2,
+        "PROTECTED_DATE_ENVELOPE": 111,
+        "SEALED": 5
+      },
+      "unblockedWeekdayUpperBound": 33,
+      "longestUnblockedWeekdayRun": 6,
+      "unblockedRuns": [
+        [
+          "2024-09-02",
+          "2024-09-03",
+          "2024-09-04",
+          "2024-09-05",
+          "2024-09-06",
+          "2024-09-09"
+        ],
+        [
+          "2024-09-16"
+        ],
+        [
+          "2024-09-23"
+        ],
+        [
+          "2024-10-14"
+        ],
+        [
+          "2024-11-04"
+        ],
+        [
+          "2024-12-31",
+          "2025-01-01",
+          "2025-01-02",
+          "2025-01-03"
+        ],
+        [
+          "2025-01-13"
+        ],
+        [
+          "2025-02-11"
+        ],
+        [
+          "2025-02-24"
+        ],
+        [
+          "2025-03-20"
+        ],
+        [
+          "2025-04-29"
+        ],
+        [
+          "2025-05-05",
+          "2025-05-06"
+        ],
+        [
+          "2025-07-21"
+        ],
+        [
+          "2025-08-11"
+        ],
+        [
+          "2025-09-15"
+        ],
+        [
+          "2025-09-23"
+        ],
+        [
+          "2025-10-13"
+        ],
+        [
+          "2025-11-03"
+        ],
+        [
+          "2025-11-24"
+        ],
+        [
+          "2025-12-31",
+          "2026-01-01",
+          "2026-01-02"
+        ],
+        [
+          "2026-07-20"
+        ],
+        [
+          "2026-08-11"
+        ]
+      ],
+      "freshSessionsCertified": 0,
+      "classificationChanges": 0,
+      "qualifier": "Weekdays include holidays. Unregistered dates are not certified fresh. No UNKNOWN ordinal-to-date mapping."
+    },
+    "requiredSessions": 30,
+    "global195ExactDatesRequired": false,
+    "futureGDateUsedAsBlocker": false,
+    "unknownResolutionAttempted": false,
+    "priceInputs": 0,
+    "candidateInputs": 0,
+    "providerRequests": 0
+  },
+  "protectionBoundarySource": {
+    "repository": "Iam-2squared/ark-terminal",
+    "commit": "ea15a594103bd6c9146f19a4aebafb83067d869b",
+    "path": "predict/research/phase57-exit-v4-stage2-session-metadata-inventory-v1.json",
+    "blobSha": "2217ffee6b9607f5610d5484bffea884f65b7422"
+  },
+  "periodSummary": [
+    {
+      "from": "2024-09-17",
+      "to": "2026-01-07",
+      "status": "Known trading sessions outcome-exposed or excluded/purged; no fresh30"
+    },
+    {
+      "from": "2026-01-08",
+      "to": "2026-06-11",
+      "status": "Explicit protected103 date envelope; UNKNOWN101 untouched, no ordinal mapping attempted"
+    },
+    {
+      "from": "2026-06-12",
+      "to": "2026-09-09",
+      "status": "Recorded exposed sessions; legacy Selector outcome-use range also overlaps"
+    },
+    {
+      "from": "2026-09-10",
+      "to": "2026-09-15",
+      "status": "Existing sealed reservation; not released"
+    }
+  ],
+  "scopeQualification": "Not a perpetual repo-wide non-use audit. Proof uses current frozen resolved ledger plus explicit protected envelope and generous calendar upper bounds. Holidays included as potentially available makes bound favorable to finding a window.",
+  "selectedPeriod": null,
+  "exact30Sessions": null,
+  "sessionListSha256": null,
+  "datasetSha256": null,
+  "rawSha256": null,
+  "normalizedSha256": null,
+  "candidatePerformance": "NOT_MEASURED",
+  "counts": {
+    "candidatePrediction": 0,
+    "validationPrediction": 0,
+    "validationOutcomeAccess": 0,
+    "oosAccess": 0,
+    "exitOutcomeAccess": 0,
+    "shortEvaluation": 0,
+    "modelFit": 0,
+    "scalerRefit": 0,
+    "thresholdSearch": 0,
+    "jquantsPriceRequests": 0,
+    "yahooPriceRequests": 0,
+    "otherPriceRequests": 0,
+    "jquantsApiMetadataRequests": 0,
+    "symbolsAcquired": 0,
+    "barsAcquired": 0,
+    "forwardFill": 0,
+    "interpolation": 0,
+    "futureSubstitution": 0,
+    "allocationChanges": 0,
+    "reservationReleases": 0,
+    "sealedOpenings": 0,
+    "unknownPromotions": 0
+  },
+  "requestConfidence": "CONFIRMED_DIRECT_TASK_CALLS; public documentation and GitHub metadata reads are separate from market-data API requests",
+  "cadence": {
+    "source": "predict/research/phase57-msh-entry-long-v1-validation-candidate-v1.json#/cadence",
+    "decisionTimesJst": [
+      "09:30",
+      "10:00",
+      "10:30",
+      "11:00",
+      "11:30",
+      "13:00",
+      "13:30",
+      "14:00",
+      "14:30",
+      "15:00"
+    ],
+    "decisionsPerSession": 10,
+    "status": "RESOLVED_SAME_SAVED_SELECTOR_SCHEDULE",
+    "fiveMinuteSelectorReconstruction": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "tests": {
+    "freshWindow": {
+      "total": 6,
+      "pass": 6,
+      "fail": 0,
+      "skip": 0
+    },
+    "frozenBudget": {
+      "total": 23,
+      "pass": 23,
+      "fail": 0,
+      "skip": 0
+    },
+    "total": 29,
+    "pass": 29,
+    "fail": 0,
+    "skip": 0,
+    "guard": "ARK_TEST_OFFLINE=1 scripts/offline/kernel_exec.py",
+    "scope": "Metadata/identity invariants only; no model fit/prediction or market outcomes",
+    "warning": "Inherited budget replay emits ResourceWarning for unclosed metadata catalog; tests pass"
+  },
+  "ci": "Final published-head results reported in final response; no baseline-to-final substitution",
+  "nextAction": "STOP. A new data-sourcing decision is required: either explicitly authorize a specific protected historical reservation review/reallocation with exposure audit, or establish a J-Quants source/cache for older intraday history outside the current API2-year range. Neither route is authorized/executed here. Do not change model/threshold, invent fresh dates, wait for G, or rerun same scope expecting a different result."
+}

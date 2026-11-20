@@ -1,0 +1,59 @@
+name: Phase57 Entry information screen checks
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-entry-information-screen-checks.yml
+      - scripts/analyze_phase57_entry_information.py
+      - docs/evidence/phase57-entry-information-screen/**
+permissions:
+  contents: read
+  actions: read
+jobs:
+  saved-descriptive-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Twenty synthetic checks offline
+        run: |
+          ARK_TEST_OFFLINE=1 python3 scripts/offline/kernel_exec.py python3 scripts/phase57_entry_information_screen.py --test
+          ARK_TEST_OFFLINE=1 python3 scripts/offline/kernel_exec.py python3 scripts/analyze_phase57_entry_information.py --test
+      - uses: actions/download-artifact@v4
+        with:
+          name: entry-information-features-35182861083
+          path: artifacts/pinned-entry-information
+          repository: Iam-2squared/ark-terminal
+          run-id: 35182861083
+          github-token: ${{ github.token }}
+      - name: Verify original frozen sources and feature artifact
+        run: |
+          python3 - <<'PY'
+          import pathlib,json,hashlib
+          p=pathlib.Path('predict/research/phase57-entry-v2-3-fast-fail-protocol-v1.json')
+          assert hashlib.sha256(p.read_bytes()).hexdigest()=='e6fcff8580b6f7feed165a4a8272519dc5d7a661ec367eaf52961f71c1096f2c'
+          for name,expected in json.loads(p.read_text())['sourcePins'].items():
+              assert hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest()==expected,name
+          f=pathlib.Path('artifacts/pinned-entry-information/features.json.gz')
+          assert hashlib.sha256(f.read_bytes()).hexdigest()=='625afba25ae64faf20c97352b1a59c395d385d836f3cd133415e3f1e89b2e8cc'
+          print('132 source pins plus feature artifact PASS')
+          PY
+      - name: Reproduce descriptive screen only; no fitting, predictions or price providers
+        run: |
+          ARK_TEST_OFFLINE=1 python3 scripts/offline/kernel_exec.py python3 scripts/analyze_phase57_entry_information.py . artifacts/pinned-entry-information/features.json.gz artifacts/entry-information-result/result.json
+          python3 - <<'PY'
+          import json,pathlib,hashlib
+          p=pathlib.Path('artifacts/entry-information-result/result.json');x=json.loads(p.read_text())
+          print(json.dumps({'verdict':x['verdict'],'counts':x['counts'],'rawAudit':x['sourceRawAudit'],'causalChecks':x['causalInvarianceChecks']}))
+          for f in x['featureResults']:
+              print(json.dumps({'feature':f['name'],'coverage':f['coverage277'],'profitAUC':f['targets']['profit']['held60']['AUC'],'riskRawAUC':f['targets']['risk']['held60']['AUC'],'profitRemoved':f['targets']['profit']['knownDominantRemoved']['AUC'],'riskRemoved':f['targets']['risk']['knownDominantRemoved']['AUC'],'passed':f['screenPassed']}))
+          p.with_suffix('.json.sha256').write_text(hashlib.sha256(p.read_bytes()).hexdigest()+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: entry-information-screen-result-${{ github.run_id }}
+          path: artifacts/entry-information-result/
+          retention-days: 20
+          if-no-files-found: error

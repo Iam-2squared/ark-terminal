@@ -1,0 +1,50 @@
+{
+  "State_trace_compile_is_outside_buy_allocator": true,
+  "allocator_imported_byte_identical": true,
+  "gap_detected_only_for_funded_positions": true,
+  "native_replay_pin": {
+    "bytes": 12547,
+    "git_blob": "39f9f73a37bb75b31e9c2d42c0b46dc6936bab1a",
+    "sha256": "42e229f3816427ca16e6d44acc218d7b044e1a04f74cfd3154ff4aa6da11bb88"
+  },
+  "new_adapter_pin": {
+    "bytes": 8080,
+    "git_blob": "2798add9f23de55fd89fe050b794a6ff12449ce5",
+    "sha256": "fbbf8e2a13fd654e4a5dbdd5816776cc8f84143eec3125dee2cfd158297d9436"
+  },
+  "overlay_OFF_delegates_native_day_function": true,
+  "substitutions": [
+    {
+      "new": "tables=None,exit_plans=None):",
+      "old": "tables=None):"
+    },
+    {
+      "new": " if exit_plans is None:return native_day_replay(n,day,candidates,books,starting_cash,primary_chain,profile,tables)\n assert n==3,'MAX3_ONLY_RESEARCH_POLICY'",
+      "old": " assert n==3,'MAX3_ONLY_RESEARCH_POLICY'"
+    },
+    {
+      "new": "  for key,p in sorted(positions.items()):\n   plan=p['exit_plan']\n   if plan['action']=='EVIDENCE_GAP' and t==plan['block_minute']:\n    blockers.append({'entry_id':key,'minute':t,'reason':plan['reason']})\n   if plan['action']=='SD_FIRST' and t==plan['intent_minute']:\n    p['overlay_pending']=True;p['intent_issued']=True\n    intents.append({'entry_id':key,'session':day,'minute':t,'side':'SELL','quantity':p['quantity'],'reason':'SHARP_DROP_FIRST_OBSERVED','transmitted':False,'latched':True})\n  if any(b['reason']=='EVIDENCE_GAP_BEFORE_CONTROL' and b['minute']==t for b in blockers):break\n  batch=sorted(events.get(t,[]),key=candidate_order)",
+      "old": "  batch=sorted(events.get(t,[]),key=candidate_order)"
+    },
+    {
+      "new": "    plan=exit_plans[key]\n    positions[key]['exit_plan']=plan\n    positions[key]['overlay_pending']=False\n    prior=plan.get('source')",
+      "old": "    prior=frozen_execution(book)"
+    },
+    {
+      "new": "    if p.get('overlay_pending'):continue\n    it=eod_intent(p);assert it is not None;p['intent_issued']=True",
+      "old": "    it=eod_intent(p);assert it is not None;p['intent_issued']=True"
+    },
+    {
+      "new": "  eq=equity();assert cash>=0 and eq>0\n  if any(b['reason']=='MTM_SOURCE_LINEAGE_BLOCKED' for b in blockers):break",
+      "old": "  eq=equity();assert cash>=0 and eq>0"
+    },
+    {
+      "new": " snapshot={'window_arm_event_cursor':{'session':day,'minute':t},'cash':str(cash),'holdings':{k:{f:str(v) if isinstance(v,D) else v for f,v in p.items() if f not in ('mark_updates','exit_plan')} for k,p in positions.items()},'pending_SELL':{k:p['exit_plan'] for k,p in positions.items()},'remaining_fill_schedule':{str(tm):ss for tm,ss in fills.items()}}\n valid=not blockers and not positions",
+      "old": " valid=not blockers and not positions"
+    },
+    {
+      "new": "  'primary_chain':primary_chain,'blockers':blockers,'open_obligations':list(positions),'resume_snapshot':snapshot,",
+      "old": "  'primary_chain':primary_chain,'blockers':blockers,'open_obligations':list(positions),"
+    }
+  ]
+}

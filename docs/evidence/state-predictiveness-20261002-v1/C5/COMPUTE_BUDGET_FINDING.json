@@ -1,0 +1,19 @@
+{
+  "finding_id": "PRED_V1_BOOTSTRAP_TOTAL_CAP_NONCONFORMANCE",
+  "status": "UNRESOLVED_RETAINED_NO_RECOMPUTATION",
+  "contract_SHA256": "393de497cd2218f546ec01d2b0cf24f1d2791332c3f5400069d102ccb5e9fe41",
+  "contract_limit_text": "At most 1000 saved primary bootstrap date draws reused by independent metrics",
+  "registered_total_draw_cap": 1000,
+  "observed_draw_vectors_total": 3000,
+  "observed_draw_vectors_by_horizon": {"5": 1000, "15": 1000, "30": 1000},
+  "excess_over_total_cap": 2000,
+  "cause": "The fitter generated a separate 1000-vector draw matrix for each of three horizons rather than observing the literal total saved-draw cap.",
+  "no_post_result_cap_reinterpretation": true,
+  "no_post_result_cap_or_seed_change": true,
+  "existing_draws_and_intervals_retained": true,
+  "additional_bootstrap_or_fitting_after_detection": 0,
+  "independent_audit_new_draws": 0,
+  "not_a_State9_or_Path_semantic_change": true,
+  "effect": "V1 cannot be represented as fully compliant with its finite compute budget. The existing primary failure and negative-control integrity STOP remain; no candidate, Holdout, Entry or validation promotion.",
+  "recovery": "Separate review using the unchanged V1 evidence. Any future changed draw policy requires an explicit new version, retaining V1, not a V1 overwrite."
+}

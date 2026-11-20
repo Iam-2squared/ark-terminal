@@ -1,0 +1,159 @@
+{
+  "2_to_5_combined_FIRST_mean_median": {
+    "N": 417,
+    "mean": 0.493784185351853,
+    "median": 1.0893362842388399,
+    "sum": 205.9080052917227
+  },
+  "2_to_5_combined_simple_mean_median": {
+    "N": 417,
+    "mean": 0.28365867578883497,
+    "median": 1.1052533452322377,
+    "sum": 118.28566780394418
+  },
+  "CapitalPending": true,
+  "EntryFrozen": true,
+  "Entry_N": 1600,
+  "ExitFrozen": true,
+  "FIRST_saved_outcomes_reused_N": 1600,
+  "Frozen_V3_first_only_replay_N": 0,
+  "ReentryEvidenceReady": true,
+  "ReentryFrozen": false,
+  "Winner_GE5_FIRST_mean_median": {
+    "N": 253,
+    "mean": 3.9283404989402193,
+    "median": 3.1754614496030786,
+    "sum": 993.8701462318755
+  },
+  "Winner_GE5_simple_mean_median": {
+    "N": 253,
+    "mean": 4.573652773229346,
+    "median": 3.591506787022203,
+    "sum": 1157.1341516270247
+  },
+  "actual_basis_head": "28b73476c322c66e659bd018ec17d4bbbf6cdcdc",
+  "automatic_Reentry_Freeze_Capital": false,
+  "blockers": null,
+  "budget_exposure": {
+    "Capital": 0,
+    "EXIT_v3_baseline_new_replay": 0,
+    "EXIT_v3_changes": 0,
+    "Entry_changes": 0,
+    "Path_reconstruction": 0,
+    "Portfolio_Replay": 0,
+    "Reentry_policy": 1,
+    "Reentry_replay": 1,
+    "State9_reconstruction": 0,
+    "V4_replay": 0,
+    "cooldown": 0,
+    "fixed_stop_profit_trailing": 0,
+    "force_push": 0,
+    "main_merge": 0,
+    "new_EXIT_model_fits": 0,
+    "new_Entry_model_fits": 0,
+    "new_market_data": 0,
+    "new_score_calculation": 0,
+    "new_teacher": 0,
+    "orders": 0,
+    "provider": 0,
+    "reentry_count_cap": 0,
+    "threshold_model_feature_search": 0
+  },
+  "completed_round_trips_N": 2149,
+  "completion_gate": [
+    {
+      "evidence": "EXIT_V3_OFFICIAL_FREEZE_RECEIPT.json",
+      "item": 1,
+      "verified": true
+    },
+    {
+      "evidence": "REENTRY_CONTRACT_FREEZE_RECEIPT.json",
+      "item": 2,
+      "verified": true
+    },
+    {
+      "evidence": "fresh_cross.py",
+      "item": 3,
+      "verified": true
+    },
+    {
+      "evidence": "REPLAY_RECEIPT.json",
+      "item": 4,
+      "verified": true
+    },
+    {
+      "evidence": "PRIVATE_TRADE_LEDGER",
+      "item": 5,
+      "verified": true
+    },
+    {
+      "evidence": "EXCLUSIVE_ORIGINAL_ENTRY_HIGH_PRIMARY.json",
+      "item": 6,
+      "verified": true
+    },
+    {
+      "evidence": "WINNER_GE5_MULTI_LEG.json",
+      "item": 7,
+      "verified": true
+    },
+    {
+      "evidence": "WINNER_2_TO_5_MULTI_LEG.json",
+      "item": 8,
+      "verified": true
+    },
+    {
+      "evidence": "TRADE_INDEX.json",
+      "item": 9,
+      "verified": true
+    },
+    {
+      "evidence": "CHURN_AND_COST.json",
+      "item": 10,
+      "verified": true
+    },
+    {
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "item": 11,
+      "verified": true
+    },
+    {
+      "evidence": "CHECKPOINTS/FINAL_AUDIT_AND_EVIDENCE.json",
+      "item": 12,
+      "verified": "THIS_FINAL_CHECKPOINT_COMMIT; ACTUAL_GET_REQUIRED_AFTER_COMMIT"
+    }
+  ],
+  "document_id": "WORK_EXIT_V3_FREEZE_TO_REENTRY_V1_FASTTRACK_20261003",
+  "future_bucket_decision_reads": 0,
+  "future_causal_leakage_N": 0,
+  "human_judgment": ">=5 improves;2–<5 exclusive means and overall mean decline; costs turn average additional trade negative. No automatic adoption.",
+  "independent_check_N": 1138726,
+  "max_reentry_N": 5,
+  "mismatch_N": 0,
+  "new_reentry_fills_N": 588,
+  "new_reentry_intents_N": 591,
+  "new_reentry_policy_N": 1,
+  "new_unresolved_trade_N": 0,
+  "next_step": "Confirm FINAL actual result HEAD, then STOP; human chooses Re-entry Freeze or next minimal revision",
+  "policy": "PERSISTENT_REENTRY_V1_P1_Q70_FRESH_CROSS",
+  "position_overlap_N": 0,
+  "primary_reentry_replay_N": 1,
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "same_bar_sell_buy_N": 0,
+  "saved_at_jst": "2026-10-03T23:13:32.126555+09:00",
+  "status": "PERSISTENT_REENTRY_V1_EVIDENCE_READY",
+  "stop_here": true,
+  "total_trades_N": 2188,
+  "unresolved_watch_N": 39,
+  "watch_with_reentry_N": 380
+}

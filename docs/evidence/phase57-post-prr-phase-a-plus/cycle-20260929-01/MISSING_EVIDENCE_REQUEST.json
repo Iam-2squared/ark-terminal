@@ -1,0 +1,55 @@
+{
+  "requests": [
+    {
+      "blocks": [
+        "guard values",
+        "Pτ",
+        "as-of feature table"
+      ],
+      "expectedSha256": "7f10f3394ea2429b0135b66ec17bc99a317f74323e2a98d5c2b448ba835493a8",
+      "minimum": "719 first-intent rows: now,state,price/currentReturn,highestCertifiedMilestone,floorMarginPp,inputMaxBarEnd,inputMaxKnownAt",
+      "path": "docs/evidence/phase57-checkpoint-certified-guard-exit/CHECKPOINT_DRY_TRACE.jsonl.gz",
+      "scope": "only existing permitted Development"
+    },
+    {
+      "blocks": [
+        "State association",
+        "causality tests"
+      ],
+      "expectedSha256": null,
+      "minimum": "row ID, version, six signal values, State, input knownAt and barEnd at each first intent",
+      "path": "saved checkpoint market State/Signal snapshot or allowlisted price prefix",
+      "scope": "Development only; no provider/protected"
+    },
+    {
+      "blocks": [
+        "remaining upside",
+        "full reference-to-fill decomposition"
+      ],
+      "expectedSha256": null,
+      "minimum": "post-intent bars through label endpoint, high/low/knownAt/coverage",
+      "path": "allowed owned price paths + original future-upside label contract",
+      "scope": "Development only; no new fetch"
+    },
+    {
+      "blocks": [
+        "nested stage2 design"
+      ],
+      "expectedSha256": null,
+      "minimum": "train/eval sessions and fit timestamps for each stage2 split",
+      "path": "stage1 fold/transformer training receipts and label knownAt",
+      "scope": "existing authorized metadata only"
+    },
+    {
+      "blocks": [
+        "ties",
+        "branch equivalence certification"
+      ],
+      "expectedSha256": null,
+      "minimum": "same-minute 10 rows and R50/CCMG hidden state before first intent",
+      "path": "event ordering and pending ownership witness",
+      "scope": "saved evidence; no policy replay"
+    }
+  ],
+  "schema": "phase57-a-plus-missing-evidence-v1"
+}

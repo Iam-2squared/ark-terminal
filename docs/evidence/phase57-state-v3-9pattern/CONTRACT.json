@@ -1,0 +1,35 @@
+{
+  "contractVersion": "phase57-state-v3-price-shape-step1-v1",
+  "status": "STEP1_DEFINITION_FROZEN",
+  "scope": "HISTORICAL_CONTRACT_ONLY",
+  "startHead": "ca3e0fe6982d5e8e5b54de551bac5ca4f3e3f009",
+  "patternIds": ["RISE_STOP", "RISE", "SHARP_RISE", "PULLBACK", "RANGE", "REBOUND", "SHARP_DROP", "DROP", "DROP_STOP"],
+  "japaneseNames": ["上昇ストップ", "上昇", "急上昇", "調整", "もみ合い", "リバウンド", "急落", "下落", "下げ止まった"],
+  "input": {
+    "allowed": ["previousSessionPITClosedPrices", "todayOfficialOpenIfPublished", "todayClosedBarsPublishedByAsOf", "exchangeActiveMinuteCalendar", "sourceProvenanceAndPITAdjustment"],
+    "forbidden": ["futureBar", "futureState", "future_resolution_v2", "oracleLow", "oracleHigh", "futureMFE", "futureMAE", "futurePathClass", "futureReturn", "outcome", "opportunityCapture", "entryResult", "dictionaryOutcome", "futureConfirmedPivot", "futureFittedScale", "volume"],
+    "closedBarEndLteAsOf": true,
+    "publicationTimeLteAsOf": true,
+    "overnightGapExcludedFromDirection": true,
+    "lunchRecessExcludedFromActiveMinutes": true,
+    "missingBarIsNotNoTrade": true,
+    "pivotAvailabilityNeverBackdated": true
+  },
+  "normalization": {"price": "naturalLogRatio", "unit": "max(log(1.001),0.5*median(abs(previousSessionAdjacentObservedOneActiveMinuteLogReturns)))", "unitFallback": "log(1.001)", "directionThresholdUnits": 1, "shockThresholdUnits": 3, "stopProximityUnits": 1, "recentActiveMinutes": 10, "minimumRecentObservedTransitionsForShock": 3, "minimumRecentObservedTransitionsForStop": 2, "minimumRecentObservedTransitionsForDirection": 1, "shockPriorMagnitudeMaxUnitsExclusive": 2, "shockRateMultiplierInclusive": 2, "qualityRecentCoverageMinimumInclusive": 0.8},
+  "directions": [-1, 0, 1],
+  "baseDecisionMatrix": {
+    "priorMinus": {"recentMinus": "DROP", "recentZero": "DROP_STOP_OR_DROP_OR_RANGE", "recentPlus": "REBOUND_OR_RISE"},
+    "priorZero": {"recentMinus": "DROP_OR_SHARP_DROP", "recentZero": "RANGE", "recentPlus": "RISE_OR_SHARP_RISE"},
+    "priorPlus": {"recentMinus": "PULLBACK_OR_DROP", "recentZero": "RISE_STOP_OR_RISE_OR_RANGE", "recentPlus": "RISE_OR_SHARP_RISE"}
+  },
+  "decisionOrder": ["INVALID_NULL", "NO_RECENT_PAIR_CARRY_PRIOR_OR_RANGE", "OPPOSING_DIRECTION_PARTIAL_OR_FULL", "RECENT_ZERO_STOP_OR_CARRY_OR_RANGE", "DIRECTIONAL_SHOCK_OR_ORDINARY"],
+  "oppositionEquality": "fullReversalNotPartial",
+  "thresholdEquality": "directionShockAndStopInclusive",
+  "dataQuality": ["OK", "DEGRADED", "INVALID"],
+  "confidence": ["HIGH", "MEDIUM", "LOW", "NOT_ASSESSED"],
+  "invalidState": null,
+  "invalidStateStatus": "NOT_COMPUTED",
+  "volumeLayer": {"layer": 2, "implemented": false, "mayModifyPriceState": false},
+  "safety": {"executionAllowed": false, "brokerWriteAllowed": false, "excelOrderWriteAllowed": false, "rssOrderFunctionAllowed": false, "liveTradingAllowed": false, "paperTradingAllowed": false, "automaticPromotionAllowed": false, "productionUpdateAllowed": false, "transmitted": false},
+  "step1": {"classifierImplemented": false, "populationApplied": false, "entryEvaluated": false, "providerRequests": 0, "protectedHoldoutOpened": false}
+}

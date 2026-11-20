@@ -1,0 +1,123 @@
+name: Phase57 REBOUND Confirm Existing Evidence v1
+
+on:
+  push:
+    branches:
+      - research/phase57-long-only-cash-equity
+    paths:
+      - '.github/workflows/phase57-rebound-confirm-existing-v1.yml'
+      - 'scripts/phase57_rebound_confirm_existing_v1.py'
+      - 'docs/evidence/phase57-nine-state-entry-audit-v1/REBOUND_HYPOTHESIS_LOCK_R1.md'
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: phase57-rebound-confirm-existing-v1
+  cancel-in-progress: true
+
+env:
+  ARK_TEST_OFFLINE: '1'
+  PYTHONDONTWRITEBYTECODE: '1'
+  OPENBLAS_NUM_THREADS: 1
+  OMP_NUM_THREADS: 1
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned offline dependencies
+        run: pip install numpy==2.3.5 scipy==1.17.0 scikit-learn==1.7.2 pandas==2.2.3
+      - name: Focused frozen-regression and candidate intent tests
+        run: |
+          set -euo pipefail
+          python scripts/offline/kernel_exec.py python -m unittest -v \
+            scripts.test_phase57_state_v3_9pattern_entry_v1 \
+            scripts.test_phase57_state_v3_9pattern_contract \
+            scripts.test_phase57_state_conditioned_signal_entry_v1 \
+            scripts.test_phase57_entry_timing_census
+          python - <<'PY'
+          from scripts.phase57_rebound_confirm_existing_v1 import rebound_confirm_intent, prohibited_decision_tokens
+          import inspect
+          families=('CONTINUATION','BREAKOUT','COMPRESSION_EXPANSION','HIGHER_LOW','LOWER_WICK','RECLAIM')
+          def m(minute, delay, firing=()):
+              return {'minute':minute,'delay':delay,'signals':{f:{'trigger':f in firing} for f in families}}
+          base=[m(600,0),m(601,1),m(602,2,('RECLAIM',)),m(605,5)]
+          states=[{'asOf':600,'state':'REBOUND'},{'asOf':605,'state':'RISE'}]
+          out=rebound_confirm_intent('x',base,states,{})
+          assert out['intentMinute']==602 and out['intentReason']=='SIGNAL_TRIGGER'
+          base2=[m(600,0),m(601,1),m(602,2),m(605,5)]
+          out2=rebound_confirm_intent('x',base2,states,{})
+          assert out2['intentMinute']==605 and out2['intentReason']=='STATE_CONFIRM_TRIGGER'
+          states2=[{'asOf':600,'state':'REBOUND'},{'asOf':605,'state':'REBOUND'}]
+          out3=rebound_confirm_intent('x',base2,states2,{})
+          assert out3['intentMinute'] is None
+          assert prohibited_decision_tokens(inspect.getsource(rebound_confirm_intent)) == []
+          print('REBOUND_CONFIRM_INTENT_TESTS_PASS')
+          PY
+      - name: Download immutable evaluator substrate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/10605887642/zip" > "$RUNNER_TEMP/substrate.zip"
+          test "$(sha256sum "$RUNNER_TEMP/substrate.zip" | cut -d ' ' -f1)" = "749caf82bbd9d39969f5712ef5a6f2705ac973a2f74483f03307c671586ae05a"
+          mkdir -p "$RUNNER_TEMP/substrate"
+          for name in raw-paths-evaluator-only.json.gz rows.json.gz outcomes.json.gz; do
+            unzip -p "$RUNNER_TEMP/substrate.zip" "substrate/$name" > "$RUNNER_TEMP/substrate/$name"
+          done
+      - name: Replay locked candidate twice
+        run: |
+          set -euo pipefail
+          replay() {
+            python scripts/offline/kernel_exec.py python -m scripts.phase57_rebound_confirm_existing_v1 \
+              --measurement docs/evidence/phase57-entry-timing-signal-census-v1/measurement \
+              --entry-v1-measurement docs/evidence/phase57-state-conditioned-signal-entry-v1/measurement \
+              --state-v3-measurement docs/evidence/phase57-state-v3-9pattern-entry-v1/measurement \
+              --state-checkpoints docs/evidence/phase57-state-v3-9pattern-entry-v1/measurement/state-checkpoints.json.gz \
+              --raw-paths "$RUNNER_TEMP/substrate/raw-paths-evaluator-only.json.gz" \
+              --rows "$RUNNER_TEMP/substrate/rows.json.gz" \
+              --outcomes "$RUNNER_TEMP/substrate/outcomes.json.gz" \
+              --base-policy docs/evidence/phase57-state-v3-9pattern-entry-v1/POLICY_LOCK.json \
+              --output "$1"
+          }
+          replay "$RUNNER_TEMP/replay-a" | tee "$RUNNER_TEMP/rebound-confirm-a.log"
+          replay "$RUNNER_TEMP/replay-b" | tee "$RUNNER_TEMP/rebound-confirm-b.log"
+          diff -qr "$RUNNER_TEMP/replay-a" "$RUNNER_TEMP/replay-b"
+      - name: Verify research boundary and Development preservation
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])/'replay-a'
+          s=json.loads((root/'summary.json').read_text())
+          assert s['population']==2155 and s['targetPopulation']==192
+          assert s['hypothesisBudgetConsumed']==1
+          assert s['causalityAudit']['status']=='PASS'
+          assert s['causalityAudit']['nonTargetRecordsExactParity']==1963
+          assert s['providerRequests']==0 and s['protectedDataOpened']==0
+          assert all(v is False for v in s['safety'].values())
+          assert set(s['targetCohort']['entryPositionThresholds']['REBOUND_CONFIRM_V1']['rates']) >= {'0.1','0.15','0.25','0.5'}
+          print(json.dumps({'status':s['status'],'gateChecks':s['gateChecks'],'deltas':s['targetCohort']['deltasVsStateV3'],'baseline':s['targetCohort']['entryPositionThresholds']['STATE_V3'],'candidate':s['targetCohort']['entryPositionThresholds']['REBOUND_CONFIRM_V1']},sort_keys=True))
+          PY
+          python scripts/verify_phase57_development_preservation.py
+          python scripts/verify_phase57_selector_min_price75_freeze.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase57-rebound-confirm-existing-v1-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/replay-a
+            ${{ runner.temp }}/rebound-confirm-a.log
+          if-no-files-found: error
+          retention-days: 90

@@ -1,0 +1,53 @@
+name: Phase57 EXIT CC Freeze Audit
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-exit-cc-freeze-audit.yml'
+      - 'scripts/audit_phase57_exit_cc_freeze.py'
+      - 'scripts/test_phase57_exit_cc_freeze_audit.py'
+      - 'docs/evidence/phase57-exit-cc-freeze-audit-method-2026-09-18.md'
+permissions:
+  contents: read
+jobs:
+  audit:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Audit detector regression tests
+        env:
+          ARK_TEST_OFFLINE: '1'
+        run: python3 scripts/offline/kernel_exec.py python3 -m unittest -v scripts.test_phase57_exit_cc_freeze_audit
+      - name: Read-only audit and deterministic regeneration
+        env:
+          ARK_TEST_OFFLINE: '1'
+        run: |
+          set -euo pipefail
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.audit_phase57_exit_cc_freeze --out /tmp/exit-cc-audit-a | tee /tmp/exit-cc-audit.log
+          python3 scripts/offline/kernel_exec.py python3 -m scripts.audit_phase57_exit_cc_freeze --out /tmp/exit-cc-audit-b > /tmp/exit-cc-audit-second.log
+          cmp /tmp/exit-cc-audit-a/summary.json /tmp/exit-cc-audit-b/summary.json
+          cmp /tmp/exit-cc-audit-a/ledger.audit.json.gz /tmp/exit-cc-audit-b/ledger.audit.json.gz
+          cmp /tmp/exit-cc-audit-a/manifest.json /tmp/exit-cc-audit-b/manifest.json
+          git diff --exit-code
+      - name: Preserve audit evidence even on KILL
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase57-exit-cc-freeze-audit-${{ github.event.pull_request.head.sha }}
+          path: |
+            /tmp/exit-cc-audit-a
+            /tmp/exit-cc-audit.log
+          if-no-files-found: error
+          retention-days: 30
+      - name: Enforce freeze gate (FAIL means no freeze)
+        env:
+          ARK_TEST_OFFLINE: '1'
+        run: |
+          python3 scripts/offline/kernel_exec.py python3 -c "import json; s=json.load(open('/tmp/exit-cc-audit-a/summary.json')); print(s['status']); print('Failed gates:',s['failedGates']); raise SystemExit(0 if s['freezeAllowed'] else 1)"

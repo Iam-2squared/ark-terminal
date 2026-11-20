@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "purpose": "BAR5_FINAL_MECHANICAL_PARITY_AND_FIXED277_PREFIX_DIAGNOSTIC",
+  "role": "EXPOSED_HISTORICAL_ENTRY_DEVELOPMENT_IN_SAMPLE_NOT_VALIDATION",
+  "preDiagnosticHead": "59a7c5eac21cf8fed9fecef83957d9e551d405e8",
+  "date": "2026-09-16",
+  "candidateId": "EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+  "ledgerPath": "docs/evidence/phase57-msh-entry-long-v1-upstream-freeze/historical-enter-identities.json",
+  "pathArtifact": "docs/evidence/phase57-long-exit-v345-paired/paths.json.gz",
+  "pathUncompressedSHA": "01543fb3c003f939d73567280f9141392f254f1ec3c058b3163f5dede33fc5fd",
+  "pins": {
+    "docs/evidence/phase57-msh-entry-long-v1-upstream-freeze/historical-enter-identities.json": "72224ac9fd073f7da45c488aaf8ca999752b466e715837c21440e7dd93970236",
+    "docs/evidence/phase57-long-exit-v345-paired/paths.json.gz": "1ffd7e5e3d650a676e06507faf26226ad236ec4de4a0c0446873ee16f7408959",
+    "docs/evidence/phase57-long-exit-v345-paired/contract.json": "b0bcbce912786d6d3a6ca62b413a85a6e3e332dba93e975d02dd0ce14e5f071b",
+    "docs/evidence/phase57-long-exit-v345-paired/lineage-audit.json": "1e67a95a8649a68becc1ec5cf1fc90e15c568484584b482fb6ea6e0ba971eae4",
+    "docs/evidence/phase57-long-exit-v5-fast-track/candidate-semantics.json": "ac761132378bea43a21c02fa09a053634e52a3a7a85b6ef567f7b91a907997dd",
+    "docs/evidence/phase57-long-exit-v5-fast-track/final-sweep-source.txt": "209f2857a62c1cb7e655417d2769b952b4b9fa3ce4e3c2e99e4c228d6c9664f7",
+    "scripts/lib/phase57-long-exit-v5-bar5-adapter.mjs": "d57a90078d9cf1bc86246e8e99588cbcd91a19a9f0fd09c53976ac93a250859f"
+  },
+  "horizonBars": 5,
+  "roundTripCostPct": 0.05,
+  "priorFrozenSourcePinsAlsoVerified": true,
+  "selectedSimulatorRequirement": "causalEligible AND v4 existing outcome before any branch",
+  "fallback": "when trace ends before5, return existing v4; if causal v4 unavailable, undefined/null, NO substitute",
+  "earlyV4Exit": "preserve selected simulator truncated-trace fallback; do not extend trace or re-enter",
+  "firstBarInputDomain": "finite numeric fields only; reject null coercion",
+  "dataSemantics": {
+    "barCount": "first5 expected regular completed5m slots after saved Entry, lunch skipped but elapsed clock preserved",
+    "missing": "UNKNOWN prefix; no completion/fill",
+    "sessionEnd": "requires original v4 fallback; boundary not reinterpreted",
+    "auction": "unresolved last-slot representation retained; not needed for a verified first5 prefix",
+    "futureMfeMae": "not runtime input"
+  },
+  "prefixRules": {
+    "adverse": "first completed close < Entry",
+    "reclaim": "first later completed close >= Entry by bar5 inclusive",
+    "noReclaim": "all5 completed closes available and negative",
+    "unavailable": "UNKNOWN; denominator retained",
+    "interpretation": "path-state diagnostic only, not actual v5 transitions or trades"
+  },
+  "pairing": "Fixed vs V5 only on identical full-runtime eligible identities; no v3/v4 comparison",
+  "adaptationGate": "Only measured V5_LONG_MINIMAL_ADAPTATION_REQUIRED; blocked is not that verdict",
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

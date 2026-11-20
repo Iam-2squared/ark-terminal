@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>ARK | No.1.1 Shadow Console</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <script defer src="/static/app.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand"><div class="mark">A<span>R</span>K</div><div><strong>ARK TERMINAL</strong><small>No.1.1 / Local Shadow</small></div></div>
+      <div class="right"><span class="mode"><span class="dot"></span> READ ONLY</span><span id="clock" class="clock">—</span></div>
+    </header>
+    <main>
+      <section class="hero">
+        <div><div class="eyebrow">OBSERVATION TERMINAL <span class="hl">/</span> NO LIVE ORDERS</div>
+          <h1>SHADOW <em>CONSOLE.</em></h1>
+          <p>MARKETSPEED II / Excel RSS / Frozen Selector / Paper Capital / EXIT</p></div>
+        <div class="session"><span>SESSION</span><strong id="session">—</strong><small>日本標準時</small></div>
+      </section>
+      <section class="system-row" aria-label="起動状況">
+        <article class="statuscard"><span class="status-label">マーケットデータ</span><div id="excel-state" class="statusval">確認中</div><small>元Excel2冊とRSS</small></article>
+        <article class="statuscard"><span class="status-label">実口座観測</span><div id="account-state" class="statusval">確認中</div><small>読み取り専用</small></article>
+        <article class="statuscard"><span class="status-label">統合Shadow</span><div id="shadow-state" class="statusval">確認中</div><small>凍結モデル／模擬処理のみ</small></article>
+        <article class="statuscard"><span class="status-label">実注文</span><div class="statusval locked">LOCKED <span class="lock">🔒</span></div><small>常時OFF・解放操作なし</small></article>
+      </section>
+      <div class="section-title"><h2>ACCOUNT OVERVIEW</h2><span>実口座と模擬口座は完全分離</span></div>
+      <section class="accounts">
+        <article class="pane">
+          <div class="pane-head"><div><span class="kind real">REAL ACCOUNT / RSS</span><h3>実口座</h3></div><div class="subbadge">OBSERVE ONLY</div></div>
+          <div class="money-label">総資産 <span>RSSに公式値がない場合は非表示</span></div>
+          <div class="big-money" id="real-equity">—</div>
+          <div class="metricrow"><div><small>現物買付可能額</small><strong id="real-power">—</strong></div><div><small>保有時価</small><strong id="real-value">—</strong></div></div>
+          <div class="metricrow"><div><small>評価損益</small><strong id="real-pnl">—</strong></div><div><small>保有銘柄</small><strong id="real-count">—</strong></div></div>
+          <footer>RSS観測時刻 <span id="real-asof">未受信</span></footer>
+        </article>
+        <article class="pane simulation">
+          <div class="pane-head"><div><span class="kind paper">PAPER / SYNTHETIC ONLY</span><h3>Shadow運用</h3></div><div class="subbadge">NO BROKER ORDERS</div></div>
+          <div class="money-label">模擬総資産 <span>株価が新鮮な場合のみ計算</span></div>
+          <div class="big-money" id="paper-equity">—</div>
+          <div class="metricrow"><div><small>模擬現金</small><strong id="paper-cash">—</strong></div><div><small>模擬保有時価</small><strong id="paper-value">—</strong></div></div>
+          <div class="metricrow"><div><small>保有数</small><strong id="paper-count">—</strong></div><div><small>買い／売り指示</small><strong id="paper-intents">—</strong></div></div>
+          <footer>処理時刻 <span id="paper-asof">未実行</span></footer>
+        </article>
+      </section>
+      <div class="section-title"><h2>ACTIVITY &amp; EXECUTIONS</h2><span>最新の確認済み記録のみ</span></div>
+      <section class="tables">
+        <article class="tablepane"><div class="tablehead"><h3>模擬売買履歴</h3><span>SHADOW LEDGER</span></div>
+          <div class="table-wrap"><table><thead><tr><th>日時</th><th>銘柄</th><th>売買</th><th>状態</th><th>数量</th></tr></thead><tbody id="paper-history"><tr><td colspan="5" class="empty">模擬注文なし</td></tr></tbody></table></div></article>
+        <article class="tablepane"><div class="tablehead"><h3>実口座 約定履歴</h3><span>RSS READ ONLY</span></div>
+          <div class="table-wrap"><table><thead><tr><th>日時</th><th>銘柄</th><th>売買</th><th>数量</th><th>価格</th></tr></thead><tbody id="real-history"><tr><td colspan="5" class="empty">未受信</td></tr></tbody></table></div></article>
+      </section>
+      <section class="notice"><div class="notice-icon">i</div><div><strong id="notice-title">起動状態を確認しています</strong><p id="notice-body">市場データと起動前検査の状態を確認中。</p></div></section>
+    </main>
+    <footer class="site-footer"><span>ARK TERMINAL / NO.1.1 SHADOW</span><span id="last-refresh">LOCAL ONLY ・ 未同期</span><span>127.0.0.1 / ORDERS OFF</span></footer>
+  </div>
+</body>
+</html>

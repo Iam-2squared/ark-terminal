@@ -1,0 +1,89 @@
+{
+  "schemaId": "ARK_NO11_STAGE4_FULL244_SOURCE_JOIN_OBSERVED_V1",
+  "recordedDate": "2026-10-23",
+  "sourceSession": "2026-10-13",
+  "status": "ATTACHED_RECEIPT_HASH_AND_AGGREGATE_CONSISTENCY_VERIFIED",
+  "inputReceipt": {
+    "filename": "no11-2026-first-entry-source-join-gap-c80110ee3d357974.json",
+    "bytes": 5345,
+    "sha256": "c80110ee3d357974fbca958516274de21d344edaf74b78abec7e9485a9c75b32",
+    "schemaId": "ARK_NO11_2026_RSS_STATE9_TO_FIRST_ENTRY_SOURCE_GAP_V1",
+    "status": "PRICE_AND_FROZEN_RC2_STATE9_SOURCE_CLOCK_JOIN_RESEARCH_ONLY"
+  },
+  "independentChecks": {
+    "attachedReceiptBytesRehashed": true,
+    "filenameSha256PrefixMatches": true,
+    "byClockAggregateSumsMatch": true,
+    "tenClocksTimes244Equals2440": true,
+    "reasonCountsSumTo2440": true,
+    "acceptedPlusMissingTicksEquals79788": true,
+    "rawPrivateGzipStreamsAttached": false,
+    "rawPrivateGzipBytesRehashed": false,
+    "rawPrivateRowsIndependentlyRecalculated": false
+  },
+  "reportedSourceCounts": {
+    "symbolsOriginalFirst950Inspected": 950,
+    "symbolsOriginalRc2DualAgreed": 244,
+    "stateAsOfRowsVerified": 79788,
+    "stateAcceptedOneMinuteTicksVerified": 46571,
+    "stateNativeMissingTickCallsVerified": 33217,
+    "statePrimaryObservedTicksVerified": 25330,
+    "priceOnlyArchiveDecisionAnchorsVerified": 59712,
+    "priceOnlyArchiveCurrentSessionAnchorsVerified": 7539
+  },
+  "aggregateCoverage": {
+    "checkedSymbolClocks": 2440,
+    "originalEntryStateExcluded": 64,
+    "overlapWithoutFrozenExcludedStates": 525,
+    "reason:FROZEN_STATE9_ENTRY_EXCLUDED": 63,
+    "reason:RESEARCH_STATE_PRICE_SOURCE_OVERLAP_NOT_NATIVE_FIRST_ENTRY": 525,
+    "reason:SOURCE_PRICE_UNAVAILABLE": 1691,
+    "reason:STATE9_CURRENT_NOT_OBSERVED": 161,
+    "researchPriceAvailable": 749,
+    "state9CurrentObserved": 727,
+    "stateAndPriceResearchOverlap": 588,
+    "stateSourcePresent": 1429
+  },
+  "derivedCoveragePartition": {
+    "unit": "symbol_clock_pairs_not_distinct_symbols_or_BUY_signals",
+    "stateAndPrice": 588,
+    "priceWithoutCurrentState": 161,
+    "currentStateWithoutPrice": 139,
+    "neitherCurrentStateNorPrice": 1552,
+    "total": 2440
+  },
+  "excludedStateReconciliation": {
+    "excludedFormalStates": [
+      "PULLBACK",
+      "SHARP_DROP"
+    ],
+    "totalExcludedStateObservations": 64,
+    "excludedWithinPriceStateOverlap": 63,
+    "excludedWithoutResearchPrice": 1,
+    "differenceDecisionClock": "11:00",
+    "differenceReason": "SOURCE_PRICE_UNAVAILABLE",
+    "evidence": "Derived from receipt by-clock aggregates; the corresponding private row was not attached."
+  },
+  "scope": {
+    "accepted": "Uploaded JSON integrity and internal aggregate consistency only.",
+    "underlyingSourceEvidence": "Counts and source SHA256 values are reported by the user-PC receipt; private price, State9 and joined GZIP bytes were not independently received or rehashed.",
+    "nonExcludedOverlapMeaning": "525 symbol-clock pairs with observed price and current State9 outside the two excluded states; no native P1 inference or BUY intent is established.",
+    "firstEntryOriginalP1Q70FeatureInputsAvailable": false,
+    "frozenSelectorWatchEventsAvailable": false,
+    "historicalBrokerReceivedAtCertified": false,
+    "fiveMinutePriceVendorParityCertified": false,
+    "state9SourceVendorIdentityCertified": false
+  },
+  "safety": {
+    "nativeSelectorExecuted": false,
+    "nativeFirstEntryExecuted": false,
+    "nativeCapitalExitExecuted": false,
+    "originalH235R0ExecutedOn2026": false,
+    "new2026SupervisedModelTrainingRows": 0,
+    "originalFrozenModelFilesChanged": false,
+    "overlapCanProduceRealOrders": false,
+    "liveTradingAllowed": false,
+    "productionReady": false,
+    "orderTransmission": false
+  }
+}

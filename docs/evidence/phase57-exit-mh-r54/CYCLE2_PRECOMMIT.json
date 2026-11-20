@@ -1,0 +1,560 @@
+{
+  "schema": "phase57-mh-exit-r54-cycle2-corrected-precommit-v1",
+  "status": "FROZEN_BEFORE_NEW_FORECAST_PERFORMANCE",
+  "researchId": "R54",
+  "developmentOnly": true,
+  "outcomeExposed": true,
+  "savedUtc": "2026-09-28T00:08:00Z",
+  "basisHead": "ff1d54d81376ad21939a9972dcd5ec17681197d6",
+  "readiness": {
+    "runId": 36361518409,
+    "summaryArtifactId": 10945609860,
+    "labelArtifactId": 10946320785,
+    "status": "CONDITIONAL_MEASUREMENT",
+    "blocking": [],
+    "sourceRows": 656247,
+    "sourceGroups": 3848,
+    "windowEntries": {
+      "ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF": 795,
+      "IMMEDIATE": 819
+    },
+    "estimatorFits": 0,
+    "policyReplays": 0,
+    "teacherValuesInspected": false,
+    "forecastPerformanceInspected": false,
+    "measurementRisk": "Exact OPEN/auction, inside-path and later mark gaps; full 24-session equity may remain null",
+    "missingEvidenceRows": 37658,
+    "realEstimatorFits": 0
+  },
+  "fixed": {
+    "selector": "FROZEN",
+    "entry": [
+      "IMMEDIATE",
+      "ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF"
+    ],
+    "entryDualFreeze": "4878a1cc53430e816261dea0fb16aeb53b3c238d",
+    "capital": "SAVED_CAPITAL_V3_B_CI_RANK_AND_R37_SIZING_ONE_SHOT_ENTRY",
+    "controlExit": "R50_A_LIFECYCLE",
+    "r52ProtocolSha256": "64d30cf679939172e6aca0e9dc4212d7e663fea32114862289ca969009c4206e",
+    "r45FeatureSha256": "45b91faed0ee7ac3dd46d5fa9bdb4f9f5940cfa2c4a9292af468427d551f5b3e",
+    "r45RowIdentitySha256": "41d875a3c7d8d8ebcb6fe6ef2022277143b6b34f9ba34c163395f81f2873ac47",
+    "rawSha256": "37853e73799544be6fd6eb955de514073dd13671692426291a9fdb6d80056c6b",
+    "initialCashJpy": 1000000,
+    "lot": 100,
+    "maxConcurrent": 3,
+    "short": false,
+    "borrow": false,
+    "leverage": false,
+    "entryEligibility": "FROZEN_ONE_SHOT_EVENT",
+    "sameTimeOrdering": "CONFIRMED_EXIT_THEN_ENTRY",
+    "execution": "EXACT_NEXT_SCHEDULED_OPEN_OR_FROZEN_TERMINAL_AUCTION",
+    "saleFeePp": "0.05",
+    "fillVsMark": "CONFIRMED_FILL_ONLY_RELEASES_CASH; MISSING_MARK_NULL"
+  },
+  "sessions": [
+    "2025-07-22",
+    "2025-07-23",
+    "2025-07-24",
+    "2025-07-25",
+    "2025-07-28",
+    "2025-07-29",
+    "2025-07-30",
+    "2025-07-31",
+    "2025-08-01",
+    "2025-08-04",
+    "2025-08-05",
+    "2025-08-06",
+    "2025-08-07",
+    "2025-08-08",
+    "2025-08-12",
+    "2025-08-13",
+    "2025-08-14",
+    "2025-08-15",
+    "2025-08-18",
+    "2025-08-19",
+    "2025-08-20",
+    "2025-08-21",
+    "2025-08-22",
+    "2025-08-25"
+  ],
+  "inputHashes": {
+    "labels": "a017a10b5b0b6dc0a023ba070a60b0e991d3d98d62a800d36fe743b85c2c759b",
+    "lockedFeatureSchema": "549530ccb29582cc20166497c74ab94a8752fdc8d4108a19a0be9f5aec2d55ba",
+    "summaryFiles": {
+      "feature-schema.json": "15be6dfbcf462245c6b03ba1b99efc9294c1493bd5ca4830d3b875e7947cc213",
+      "fold-manifest.json": "4b4e73888d4d1938ef0115349fb190b476e9b58d2eeff5625ff888d987b90fc7",
+      "missing-evidence-request.csv": "06e6f608cb001d25c72981ee5999771ef9bbd5c4c846893e38722e42221b3216",
+      "source-pins.json": "e78e89888f8cd87797f397a6e22c6ba7d501b22c01bd622e22145e758ab0b934",
+      "train-support.json": "447ab10f685c4d00a035acbc7baa463dd95fa017c0d903cc3ac096a407f65d83"
+    },
+    "readinessJson": "700cd39ff0962f0912edcd9be273e832f7b27abad7e5f415c190be760838b4b0",
+    "consumedFeatureLayouts": {
+      "FULL": "05ff0b43aa32bbfee6a26de9941706c2cea44b657a30c59f0eead0a6ef46c1a7",
+      "S": "70512f7ec28cad24967a69676855303b698178980ea40c81c9e454f6ee5c55f7",
+      "P": "4765b860dcca0137374568b665d57a91806efa731e38bfdd4caab265382c7784"
+    }
+  },
+  "features": {
+    "schema": "FEATURE_SCHEMA_LOCKED.json",
+    "numericCount": 42,
+    "pattern187": 187,
+    "oneHotDeclaredColumns": 139,
+    "unknownIsNotFalse": true,
+    "ablationS": "REMOVE_EXACT_STATE_SIGNALS_HISTORY_AND_DIRECT_PATTERN_ALIASES_DEFINED_IN_LOCKED_SCHEMA",
+    "ablationP": "REMOVE_187_PATTERNS",
+    "runtimeDenylist": [
+      "futureHigh",
+      "futureLow",
+      "futureOPEN",
+      "futureMFE",
+      "futureMAE",
+      "label",
+      "labelAvailability",
+      "finalPnL",
+      "capture",
+      "oracleExit",
+      "futureMarkAvailability",
+      "postEntryUpside",
+      "futureEntry"
+    ],
+    "publicationLatencyCertified": false
+  },
+  "teacher": {
+    "families": {
+      "A": "100*(P_exact_next_open_after_h/P_fresh_now-1) for h0,1,5,15,30,60,EOD; mean/q10/q50/q90",
+      "D": "100*(P_exact_sell_eh-P_exact_sell_e0)/P_fresh_now for h1,5,15,30,60,EOD; mean/q10/q90; the frozen R34 sell cost cancels at identical Entry basis",
+      "HIGH": "complete future scheduled interval max with endpoint included; q10/q50/q90",
+      "LOW": "complete future scheduled interval min with endpoint included; q10/q50/q90"
+    },
+    "horizonClock": "SCHEDULED_ACTIVE_MINUTES_NOT_OBSERVED_ROWS",
+    "h0D": false,
+    "terminalAuction": "FROZEN_SINGLE_PRICE_15:30",
+    "missing": "FAMILY_AND_HORIZON_MASK_INDEPENDENT; UNKNOWN_NEVER_ZERO",
+    "labelMaturity": "SAME_SESSION_FUTURE_REFERENCES_FINISH_BEFORE_FIT_CUTOFF",
+    "trainingWeight": "EACH_ENTRY_EQUAL_TOTAL_WEIGHT_PER_TARGET_FAMILY",
+    "correction": "ONLY_D_TEACHER_NUMERIC_VALUES_AND_THEIR_HASH_CHANGE; A/HIGH/LOW/masks/features/folds/model/thresholds/Gate/candidates/Capital/accounting fixed"
+  },
+  "model": {
+    "family": "HistGradientBoostingRegressor",
+    "version": "scikit-learn==1.8.0",
+    "hyperparameters": {
+      "learning_rate": 0.05,
+      "max_iter": 150,
+      "max_leaf_nodes": 15,
+      "min_samples_leaf": 100,
+      "l2_regularization": 1,
+      "max_bins": 63,
+      "early_stopping": false,
+      "random_state": 52
+    },
+    "nativeNanOptional": true,
+    "oneHot": "FIXED_DECLARED_ENUM_WITH_UNKNOWN",
+    "horizonFeature": "ACTIVE_DELAY_AND_EOD_FLAG",
+    "calibration": "LAST5_TRAIN_SESSIONS_DIAGNOSTIC_ONLY",
+    "quantiles": "SORT_WITHIN_FAMILY_HORIZON_AND_KEEP_RAW",
+    "threads": 1,
+    "packagePins": [
+      "numpy==2.3.5",
+      "scipy==1.17.0",
+      "scikit-learn==1.8.0",
+      "pandas==2.2.3",
+      "matplotlib==3.10.8",
+      "joblib==1.5.2"
+    ]
+  },
+  "split": {
+    "folds": [
+      {
+        "calibration": [
+          "2025-06-24",
+          "2025-06-25",
+          "2025-06-26",
+          "2025-06-27",
+          "2025-06-30"
+        ],
+        "fit": [
+          "2025-05-30",
+          "2025-06-02",
+          "2025-06-03",
+          "2025-06-04",
+          "2025-06-05",
+          "2025-06-06",
+          "2025-06-09",
+          "2025-06-10",
+          "2025-06-11",
+          "2025-06-12",
+          "2025-06-13",
+          "2025-06-16",
+          "2025-06-17",
+          "2025-06-18",
+          "2025-06-19"
+        ],
+        "fold": 1,
+        "innerPurge": [
+          "2025-06-20",
+          "2025-06-23"
+        ],
+        "outerPurge": [
+          "2025-07-01",
+          "2025-07-02"
+        ],
+        "score": [
+          "2025-07-03",
+          "2025-07-04",
+          "2025-07-07",
+          "2025-07-08",
+          "2025-07-09",
+          "2025-07-10",
+          "2025-07-15",
+          "2025-07-16"
+        ]
+      },
+      {
+        "calibration": [
+          "2025-07-04",
+          "2025-07-07",
+          "2025-07-08",
+          "2025-07-09",
+          "2025-07-10"
+        ],
+        "fit": [
+          "2025-05-30",
+          "2025-06-02",
+          "2025-06-03",
+          "2025-06-04",
+          "2025-06-05",
+          "2025-06-06",
+          "2025-06-09",
+          "2025-06-10",
+          "2025-06-11",
+          "2025-06-12",
+          "2025-06-13",
+          "2025-06-16",
+          "2025-06-17",
+          "2025-06-18",
+          "2025-06-19",
+          "2025-06-20",
+          "2025-06-23",
+          "2025-06-24",
+          "2025-06-25",
+          "2025-06-26",
+          "2025-06-27",
+          "2025-06-30",
+          "2025-07-01"
+        ],
+        "fold": 2,
+        "innerPurge": [
+          "2025-07-02",
+          "2025-07-03"
+        ],
+        "outerPurge": [
+          "2025-07-15",
+          "2025-07-16"
+        ],
+        "score": [
+          "2025-07-17",
+          "2025-07-18",
+          "2025-07-22",
+          "2025-07-23",
+          "2025-07-24",
+          "2025-07-25",
+          "2025-07-28",
+          "2025-07-29"
+        ]
+      },
+      {
+        "calibration": [
+          "2025-07-18",
+          "2025-07-22",
+          "2025-07-23",
+          "2025-07-24",
+          "2025-07-25"
+        ],
+        "fit": [
+          "2025-05-30",
+          "2025-06-02",
+          "2025-06-03",
+          "2025-06-04",
+          "2025-06-05",
+          "2025-06-06",
+          "2025-06-09",
+          "2025-06-10",
+          "2025-06-11",
+          "2025-06-12",
+          "2025-06-13",
+          "2025-06-16",
+          "2025-06-17",
+          "2025-06-18",
+          "2025-06-19",
+          "2025-06-20",
+          "2025-06-23",
+          "2025-06-24",
+          "2025-06-25",
+          "2025-06-26",
+          "2025-06-27",
+          "2025-06-30",
+          "2025-07-01",
+          "2025-07-02",
+          "2025-07-03",
+          "2025-07-04",
+          "2025-07-07",
+          "2025-07-08",
+          "2025-07-09",
+          "2025-07-10",
+          "2025-07-15"
+        ],
+        "fold": 3,
+        "innerPurge": [
+          "2025-07-16",
+          "2025-07-17"
+        ],
+        "outerPurge": [
+          "2025-07-28",
+          "2025-07-29"
+        ],
+        "score": [
+          "2025-07-30",
+          "2025-07-31",
+          "2025-08-01",
+          "2025-08-04",
+          "2025-08-05",
+          "2025-08-06",
+          "2025-08-07",
+          "2025-08-08"
+        ]
+      },
+      {
+        "calibration": [
+          "2025-07-31",
+          "2025-08-01",
+          "2025-08-04",
+          "2025-08-05",
+          "2025-08-06"
+        ],
+        "fit": [
+          "2025-05-30",
+          "2025-06-02",
+          "2025-06-03",
+          "2025-06-04",
+          "2025-06-05",
+          "2025-06-06",
+          "2025-06-09",
+          "2025-06-10",
+          "2025-06-11",
+          "2025-06-12",
+          "2025-06-13",
+          "2025-06-16",
+          "2025-06-17",
+          "2025-06-18",
+          "2025-06-19",
+          "2025-06-20",
+          "2025-06-23",
+          "2025-06-24",
+          "2025-06-25",
+          "2025-06-26",
+          "2025-06-27",
+          "2025-06-30",
+          "2025-07-01",
+          "2025-07-02",
+          "2025-07-03",
+          "2025-07-04",
+          "2025-07-07",
+          "2025-07-08",
+          "2025-07-09",
+          "2025-07-10",
+          "2025-07-15",
+          "2025-07-16",
+          "2025-07-17",
+          "2025-07-18",
+          "2025-07-22",
+          "2025-07-23",
+          "2025-07-24",
+          "2025-07-25",
+          "2025-07-28"
+        ],
+        "fold": 4,
+        "innerPurge": [
+          "2025-07-29",
+          "2025-07-30"
+        ],
+        "outerPurge": [
+          "2025-08-07",
+          "2025-08-08"
+        ],
+        "score": [
+          "2025-08-12",
+          "2025-08-13",
+          "2025-08-14",
+          "2025-08-15",
+          "2025-08-18",
+          "2025-08-19",
+          "2025-08-20",
+          "2025-08-21",
+          "2025-08-22",
+          "2025-08-25"
+        ]
+      }
+    ],
+    "outerArchitecture": "R52/R53_WHOLE_SESSION_EXPANDING_WITH_OUTER_PURGE",
+    "innerPurge": 2,
+    "calibrationLast": 5,
+    "noRefitAfterCalibration": true,
+    "trainStrictlyBeforeScore": true
+  },
+  "support": {
+    "minFamilyMatureRows": 500,
+    "minHorizonMatureLabels": 100,
+    "minEntryIds": 10,
+    "minSessions": 3,
+    "requiredDShort": [
+      1,
+      5
+    ],
+    "optionalUnsupported": "NULL_NOT_FABRICATED"
+  },
+  "controller": {
+    "candidates": [
+      {
+        "id": "MH_WAIT15",
+        "confirmations": 2,
+        "oneTimeGraceActiveMinutes": 15
+      },
+      {
+        "id": "MH_WAIT5",
+        "confirmations": 2,
+        "oneTimeGraceActiveMinutes": 5
+      }
+    ],
+    "short": [
+      1,
+      5
+    ],
+    "long": [
+      15,
+      30,
+      60,
+      "EOD"
+    ],
+    "shortNegative": "ALL_CALENDAR_SHORT_MEAN_D_FINITE_AND_LT0",
+    "longSupport": "ANY_CALENDAR_LONG_MEAN_D_GT0_AND_Q10_D_GE0",
+    "maxGraceGrants": 1,
+    "deadline": "MIN_GRANT_NOW_PLUS_ACTIVE_BUDGET_ANCHOR_TARGET_TERMINAL",
+    "missingCore": "HOLD_DATA_UNAVAILABLE_RESET_NEG_COUNT_NO_GRACE_REISSUE",
+    "sameTimestampDuplicate": "ERROR",
+    "negativePnLOnlySell": false,
+    "hardMfeArming": false,
+    "forecastRevisionInDecision": false,
+    "noPastExitTeacher": true,
+    "recursivePolicyValueClaim": false
+  },
+  "budget": {
+    "mainHeads": 13,
+    "mainFits": 104,
+    "ablationSDFits": 24,
+    "ablationPDFits": 24,
+    "independentDRefits": 24,
+    "maxRealEstimatorFits": 176,
+    "maxSyntheticSmokeFits": 3,
+    "baseConfigurations": 14,
+    "baseRepeats": 2,
+    "feeStressInvocations": 12,
+    "independentDReplayInvocations": 4,
+    "maxIntegratedReplayInvocations": 44,
+    "additionalCandidates": 0,
+    "thresholdGrid": 0
+  },
+  "gate": {
+    "pairedGe5MeanNetPctMin": 3.896040482101461,
+    "pairedGe5PnlJpyMin": "296636.175",
+    "pairedGe10MeanNetPctMin": 6.468,
+    "pairedBelow1MeanNetPctMin": -4.66,
+    "paired3to5MeanNetPctMin": 0,
+    "certifiedEodDays": 24,
+    "finalEquityStrictlyAboveControlAndInitial": true,
+    "ge5FundedMin": 27,
+    "ge5ReachMin": 0.17088607594936708,
+    "ge10FundedMin": 15,
+    "replacementMinN": 5,
+    "replacementGe5Min": 1,
+    "replacementMedianUpsidePctMin": 1.787,
+    "topSessionNotionalShareMax": 0.2,
+    "DforecastMseVsZero": "ENTRY_SESSION_WEIGHTED_3_OF_4_FOLDS_AND_POOLED_IM_FOR_H1_H5_H15",
+    "IMeodMaxDdNoninferior": true,
+    "costStress20bp": "CERTIFIED24_FINAL_ABOVE_ONE_MILLION_AND_MATCHED_CONTROL",
+    "reproducibility": "SAVED_PREDICTION_REPLAY_BYTE_EQUAL_AND_INDEPENDENT_D_REFIT_IDENTICAL",
+    "selectionPriority": [
+      "IM_FINAL_EQUITY",
+      "PAIRED_OLD_GE5_PNL",
+      "FUNDED_GE5_N"
+    ],
+    "exactTie": "NO_SELECTION_STOP",
+    "utilizationTargetSeparate": 0.8
+  },
+  "evaluator": {
+    "upsideBuckets": [
+      "<0",
+      "0-1",
+      "1-2",
+      "2-3",
+      "3-4",
+      "4-5",
+      "5-7.5",
+      "7.5-10",
+      ">=10",
+      "UNKNOWN"
+    ],
+    "contexts": [
+      "Initial",
+      "Replacement",
+      "Combined"
+    ],
+    "daily": "ALL_24_CONTIGUOUS_CERTIFIED_EOD_ONLY_FOR_FULL_PERIOD_GEOMETRIC",
+    "missing": "NULL_PRESERVED_NO_FUTURE_MARK",
+    "pairedLayerA": "FIXED_OLD_QUANTITY_DIAGNOSTIC_ONLY",
+    "layerB": "REPLAY_ALL_FROZEN_ENTRY_EVENT_CASH_SLOT_100_SHARE",
+    "costStressPp": [
+      "0.10",
+      "0.20"
+    ],
+    "ablationSelectionEligible": false
+  },
+  "execution": {
+    "predictionSha256KnownOnlyAfterFit": true,
+    "metricAfterOofAudit": true,
+    "finishingDAG": [
+      "verify-inputs",
+      "finite-fit",
+      "save-oof-and-calibration",
+      "audit-forecasts",
+      "deterministic-all-replays",
+      "cost-stress",
+      "independent-refit-replays",
+      "independent-audit",
+      "scorecards-curves",
+      "frozen-verdict",
+      "package"
+    ],
+    "correctedReadinessRunId": 36361518409
+  },
+  "providerNewRequestsAllowed": false,
+  "protectedNewOpeningsAllowed": false,
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "cycleId": "CYCLE2_CORRECTED_D_TEACHER",
+  "savedJst": "2026-09-28T14:29:15+09:00",
+  "supersedesInvalidCycle": {
+    "file": "CYCLE1_INVALID_TEACHER.json",
+    "oldTeacherSha256": "0f1a8ad8e385ca9ccb9ec46db8dcc61b6003fae475a266ca061611465101cd7e",
+    "oldPrecommitSha256": "8d3e7594d7cc14748e08ed00a6a0c02e81c10ec056e4fc058c6f039ce99055ae",
+    "disposition": "SUPERSEDED_BEFORE_ANY_NEW_REAL_ESTIMATOR_FIT_OR_EXIT_PERFORMANCE"
+  }
+}

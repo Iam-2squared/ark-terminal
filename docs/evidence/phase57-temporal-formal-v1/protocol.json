@@ -1,0 +1,33 @@
+{
+  "adoptedSpecPath": "docs/evidence/phase57-temporal-feasibility-v1/ci-result/measurement/05_validation_spec_proposal.json",
+  "adoptedSpecSHA256": "f614d866445dfb53c73b48af32fbd58e9bd04e71a224262ebbd8cef2bcaa099d",
+  "adoption": "Adopt exact proposed schedule/estimators/thresholds per user authorization. Keep archived proposal status unchanged. No temporal results observed before this commit.",
+  "countSemantics": "All9 primary36720 lane-qualified cells. All32 supplementary130560 cells. Report cell HIGH_PASS/MEDIUM_PASS separately from availability filters. Symbol trait histogram deduplicates same trait_id across lanes; also provide lane-qualified histogram.",
+  "feasibilityManifestSHA256": "7e90f89e5e59edb12f26df1f38138e8a2c57eeac53791c7a4bb94918202898de",
+  "gate": "User-required contracts allPASS plus at least1 admitted trait and1 real fresh Reader connection; threshold frozen before scoring. Prior Gates/results preserved. READY is research development eligibility only; no automatic promotion or main merge.",
+  "integration": "Fixed last authorized day2025-08-25 at12:35JST, prior closed profile2025-08-22. Use prior-day master, last-history and only closed current-day minutes. First3 code-ordered nonempty admitted profiles; do not select by future returns/Reader success. Fail Gate if no nonempty fresh real connection.",
+  "primary": "All9 old USABLE families x all4080 historical symbols, including4 currently unmeasurable. No trait removal. Secondary WATCH23 calibrated with original fold1 mapping and original two-period thresholds. No promotion. Pullback remains separate prior candidate-only Evidence.",
+  "reuse": "Same144 remain Entry/EXIT Development. Regenerate per-decision features and learned artifacts from past only; never final snapshot/HM/temporal backfill. No Entry/EXIT learning now.",
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "sampleConfidence": "Preserve HIGH/MEDIUM/LOW/INSUFFICIENT exactly. MEDIUM unknown drift allowed with explicit warning per existing policy.",
+  "snapshot": "Latest authorized144 session close 2025-08-25; unchanged60 calendar-position window and20/250/expanding diagnostics. Same-as-of across daily/intraday/peer/normalization. Coverage at close+1minute is a research snapshot, not a fresh market decision.",
+  "sourceHashes": {
+    "oldManifest": "e6ffe087312a1a048fe038ca2afd8e719b16aafd9e6483f076b90389757dafe1",
+    "protocol": "218f6dac2ef660fe74d7e80ca583542dc30bd6796b0d07ec7c64ee1eb23cd22b",
+    "registry": "3db98b56a98e39cc15708c5918c2aaf694376cc472d601c79971db49a5b98a39"
+  },
+  "sourceHead": "18a90dd375e059b80a9eb58f7fd05bec37cd4a7d",
+  "temporalAvailability": "Outcome computedThrough = final target close2025-08-21 15:30JST; research logical availableAt15:31JST. It cannot be dispatched at earlier decisions. Actual source availability at acquisition time is not verified: HISTORICAL_RECONSTRUCTION_NOT_PIT_NOT_OOS.",
+  "traitAvailability": "Old global USABLE AND existing sample HIGH/MEDIUM AND unchanged temporal PASS AND drift not true AND dated master valid AND finite posterior/uncertainty/nEff AND causal timestamps. No symbol-wide all-pass condition. Missing payload value=null plus UNAVAILABLE reason; numerical0 remains a valid available value. WATCH never dispatched.",
+  "version": "TEMPORAL_FORMAL_REMEASUREMENT_TRAIT_HANDOFF_V1"
+}

@@ -1,0 +1,23 @@
+{
+  "version": "DICTIONARY_ANATOMY_V1",
+  "sourceHead": "573a0bfebf87319cdc07f93ee6db533f74457c69",
+  "scope": "Offline diagnostic of saved Development results only; no raw acquisition, trait remeasurement or promotion",
+  "priorExposure": "All fixed trait statuses and failure reasons viewed before this protocol; analysis is post hoc, not a new confirmatory trial",
+  "lanes": ["daily", "intraday"],
+  "expectedTraitRows": 146,
+  "expectedWatchRows": 92,
+  "categories": ["RELIABLE_PARTIAL_GATE_FAILURE", "PEER_ADJUSTMENT_LOSS", "STRATUM_LOCAL_SIGNAL", "RECENT_ONLY_RELIABILITY", "PEER_CLUSTER_RELIABILITY", "SAMPLE_INSUFFICIENT", "TAIL_SESSION_SENSITIVITY", "DEFINITION_INSTABILITY", "NO_RELIABILITY_DEMONSTRATED", "REDUNDANT_RELIABLE_TRAIT"],
+  "classification": "Multi-label, evidence-qualified. CONFIRMED only for exact saved Gate evidence. INDICATION is not validation. NOT_ESTABLISHED is not false. UNKNOWN is not zero.",
+  "strata": "Use saved liquidity tertiles only; no price/volatility strata results are available. No post-hoc threshold selection.",
+  "windows": "20/60/250 existing snapshots only. Summarize eligible counts, nEff, drift and descriptive correlations; overlapping snapshots cannot establish recent reliability.",
+  "peer": "Use existing A-only peer fit; cross-sectional fit and shrinkage do not validate peer/cluster persistence. No new clusters.",
+  "sparse": "Candidate research view includes only unchanged USABLE traits and eligible symbol/window cells. This is an availability view, not a per-symbol reliability certification or Gate replacement.",
+  "definitionAudit": "Inspect implementations and exact registry contracts; synthetic counterexamples allowed. No threshold changes. No new registry until a confirmed scalar definition defect and separate precommit exist.",
+  "chartFamilies": ["Swing", "Rebound", "Giveback", "VWAP", "Breakout", "Reclaim", "Wick", "Compression", "S/R", "Volume confirmation"],
+  "protectedPayloadReadsAllowed": 0,
+  "newProviderRequestsAllowed": 0,
+  "entryExitTrialsAllowed": 0,
+  "productionAllowed": false,
+  "deterministic": "All output JSON/CSV generated twice, byte-identical; source file hashes rechecked",
+  "stop": "After diagnostic tests/regression/CI/evidence/handoff. New LONG Entry/EXIT redesign only in a subsequent stage if Dictionary and Reader are independently Development-usable."
+}

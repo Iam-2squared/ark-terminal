@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-09-23T00:00:00Z",
+  "startHead": "35e0b5ec20ca05940f34bbe23a5ba29d6d566f72",
+  "scope": "PHASE57_STATE_V3_9PATTERN_ENTRY_V1",
+  "results": {
+    "stateV3EntryAndPreservedEntryV1": {
+      "command": "python -m unittest -v scripts.test_phase57_state_v3_9pattern_entry_v1 scripts.test_phase57_state_conditioned_signal_entry_v1",
+      "testsRun": 30,
+      "passed": 30,
+      "skipped": 0,
+      "failed": 0,
+      "status": "PASS"
+    },
+    "step1Contract": {
+      "command": "python -m unittest -v scripts.test_phase57_state_v3_9pattern_contract",
+      "testsRun": 7,
+      "passed": 7,
+      "skipped": 0,
+      "failed": 0,
+      "status": "PASS"
+    },
+    "pythonCompile": {
+      "files": [
+        "scripts/phase57_state_v3_9pattern_entry_v1.py",
+        "scripts/test_phase57_state_v3_9pattern_entry_v1.py"
+      ],
+      "status": "PASS"
+    },
+    "deterministicReplay": {
+      "population": 2155,
+      "runA": "state-v3-replay-a",
+      "runB": "state-v3-replay-b",
+      "comparison": "diff -qr",
+      "differingFiles": 0,
+      "status": "PASS"
+    },
+    "baselineParity": "PASS",
+    "causalityAudit": "PASS"
+  },
+  "providerRequests": 0,
+  "protectedDataOpened": 0,
+  "safety9AllFalse": true,
+  "notes": [
+    "The final local test run was executed after MANIFEST.json was present and verified its complete files map.",
+    "GitHub CI receipt is append-only and intentionally not claimed by this local receipt."
+  ]
+}

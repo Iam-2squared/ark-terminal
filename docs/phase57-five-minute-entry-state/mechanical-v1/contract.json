@@ -1,0 +1,88 @@
+{
+  "version": "five-minute-state-mechanical-v1",
+  "status": "FROZEN_CANDIDATE_HUMAN_REVIEW_REQUIRED",
+  "authorized_scope": "DEFINITION_AND_SYNTHETIC_TESTS_ONLY",
+  "cycle_active_minutes": 5,
+  "latest_window_minutes": 5,
+  "reference_scale": {
+    "source": "ACTUAL_PREVIOUS_SESSION_COMPLETE_NONOVERLAPPING_5M_BLOCK_TRUE_RANGES",
+    "statistic": "MEDIAN_IN_COMMON_PRICE_UNITS_INCLUDING_ZERO",
+    "minimum_complete_blocks": 6,
+    "fallback": "NONE",
+    "fixed_for_today": true
+  },
+  "swing": {
+    "prices": "CLOSED_1M_CLOSES",
+    "reversal_scale_multiple": "1",
+    "comparison": "GREATER_OR_EQUAL",
+    "equal_extreme_tie": "EARLIEST",
+    "reset_on_gap_or_recess": true,
+    "structure_pivots": 4,
+    "high_low_comparison": "STRICT",
+    "protected_level_break": "STRICT_CLOSE_CROSS"
+  },
+  "range": {
+    "complete_minutes": 30,
+    "block_minutes": 5,
+    "max_width_scale": "2",
+    "max_efficiency": "1/3",
+    "touch_band_scale": "1/4",
+    "minimum_distinct_blocks_per_side": 2,
+    "boundary": "FIXED_AT_BIRTH",
+    "zero_width": "NOT_A_RANGE"
+  },
+  "attributes": {
+    "chop_min_close_direction_changes": 2,
+    "chop_max_efficiency": "1/3",
+    "chop_min_envelope_scale": "1/2",
+    "expansion_ratio": "3/2",
+    "compression_ratio": "2/3",
+    "zero_denominator": "NULL"
+  },
+  "recovery": {
+    "episode": "ADJACENT_CONFIRMED_HIGH_THEN_LOW_CLOSE_PIVOTS",
+    "active": "RISING_LEG_AND_LOW_LT_CLOSE_LT_HIGH",
+    "complete": "CLOSE_GE_EPISODE_HIGH",
+    "invalidated": "CLOSE_LT_EPISODE_LOW",
+    "fraction": "(C-L)/(H-L)_UNCLIPPED"
+  },
+  "event": {
+    "upper_cross": "PREVIOUS_CLOSE_LE_LEVEL_LT_CURRENT_CLOSE",
+    "lower_cross": "PREVIOUS_CLOSE_GE_LEVEL_GT_CURRENT_CLOSE",
+    "reclaim": "PRIOR_SAME_SEGMENT_CLOSE_ON_REGAINED_SIDE",
+    "wick_is_not_close_break": true,
+    "level_fixed_before_window": true,
+    "persistence": "CLOSES_AT_FIRST_TWO_SCHEDULED_ENDS_AFTER_EVENT",
+    "buffer": "NONE_RAW_GEOMETRIC_EVENT"
+  },
+  "oracle": {
+    "future_active_minutes": 10,
+    "same_session_only": true,
+    "no_segment_bridge": true,
+    "state_target": "LATEST_WINDOW_END_T_NOT_NEXT_FIVE_MINUTES",
+    "effective_at_and_confirmed_at_separate": true,
+    "unknown_order": "RETAIN",
+    "right_censor": "PER_FIELD_NOT_WHOLE_OPPORTUNITY"
+  },
+  "daily": {
+    "lags": [5, 4, 3, 2, 1],
+    "date_source": "EXACT_INJECTED_TRADING_CALENDAR",
+    "numeric_weight": "NONE_SEPARATE_CONTEXT",
+    "previous_session_substitution": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "market_rows_measured": 0,
+  "threshold_search": false,
+  "scientific_validity_claim": false,
+  "legacy_label_reuse": false
+}

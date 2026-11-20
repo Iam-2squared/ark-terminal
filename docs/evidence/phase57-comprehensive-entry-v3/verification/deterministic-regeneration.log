@@ -1,0 +1,133 @@
+{
+  "status": "COMPREHENSIVE_LONG_ENTRY_V3_DEVELOPMENT_LIMIT_REACHED",
+  "complete": 633,
+  "keep": [],
+  "events": {
+    "E1_PULLBACK": {
+      "verdict": "KILL",
+      "failedGates": [
+        "failureSeparation",
+        "chronological",
+        "top3Exclusion"
+      ]
+    },
+    "E2_STABILIZATION": {
+      "verdict": "KILL",
+      "failedGates": [
+        "failureSeparation",
+        "preserve3EnteredPairs",
+        "preserve5EnteredPairs",
+        "chronological",
+        "top3Exclusion"
+      ]
+    },
+    "E3_RECLAIM": {
+      "verdict": "KILL",
+      "failedGates": [
+        "failureSeparation",
+        "priceMean",
+        "priceMedian",
+        "remainingMFE",
+        "preserve3EnteredPairs",
+        "preserve5EnteredPairs",
+        "INITIAL_DIP",
+        "chronological",
+        "top3Exclusion"
+      ]
+    },
+    "E4_MOMENTUM_TURN": {
+      "verdict": "KILL",
+      "failedGates": [
+        "failureSeparation",
+        "priceMean",
+        "priceMedian",
+        "remainingMFE",
+        "preserve3EnteredPairs",
+        "preserve5EnteredPairs",
+        "INITIAL_DIP",
+        "chronological",
+        "top3Exclusion"
+      ]
+    },
+    "E5_FAILED_BREAKDOWN": {
+      "verdict": "KILL",
+      "failedGates": [
+        "pbCapture",
+        "failureSeparation",
+        "priceMean",
+        "priceMedian",
+        "remainingMFE",
+        "preserve3EnteredPairs",
+        "preserve5EnteredPairs",
+        "INITIAL_DIP",
+        "chronological",
+        "top3Exclusion"
+      ]
+    },
+    "E6_CONTINUATION": {
+      "verdict": "KILL",
+      "failedGates": [
+        "priceMean",
+        "priceMedian",
+        "strict30Median",
+        "strict30P05",
+        "remainingMFE",
+        "preserve3EnteredPairs",
+        "preserve5EnteredPairs",
+        "INITIAL_DIP",
+        "chronological",
+        "top3Exclusion"
+      ]
+    },
+    "S1_P_S_R": {
+      "verdict": "KILL",
+      "failedGates": [
+        "pbCapture",
+        "priceMean",
+        "priceMedian",
+        "remainingMFE",
+        "preserve3EnteredPairs",
+        "preserve5EnteredPairs",
+        "INITIAL_DIP",
+        "chronological",
+        "concentration",
+        "top3Exclusion"
+      ]
+    },
+    "S2_P_F_R": {
+      "verdict": "KILL",
+      "failedGates": [
+        "pbCapture",
+        "failureSeparation",
+        "priceMean",
+        "priceMedian",
+        "remainingMFE",
+        "preserve3EnteredPairs",
+        "preserve5EnteredPairs",
+        "pbEventN",
+        "INITIAL_DIP",
+        "chronological",
+        "top3Exclusion"
+      ]
+    },
+    "S3_P_S_M": {
+      "verdict": "KILL",
+      "failedGates": [
+        "pbCapture",
+        "failureSeparation",
+        "priceMean",
+        "priceMedian",
+        "preserve3EnteredPairs",
+        "preserve5EnteredPairs",
+        "pbEventN",
+        "INITIAL_DIP",
+        "chronological",
+        "concentration",
+        "top3Exclusion"
+      ]
+    }
+  }
+}
+['b0-immediate-train.json.gz', 'e1_pullback-train.json.gz', 'e2_stabilization-train.json.gz', 'e3_reclaim-train.json.gz', 'e4_momentum_turn-train.json.gz', 'e5_failed_breakdown-train.json.gz', 'e6_continuation-train.json.gz', 's1_p_s_r-train.json.gz', 's2_p_f_r-train.json.gz', 's3_p_s_m-train.json.gz', 'summary.json', 'train-pit-states.json.gz']
+{"status": "COMPREHENSIVE_LONG_ENTRY_V3_DEVELOPMENT_LIMIT_REACHED", "independentEpisodeAudits": 1760, "validationEvaluations": 0, "developmentTestEvaluations": 0, "safety": {"automaticPromotionAllowed": false, "brokerWriteAllowed": false, "excelOrderWriteAllowed": false, "executionAllowed": false, "liveTradingAllowed": false, "paperTradingAllowed": false, "productionUpdateAllowed": false, "rssOrderFunctionAllowed": false, "transmitted": false}}
+['REPORT.md', 'audit-appendix.json']

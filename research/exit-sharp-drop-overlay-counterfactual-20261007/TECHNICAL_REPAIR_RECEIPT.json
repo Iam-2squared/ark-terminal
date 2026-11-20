@@ -1,0 +1,45 @@
+{
+  "technical_repair_cycles": 5,
+  "maximum": 5,
+  "repairs": [{
+    "cycle": 1,
+    "stage": "source-schema inspection before PRECOMMIT and replay",
+    "failure": "KeyError: constructed FULL_TRACE member did not exist",
+    "fix": "Use exact source_path_or_member from previous sealed ENTRY_STATE9_ASOF_ROWS, not an inferred filename",
+    "failed_saved_state_rows_read": 0,
+    "policy_replays": 0,
+    "meaning_cohort_candidate_teacher_changes": 0,
+    "failure_implementation": "private/inspect_contract_sources_before_path_repair.py"
+  }, {
+    "cycle": 2,
+    "stage": "source-header inspection before PRECOMMIT and replay",
+    "failure": "TypeError: Object of type bytes is not JSON serializable",
+    "fix": "Decode header field names to UTF-8 before JSON serialization; reuse already projected Control metadata",
+    "policy_replays": 0,
+    "meaning_cohort_candidate_teacher_changes": 0,
+    "failure_implementation": "private/INSPECTION_BEFORE_SERIALIZATION_REPAIR_2.py"
+  }, {
+    "cycle": 3,
+    "stage": "GitHub source-metadata inspection before PRECOMMIT and replay",
+    "failure": "SyntaxError: undefined is not valid JSON after an absent directory GET",
+    "fix": "Inspect isError and structuredContent.error before decoding; resolve archive members from successful manifest",
+    "policy_replays": 0,
+    "meaning_cohort_candidate_teacher_changes": 0
+  }, {
+    "cycle": 4,
+    "stage": "Control-versus-teacher metadata inspection before PRECOMMIT and replay",
+    "failure": "AttributeError: NoneType object has no attribute startswith for an R-UNKNOWN exit_kind",
+    "fix": "Preserve unknown exit_kind and guard null before testing EOD prefix",
+    "policy_replays": 0,
+    "meaning_cohort_candidate_teacher_changes": 0
+  }, {
+    "cycle": 5,
+    "stage": "first candidate intent pass",
+    "failure": "KeyError: causal_segment_id is on the saved path endpoint, not the State object",
+    "fix": "Read the exact path.causal_segment_id column verified from the source schema; rule and clock unchanged",
+    "failed_pass_completed_lifecycles": 0,
+    "failed_pass_sealed_decisions": 0,
+    "meaning_cohort_candidate_teacher_changes": 0,
+    "failure_implementation": "private/INTENT_ENGINE_BEFORE_SCHEMA_REPAIR_5.py"
+  }]
+}

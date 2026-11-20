@@ -1,0 +1,223 @@
+import json, hashlib, math, subprocess
+from pathlib import Path
+
+ROOT = Path('/workspace/scratch/4972db587728/ark-terminal-phase57-ordinal')
+OUT = ROOT / 'docs/evidence/phase57-long-only-e2e-data-responsibility'
+OUT.mkdir(exist_ok=True)
+def read(p): return json.loads((ROOT/p).read_text())
+def sha(p): return hashlib.sha256((ROOT/p).read_bytes()).hexdigest()
+def save(p,d):
+    (ROOT/p).parent.mkdir(parents=True,exist_ok=True)
+    (ROOT/p).write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n')
+P='docs/evidence/phase57-long-only-e2e-data-responsibility/'
+prior=read('docs/evidence/phase57-long-only-global-data-budget/budget-attempt.json')
+source=read('docs/evidence/phase57-long-only-fresh-allocation-audit/audit.json')['sources']
+extract=read('docs/evidence/phase57-long-only-fresh-allocation-audit/source-metadata-extracts.json')
+candidate=read('predict/research/phase57-msh-entry-long-v1-validation-candidate-v1.json')
+checks={}
+for p,c in prior['protectedVerification'].items():
+    actual=hashlib.sha256(json.dumps(read('predict/research/phase57-long-only-frozen-selector-v1.json')['freezePayload'],sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest() if p=='selectorPayloadSha256' else sha(p)
+    assert actual==c['expected'],p
+    checks[p]={'expected':c['expected'],'actual':actual,'pass':True}
+audit='docs/evidence/phase57-long-only-global-data-budget/manifest.json'
+assert sha(audit)=='7832848941d42fa5878591d5f4475ee3af296da25a7911c0cb51741d4082207f'
+checks[audit]={'expected':sha(audit),'actual':sha(audit),'pass':True}
+
+def source_record(ref,path,role):
+    raw=subprocess.check_output(['git','show',ref+':'+path],cwd=ROOT)
+    return {'commit':subprocess.check_output(['git','rev-parse',ref],cwd=ROOT).decode().strip(),
+      'path':path,'blobSha':subprocess.check_output(['git','rev-parse',ref+':'+path],cwd=ROOT).decode().strip(),
+      'sha256':hashlib.sha256(raw).hexdigest(),'lastPathCommit':subprocess.check_output(['git','log','-1','--format=%H %aI',ref,'--',path],cwd=ROOT).decode().strip(),
+      'role':role}
+recovered=[dict(key=k,**v,scope='LEGACY_REFERENCE_NOT_LONG_ADOPTION' if k.startswith(('exit','capital','oldEntry')) else 'LONG_SCOPE_OR_CROSS_RESEARCH_EXPOSURE_RECORD') for k,v in source.items()]
+extra=[('origin/phase57/p25-exit-v3-independent-protocol','predict/daytrade/phase57-p25-exit-v3-independent-protocol.js','LEGACY_V3_PRE_CUTOFF_RESEARCH_NO_LONG_TRANSFER'),
+ ('origin/research/phase57-exit-v4-hybrid-msh-large-scale','docs/phase57-exit-v4-hybrid-msh-large-scale.md','DESIGN_SECTIONS_CHECKPOINTS_ONLY'),
+ ('origin/research/phase57-capital-allocation-v3-phase-b-integrated','predict/research/phase57-capital-allocation-v3-entrytime-contract.json','LEGACY_POLICY_FAMILY_NOT_LONG_ADOPTION'),
+ ('origin/research/phase57-capital-allocation-v3-phase-b-integrated','predict/research/phase57-capital-allocation-v3-phase-b-integrated-contract.json','LEGACY_INTEGRATION_NOT_LONG_ADOPTION')]
+recovered += [source_record(*x) for x in extra]
+save(P+'source-recovery.json',{'contracts':recovered,'discovery':json.load(open('/tmp/phase57-responsibility-catalog.json')),
+ 'precedence':['USER_2026_09_16_NEW_RESPONSIBILITY_BUDGET_AUTHORIZATION','FROZEN_LONG_CANDIDATE_AND_COMPONENT_CONTRACTS_UNCHANGED','CURRENT_LONG_PLAN_FOR_EXISTING_BLOCK_SIZES','LEGACY_CONTRACTS_FOR_DESIGN_PRECEDENTS_ONLY'],
+ 'supersession':[{'old':'previous Global Budget audit UNRESOLVED responsibility entries','new':'this explicitly new budget design resolves counts and allowed sharing; prior audit remains immutable'},
+ {'old':'LONG shared historical205 clean-role assumptions','new':'positive cross-research exposure metadata disqualifies freshness; no date reallocation or original file mutation'},
+ {'old':'LONG planned Development80','new':'this downstream budget uses only76 already-authorized Development sessions, leaving4 reserved sessions untouched; Entry training unchanged'},
+ {'old':'legacy EXIT/Capital contracts','new':'NOT SUPERSEDED in their own scope, never imported as evidence of LONG adoption'}],
+ 'legacyCheckpointInterpretation':{'200':'Checkpoint A target; now adopted as new LONG EXIT Development adequacy minimum','500':'conditional next checkpoint after review, not mandatory minimum','1000':'later checkpoint target, not mandatory minimum','2000':'coverage-dependent later checkpoint, not mandatory minimum'},
+ 'noPerformanceSelectedExit':'Legacy v3/v4 architecture interfaces may be studied later on Development. Neither is adopted from performance; LONG EXIT requires a separately frozen candidate before evaluation.',
+ 'scopeConflictsResolvedByNewDesign':['Entry-specific OOS30 assigned by standard outer-OOS block precedent, not legacy Entry10','EXIT-specific Validation30 and OOS30, not shared historical labels','Integration20 uses the existing20-session replication standard but is a NEW block, not the protected legacy Future20','Capital and Portfolio are budgeted for Development; no assumption of turnkey transferable frozen legacy rule','Final comparison30 and subsequent prospective25 are distinct blocks'],
+ 'remainingExecutionPrerequisites':['Exact session identities and lineage','PIT feasibility of historical inputs/artifact cutoffs','Cache/entitlement and acquisition limits','EXIT/Capital/Portfolio candidate and metric contracts before any evaluation'],
+ 'remainingBudgetCountConflicts':[]})
+
+taxonomy={
+ 'ENTRY_FRESH':'No outcomes used directly or indirectly in Selector/Entry/candidate design or selection. Reservation and PIT gates also required.',
+ 'EXIT_FRESH':'No outcomes used in EXIT architecture/fit/selection. Upstream exposure must be disclosed; this design nevertheless uses globally unexposed new EXIT evaluation blocks.',
+ 'INTEGRATION_FRESH':'No outcomes used in assembling, choosing or tuning any component or interaction of the evaluated stack.',
+ 'SYSTEM_FRESH':'No outcomes used by any researcher/agent to design/select/tune either comparison arm, any component, allocation or portfolio rule. All artifacts frozen before release.',
+ 'UNKNOWN':'No certification. Never usable as fresh.',
+ 'freshnessIsRelative':'Freshness is relative to a hypothesis/frozen stack, access history and claim; it is not a single reusable boolean.',
+ 'exposureTransition':'Opening an evaluation consumes freshness for new hypotheses and downstream tuning. It remains evidence for the original one-shot frozen claim only.'}
+reuseClasses={'A_DEVELOPMENT_ONLY':'Tuning permitted only in a separately authorized stage; never fresh Validation/OOS claims.',
+ 'B_VALIDATION_ONLY':'One frozen candidate evaluated once; no candidate tuning, no later Development reuse in this program.',
+ 'C_COMPONENT_OOS_ONLY':'Independent locked component evaluation; no upstream/downstream development reuse.',
+ 'D_JOINT_SYSTEM_VALIDATION':'One joint frozen-stack run supports Integration + Capital + Portfolio validation simultaneously; these are correlated claims, not three replications.',
+ 'E_FINAL_COMPARISON_ONLY':'System-fresh paired frozen arms under equal conditions; no tuning or winner-driven refit afterward.',
+ 'F_FINAL_PROSPECTIVE_ONLY':'Separate chronological forward check after final comparison; no selection, no automatic trading.'}
+derivation={'sessionRule':'Retain Entry Validation30; adopt existing Phase57 Validation/OOS30 standard for Entry OOS, EXIT Validation/OOS and final comparison. Use existing replication20 for joint Integration/Capital/Portfolio validation and existing LONG prospective25 for the final forward check.',
+ 'developmentRule':'Reuse all76 actually used LONG Development dates, not the unconsumed4 of the original80. Development is in-sample and explicitly non-fresh.',
+ 'exitDevelopmentEvents':200,'exitDevelopmentEventReason':'Existing stage2 devATargetIndependentFirstEnter=200 / Checkpoint A. 500/1000/2000 are not imported as minima.',
+ 'newEvaluationEventFloor':97,'eventFormula':'ceil(1.96^2 * 0.5 * (1-0.5) / 0.10^2) = 97',
+ 'eventAssumptions':{'confidenceNominal':0.95,'z':1.96,'worstCaseRate':0.5,'nominalHalfWidth':0.10,'developmentRatePlugIn':False},
+ 'interpretation':'New prospective adequacy guard for EXIT validation/OOS and joint Integration validation only. +/-10 percentage points is a declared minimum-viable descriptive binary-diagnostic precision choice, not an inherited gate or a P&L/power claim. It never changes Entry Candidate PASS philosophy.',
+ 'dependence':'A first Entry per symbol-session is an operational distinct trade opportunity, NOT an IID sample. Same-session/same-symbol correlations remain. Future uncertainty reporting must cluster by session and disclose cross-session dependence.97 does not guarantee a clustered interval width or multiplicity-adjusted precision.',
+ 'jointRequirement':'Fixed full session block AND applicable event floor; use all events, never stop early after the97th or200th.',
+ 'shortfallHandling':'INCONCLUSIVE_INSUFFICIENT_EVENTS and STOP if event minimum unmet; no extra sessions, threshold relaxation, cherry-picking or performance-based expansion. Fixed sessions do not guarantee events.',
+ 'noGuarantee':'This is the minimum viable predeclared design within adopted standard blocks, not a theorem proving statistical sufficiency or a guarantee of a conclusive result.'}
+assert math.ceil(1.96**2*.25/.10**2)==97
+
+defs=[
+ ('DEV',76,'A_DEVELOPMENT_ONLY','EXPOSED_DEVELOPMENT',200,['EXIT_DEVELOPMENT','CAPITAL_DEVELOPMENT','PORTFOLIO_DEVELOPMENT'],'EXISTING_LONG_76_IDENTITY'),
+ ('A',30,'B_VALIDATION_ONLY','ENTRY_FRESH',None,['ENTRY_VALIDATION'],'NEW'),
+ ('B',30,'C_COMPONENT_OOS_ONLY','ENTRY_FRESH',None,['ENTRY_OOS'],'NEW'),
+ ('C',30,'B_VALIDATION_ONLY','EXIT_FRESH',97,['EXIT_VALIDATION'],'NEW'),
+ ('D',30,'C_COMPONENT_OOS_ONLY','EXIT_FRESH',97,['EXIT_OOS'],'NEW'),
+ ('E',20,'D_JOINT_SYSTEM_VALIDATION','SYSTEM_FRESH',97,['INTEGRATION_VALIDATION','CAPITAL_VALIDATION','PORTFOLIO_VALIDATION'],'NEW'),
+ ('F',30,'E_FINAL_COMPARISON_ONLY','SYSTEM_FRESH',None,['FINAL_COMPARISON'],'NEW'),
+ ('G',25,'F_FINAL_PROSPECTIVE_ONLY','SYSTEM_FRESH',None,['FINAL_PROSPECTIVE_OOS'],'NEW')]
+blocks=[]
+for bid,n,cl,fr,ev,uses,identity in defs:
+ blocks.append({'blockId':bid,'sessions':n,'minimumDistinctFirstEntryEvents':ev,'reuseClass':cl,'freshnessRequired':fr,'purposes':uses,'identityStatus':identity,'actualNewSessionAllocation':[],
+  'dateSelectionRule':'Existing76, exactly frozen sessionListSHA' if bid=='DEV' else ('First25 JPX sessions strictly after Block F and full-system comparison closeout, excluding all protected/reserved/exposed dates; preregister all dates before opening any G payload.' if bid=='G' else 'Chronological disjoint whole JPX sessions, after all applicable upstream training/analog cutoffs; select using calendar, prior exposure, reservation and provider availability metadata only. Freeze exact list in Acquisition Contract before any price fetch.'),
+  'cadence':'Frozen Entry10 decision timestamps/session; full causal completed5m path for EXIT/ledger; no5m Selector reconstruction',
+  'universe':'FROZEN_JPX_PRIME_STANDARD_GROWTH_COMMON_EQUITY_PIT_LONG_ONLY',
+  'requiredFields':'dated PIT master, required causal daily feature history, timestamped minute OHLCV -> completed5m bars, corporate-action/source lineage; private storage only',
+  'reusePermission':'Development three consumers; never fresh claims' if bid=='DEV' else ('Joint single run only, all three consumers frozen beforehand' if bid=='E' else 'No other stage role'),
+  'protectedDownstreamUse':'All later blocks remain sealed; no backward transfer or auto-release'})
+
+specs=[
+ ('ENTRY_VALIDATION','One-shot Candidate2.0 confirmation','A',False,True,True,'session and distinct symbol-session first Entry',30,None,'Existing LONG Validation30'),
+ ('ENTRY_OOS','Independent Entry-only outer check after Validation review','B',False,False,True,'session and distinct symbol-session first Entry',30,None,'New responsibility; existing primaryOos30 standard'),
+ ('EXIT_DEVELOPMENT','LONG EXIT candidate construction using frozen upstream; existing v3/v4 not automatically adopted','DEV',True,True,True,'session and distinct first Entry',76,200,'Shared Development mandate + legacy Checkpoint A200; new LONG adequacy rule'),
+ ('EXIT_VALIDATION','Independent frozen LONG EXIT candidate validation','C',False,True,True,'session and distinct first Entry with complete contracted path',30,97,'Existing Validation30 standard + new conservative event guard'),
+ ('EXIT_OOS','Independent frozen LONG EXIT outer evaluation','D',False,False,True,'session and distinct first Entry with complete contracted path',30,97,'Existing OOS30 standard + new conservative event guard'),
+ ('INTEGRATION_VALIDATION','End-to-end Selector/Entry/EXIT behavior with frozen cash allocation/portfolio','E',False,True,True,'session, first Entry, portfolio day',20,97,'Existing replication20 standard; new joint responsibility'),
+ ('CAPITAL_ALLOCATION','Budget for LONG adaptation/tuning on Development, then joint validation; no assumption legacy rule transfers','DEV+E',True,True,True,'76 Development sessions and20 portfolio-day validation',96,97,'Shared Development mandate; existing20 block standard; joint fresh evaluation'),
+ ('PORTFOLIO','Budget for cash-only aggregation/risk rules on Development then joint validation','DEV+E',True,True,True,'76 Development sessions and20 portfolio-day validation',96,97,'Shared Development mandate; new simultaneous validation responsibility'),
+ ('FINAL_COMPARISON','Paired frozen complete systems, untouched by all tuning','F',False,False,True,'paired portfolio day / session',30,None,'Existing true outerOos30 standard; same-window/cost contract'),
+ ('FINAL_PROSPECTIVE_OOS','Independent forward confirmation after final comparison, without any retune','G',False,False,True,'prospective session / portfolio day',25,None,'Existing LONG freshProspective target25')]
+matrix=[]
+for st,pur,bid,d,v,o,unit,n,ev,src in specs:
+ matrix.append({'stage':st,'purpose':pur,'blocks':bid.split('+'),'developmentRequired':d,'validationRequired':v,'oosRequired':o,'evaluationUnit':unit,'minimumSessions':n,'minimumIndependentEventsOperationalOnly':ev,
+ 'freshnessRequired':'DEVELOPMENT_ONLY' if st=='EXIT_DEVELOPMENT' else ('DEVELOPMENT_ONLY then SYSTEM_FRESH' if st in ['CAPITAL_ALLOCATION','PORTFOLIO'] else next(b['freshnessRequired'] for b in blocks if b['blockId']==bid)),
+ 'reuseAllowed':'Authorized shared Development and simultaneous E validation only' if '+' in bid else ('Shared Development only' if bid=='DEV' else ('Joint E claims only' if bid=='E' else 'NO')),
+ 'canReuseUpstreamComponentData':bid=='DEV' or '+' in bid,'canReuseForDownstreamDevelopment':bid=='DEV','canReuseForDownstreamValidation':'CONDITIONAL_SAME_PRE_FROZEN_E_RUN' if 'E' in bid.split('+') else 'NO',
+ 'canReuseForFinalComparison':st=='FINAL_COMPARISON','evidenceSource':src,'status':'RESOLVED_DESIGN_PENDING_AUDIT_GATE'})
+reuse=[]
+for a,b,ans,reason in [
+ ('LONG_DEVELOPMENT76','EXIT_DEVELOPMENT','YES','Existing shared Development requirement; no fresh claim'),
+ ('LONG_DEVELOPMENT76','CAPITAL_PORTFOLIO_DEVELOPMENT','YES','Same fixed exposed Development domain; no new prediction authorized now'),
+ ('ENTRY_VALIDATION_A','EXIT_DEVELOPMENT','NO','Would consume upstream independent evidence and encourage adaptive downstream selection'),
+ ('ENTRY_OOS_B','EXIT_DEVELOPMENT','NO','Keep component outer evidence out of tuning'),
+ ('EXIT_VALIDATION_C','INTEGRATION_DEVELOPMENT','NO','Integration correctness work uses synthetic or DEV, never held-out outcomes'),
+ ('EXIT_OOS_D','INTEGRATION_VALIDATION_E','NO','Distinct validation identities; no reuse of D as new evidence'),
+ ('INTEGRATION_VALIDATION_E','CAPITAL_PORTFOLIO_VALIDATION','CONDITIONAL','Same run, same dates, all components/metrics/candidates frozen before E; not independent replications'),
+ ('INTEGRATION_VALIDATION_E','PORTFOLIO_TUNING','NO','Any adaptation requires new architecture/data contract; no rescue within this budget'),
+ ('ANY_A_TO_E','FINAL_COMPARISON_F','NO','F must be SYSTEM_FRESH'),
+ ('FINAL_COMPARISON_F','FINAL_PROSPECTIVE_G','NO','Distinct future25; no arm retune after F'),
+ ('PROTECTED_LEGACY_FUTURE20','ANY_LONG_NEW_BLOCK','NO','Preserve legacy ownership; E is a separate20-session block'),
+ ('EXACT_SAME_RAW_CACHE','AUTHORIZED_SAME_IDENTITY_ROLE','CONDITIONAL','Avoid duplicate acquisition only; physical reuse does not reset exposure or permit new claim')]:
+ reuse.append({'from':a,'to':b,'allowed':ans,'reason':reason})
+gross=sum(r['minimumSessions'] for r in matrix)
+net=sum(b['sessions'] for b in blocks)
+fresh=sum(b['sessions'] for b in blocks if b['blockId']!='DEV')
+assert (gross,net,fresh)==(463,271,195)
+counts={'EXPOSED':375,'RESERVED':4,'SEALED':25,'PROTECTED':1,'PURGED':3,'EXCLUDED':4,'FRESH_AVAILABLE':0,'UNKNOWN':101,'TOTAL':513,'dateResolved':412}
+freshmatrix=[]
+for name,num,alloc,exp,sealed,protected,allow in [
+ ('KNOWN_EXPOSED',375,'UNCHANGED',True,False,False,'Only authorized Development subset; not all375 granted for development'),
+ ('RESERVED',4,'EXIT_DEV_A_AND_LONG_DEV_A','UNKNOWN',False,False,'Existing purpose only, not included in76'),
+ ('SEALED',25,'LEGACY_ENTRY_VALIDATION15_AND_OOS10','UNKNOWN',True,True,'Legacy ownership only'),
+ ('PROTECTED_DATED',1,'PROTECTED_PARENT103_FIRST','UNKNOWN',True,True,'None in this contract'),
+ ('PURGED',3,'EXISTING_PURGES','UNKNOWN',True,True,'None'),
+ ('EXCLUDED',4,'SOURCE_VALIDATION_PERMANENT','UNKNOWN',True,True,'Original source validation role only'),
+ ('UNKNOWN',101,'PROTECTED_ORDINAL_ONLY','UNKNOWN',True,True,'None; no further inference'),
+ ('LEGACY_FUTURE20_RULE',20,'LEGACY_CAPITAL_INTEGRATED_OOS','NOT_OPENED',True,True,'Existing legacy contract only; outside513 identities')]:
+ freshmatrix.append({'dataset':name,'count':num,'ENTRY_FRESH':'NOT_CERTIFIED_OR_NOT_USABLE','EXIT_FRESH':'NOT_CERTIFIED_OR_NOT_USABLE','INTEGRATION_FRESH':'NOT_CERTIFIED_OR_NOT_USABLE','SYSTEM_FRESH':'NOT_CERTIFIED_OR_NOT_USABLE','currentAllocation':alloc,'outcomeExposed':exp,'sealed':sealed,'protected':protected,'allowedFutureUse':allow,'forbiddenFutureUse':'NEW_LONG_HELD_OUT_EVALUATION_OR_SILENT_REALLOCATION','flagsQualification':'Group-level protective summary; exact per-session flags remain in immutable master ledger'})
+for b in blocks:
+ if b['blockId']=='DEV':continue
+ freshmatrix.append({'dataset':'PLANNED_'+b['blockId'],'count':b['sessions'],**{k:'REQUIRED_NOT_YET_CERTIFIED' for k in ['ENTRY_FRESH','EXIT_FRESH','INTEGRATION_FRESH','SYSTEM_FRESH']},'currentAllocation':'NO_DATES_ASSIGNED','outcomeExposed':'MUST_BE_FALSE_BEFORE_RELEASE','sealed':'FUTURE_RELEASE_CONTROL','protected':True,'allowedFutureUse':b['purposes'],'forbiddenFutureUse':'Any tuning, cross-block reuse, existing reservation takeover'})
+conservation=[]
+order=[('ENTRY_VALIDATION','A'),('ENTRY_OOS','B'),('EXIT_DEVELOPMENT',None),('EXIT_VALIDATION','C'),('EXIT_OOS','D'),('INTEGRATION_AND_CAPITAL_PORTFOLIO','E'),('CAPITAL_PORTFOLIO_JOINT_SAME_RUN',None),('BEFORE_FINAL_COMPARISON',None),('FINAL_COMPARISON','F'),('BEFORE_FINAL_OOS',None),('FINAL_OOS','G')]
+remaining=[b for b in blocks if b['blockId']!='DEV']
+for label,used in order:
+ if used:remaining=[b for b in remaining if b['blockId']!=used]
+ conservation.append({'checkpoint':label,'remainingFreshSessionsDesign':sum(b['sessions'] for b in remaining),'remainingBlocks':[b['blockId'] for b in remaining],
+ 'remainingDistinctEventFloorDesign':sum(b['minimumDistinctFirstEntryEvents'] or 0 for b in remaining),'existingCertifiedFreshNow':0,'actualConsumedNow':0,'qualification':'Planned reserve, not acquired inventory or guaranteed event availability'})
+
+acq={'newFreshSessionShortage':195,'newDataBlocks':7,'historicalBlocksAtoF':170,'prospectiveBlockG':25,'existingFreshCredit':0,
+ 'newJQuantsRequirement':'REQUIRES_NEW_IDENTIFIED_FRESH_DATA; JQUANTS_PLANNED_SOURCE_SUBJECT_TO_ENTITLEMENT_AND_EXACT_DATE_CONTRACT',
+ 'newDevelopmentFreshSessions':0,'existingDevelopmentSessionReuse':76,'developmentPriceCacheStatus':'UNKNOWN; re-fetch of same exposed identities may be needed, but adds zero fresh sessions and is not authorized here',
+ 'minimumFreshFields':['PIT dated master and market/category','causal daily history required by frozen Selector','timestamped minute OHLCV for completed5m features/full session EXIT path','corporate-action adjustment/source lineage','provider timestamps and content hashes'],
+ 'planningUniverseSymbols':3700,'symbolCountSource':'existing LONG dataBudget.planningUniverseSymbols; estimate, not selected symbol list',
+ 'estimated5mBars':195*3700*66,'denseUpperPlanningAssumption':'330 continuous trading minutes /5 =66 completed bars per full modern session,3700 symbols; lunchtime excluded; actual calendar/session length and sparse/no-trade data may reduce this. Pre-extension sessions require their historical hours.',
+ 'estimatedMinuteRowsDenseUpper':195*3700*330,'estimatedStorageBytesMinuteAt100To200BytesPerRow':[195*3700*330*100,195*3700*330*200],
+ 'storageAssumption':'Engineering sizing only:100-200 uncompressed bytes/minute row, decimal bytes, excludes daily/master/indices/derived duplication; actual codec/filesystem costs UNKNOWN. Not provider usage authorization.',
+ 'minutePagesPointEstimate':math.ceil(195*2899/205),'dailyMasterBaseRequests':390,'oneWarmupDailyReference':1,
+ 'estimatedRequestsPoint':math.ceil(195*2899/205)+390+1,
+ 'requestEstimateSource':'Prior LONG metadata clean205FullIntradayUpperBound observedMinutePages2899 /205, plus one date-query daily and master per session and one inherited warmup reference. Heuristic only; excludes unknown additional pages/causal warmup and DEV cache recovery.',
+ 'hardRequestBudget':None,'hardBudgetStatus':'DEFERRED_TO_ACQUISITION_CONTRACT_NOT_A_SESSION_BUDGET_BLOCKER','estimatedSymbols':3700,
+ 'exactDates':None,'sessionLists':None,'currentPriceRequestsAuthorized':0,'metadataRequestsPerformed':0,
+ 'bufferSessions':0,'bufferCalculation':'No justified session-level loss-rate estimate. Use fixed-size blocks and fail closed on insufficient data; event labelability is not a session-loss probability. Old reserve15/contingency30 stay reserved elsewhere and provide no budget credit.',
+ 'dataQualityFailure':'Never replace/extend sessions after outcomes. Integrity/admission checks before unsealing; if a fixed block is invalid or event minimum not reached, STOP/INCONCLUSIVE. No automatic buffer release.',
+ 'batching':['Separate Acquisition Contract fixes all seven disjoint identities before prices, including prospective date rule; no actual allocation now','A only after Candidate+Dataset contract and separate authorization','B only after Entry Validation review and separate OOS authorization','DEV cache reuse/recovery for LONG EXIT/Capital/Portfolio after separate Development contract','C then D after respective freeze/review gates','E only after all system/capital/portfolio artifacts frozen','F only unchanged jointly frozen arms, system-fresh','G prospective only after F, artifacts unchanged; legacyFuture20 excluded'],
+ 'entitlementConstraint':'Prior repository snapshot ends Light/minute addon2026-10-06; legacyFuture20 starts no earlier2026-10-22. Do not assume ongoing entitlement or current historical coverage. Exact acquisition feasibility belongs to next contract; do not query or buy now.'}
+
+incident={'id':'OUTCOME_BLIND_METADATA_DISPLAY_VIOLATION','status':'DISCLOSED_NOT_WAIVED',
+ 'source':'predict/research/phase57-msh-entry-long-v1-validation-candidate-v1.json#/trainingIdentity/classCounts',
+ 'description':'During session-identity inspection, the enclosing trainingIdentity object was printed and included saved Development ordinal class counts. Values are not repeated in this evidence. This is outcome-derived aggregate metadata, so strict no-outcome-display condition is not attested.',
+ 'occurrences':1,'rawPriceOrEventOutcomePayloadsOpened':0,'validationOrOosOutcomesOpened':0,
+ 'usedInBudgetDerivation':False,'containment':'Further identity extraction uses explicit safe fields only; no model, new prediction, outcome evaluation or provider query. Do not claim a clean outcome-blind freeze.',
+ 'requiredDisposition':'Independent review of the completed budget derivation and incident, under a separately authorized audit disposition. No repeat outcome access, no performance-driven budget changes. No acquisition or Validation while global freeze remains blocked.'}
+contract={'schemaVersion':1,'contractId':'PHASE57_LONG_ONLY_E2E_DATA_RESPONSIBILITY_BUDGET_V1','dateJst':'2026-09-16',
+ 'status':'RESPONSIBILITY_AND_BUDGET_DESIGN_RESOLVED_GLOBAL_FREEZE_BLOCKED',
+ 'verdict':'PHASE57_LONG_ONLY_GLOBAL_DATA_BUDGET_BLOCKED','globalBudgetFrozen':False,'globalBudgetContractSha256':None,
+ 'authorization':'Current user explicitly permits new outcome-independent responsibility/sample-size/reuse decisions; no new dates, release, acquisition or model changes.',
+ 'sourceHead':'c024ce7a68a4034a18f8663930d866d7925c892f','latestMain':'b7801ce2c13772cbc3f5b51506819c119fe868ea','repository':'Iam-2squared/ark-terminal','branch':'research/phase57-long-only-cash-equity','pr':587,
+ 'candidateContractSHA':'4a2f52cd6f25f480fe6d7de9db525860ddf3c1600abed06b6222c0990c055a23',
+ 'finalModelSHA':'b053a858edda22bee7b9939162648740507964cc5ed8d613c2d778d15534589e','finalScalerSHA':'1e4865915a2ad1ec51dd4ebf2116d48b9f89b9b884f8dc732fdb2861dbf4fe4b',
+ 'selectorFreezeCommit':'565d74b3dea823581fdb32380113aac5913a248d','selectorPayloadSHA':'3dc6d222d4039737c0dcfdcfa4a83372202152e29b582225f49ab97c00610d59'.replace('225f49','225419'),
+ 'fitContractSHA':'64c20d785be5f23b0a9103f419726b191a12a58fd5d3a7ad5185c69f9644a938','developmentEvidenceSHA':'68d2a02c988a05b3178e903d628a53662b01bb704fa0700ebcb98e3b32547ead',
+ 'previousGlobalAuditSHA':sha(audit),'globalBudgetPurpose':'Independent end-to-end LONG cash-equity research through final prospective confirmation; preserve all legacy reservations.',
+ 'freshnessTaxonomy':taxonomy,'reuseResponsibilityClasses':reuseClasses,'budgetDerivation':derivation,
+ 'responsibilityMatrix':matrix,'crossStageReuse':reuse,'acquisitionBlocks':blocks,
+ 'entryValidationBudget':{'sessions':30,'existingUsable':0,'shortage':30,'block':'A','candidateUnchanged':True},
+ 'entryOOSBudget':{'sessions':30,'existingUsable':0,'shortage':30,'block':'B'},
+ 'exitDevelopmentBudget':{'sessions':76,'existingAuthorizedDevelopmentIdentities':76,'additionalFreshSessions':0,'minimumFirstEntryEvents':200,'block':'DEV','rawPathAndEventAdequacyNotMeasured':True},
+ 'exitValidationBudget':{'sessions':30,'minimumFirstEntryEvents':97,'existingUsableFresh':0,'shortage':30,'block':'C'},
+ 'exitOOSBudget':{'sessions':30,'minimumFirstEntryEvents':97,'existingUsableFresh':0,'shortage':30,'block':'D'},
+ 'integrationValidationBudget':{'sessions':20,'minimumFirstEntryEvents':97,'existingUsableFresh':0,'shortage':20,'block':'E'},
+ 'capitalPortfolioBudget':{'developmentSessions':76,'sharedDevelopmentBlock':'DEV','jointValidationSessions':20,'jointValidationBlock':'E','incrementalFreshSessionsBeyondIntegration':0,'newLongTuningBudgetedButNotAuthorizedNow':True,'noTuningAfterE':True},
+ 'finalComparisonBudget':{'sessions':30,'block':'F','existingUsableFresh':0,'shortage':30,'sameSessions':True,'samePITUniverse':True,'sameCost':True,'sameDecisionCadence':True,'sameCapitalAndExecutionAssumptions':True,'bothArmsLongCashOnly':True,'baselineSelectorMaySelectDifferentlyWithinSameUniverse':True,'baselineMustBePinnedBeforeF':True,'unsupportedLongCashBaselineStopsComparison':True,'noShortEvaluation':True},
+ 'finalOOSBudget':{'required':True,'sessions':25,'block':'G','prospective':True,'existingUsableFresh':0,'shortage':25,'noModificationAfterF':True},
+ 'globalBudget':{'grossSessionRoleCount':gross,'grossDevelopmentRoleSessions':228,'grossEvaluationRoleSessions':235,'developmentReuseDeduction':152,'jointValidationReuseDeduction':40,'netUniqueAllSessions':net,'existingDevelopmentCredit':76,'netUniqueFreshSessions':fresh,'existingUsableFresh':0,'newFreshShortage':fresh,'grossApplicableDistinctEventFloors':685,'netApplicableDistinctEventFloors':491,'newFreshApplicableDistinctEventFloors':291,'eventTotalsQualification':'Sum only declared event adequacy floors; Entry and portfolio-day final blocks do not add event quotas. No event availability or IID independence is asserted.'},
+ 'existingCounts':counts,'existingUsableFreshSessions':[],'stageSpecificUsableDevelopment':'Only exact existing76 authorized LONG Development identities, not all375 exposed identifiers; cache/path/200-event adequacy still unmeasured.',
+ 'existingDevelopmentIdentity':{k:candidate['trainingIdentity'][k] for k in ['sessionCount','sessionListSha256','trainingSessions']},
+ 'future20Allocation':{'count':20,'purpose':'LEGACY_CAPITAL_INTEGRATED_OOS_FOR_ITS_FROZEN_STACK','notBefore':'2026-10-22','exactDates':'UNASSIGNED_EXISTING_RULE','unchanged':True,'newLongCredit':0,'notSameAsBlockE':True},
+ 'sealedDataProtection':'Legacy Entry15+10 remains sealed and unavailable; exact master ledger unchanged.',
+ 'reservedDataProtection':'Reserved4 retained; neither additional Development allocation nor fresh credit.',
+ 'unknownDataPolicy':'101 remain UNKNOWN and protected, zero credit, no additional identity inference.',
+ 'newJQuantsRequirement':acq,'providerBudget':{'priceRequestsAuthorizedNow':0,'metadataRequestsNow':0,'futureHardRequestBudget':'NEXT_ACQUISITION_CONTRACT'},
+ 'outcomeBlindSelectionRule':'Calendar + prior exposure + reservation + source availability + PIT feasibility only. Candidate scores, labelability, returns and event yield may not choose dates or expand the budget.',
+ 'reallocationRule':{'allowedNow':False,'requiredRecord':['FROM','TO','sessionList','reason','impact','authorization','exposureHistory'],'outcomeBasedReallocationAllowed':False},
+ 'OOSProtection':'All B/D/F/G and legacy OOS stay sealed until separate explicit release; no automatic progression on PASS/BORDERLINE/FAIL.',
+ 'candidateFailureGovernance':'Entry2.0 FAIL stops v1; no1.0/3.0 fallback or same-data rescue. Insufficient sample stops without adding days.',
+ 'safety':prior['safety'],'counterScope':'This task actions only; no claims about independent background jobs.',
+ 'counts':{'outcomeDerivedMetadataDisplay':1,'rawOutcomePayloadAccess':0,'candidatePrediction':0,'validationPrediction':0,'oosOutcomeAccess':0,'exitOutcomeAccess':0,'modelFit':0,'scalerFit':0,'shortEvaluation':0,'yahooPriceRequests':0,'jquantsPriceRequests':0,'otherPriceRequests':0,'providerMetadataRequests':0,'actualAllocationChanges':0,'reservationReleases':0,'sealedOpenings':0,'protectedOpenings':0},
+ 'auditIncident':incident,'blockers':['OTHER:OUTCOME_BLIND_METADATA_DISPLAY_VIOLATION'],'remainingUnresolvedSessionBudgets':[],
+ 'recommendation':'C_GLOBAL_BUDGET_REQUIRES_CONTRACT_RESOLUTION','recommendationDetail':'All responsibility/count/reuse decisions resolved in draft. Only audit disposition prevents official Freeze. On a clean approved disposition, quantitative route is B:195 new fresh sessions, no existing fresh credit.',
+ 'nextAction':'Independent integrity review of this completed responsibility/budget draft and the disclosed metadata-display incident. Do not rerun research or change budget from outcomes. After official Freeze, create MINIMAL J-QUANTS FRESH DATA ACQUISITION CONTRACT; no acquisition now.'}
+contract['selectorPayloadSHA']=prior['protectedVerification']['selectorPayloadSha256']['actual']
+save(P+'responsibility-budget-contract.json',contract)
+save(P+'freshness-matrix.json',freshmatrix)
+save(P+'conservation-table.json',conservation)
+save(P+'protected-hash-verification.json',checks)
+save(P+'audit-incident.json',incident)
+print(json.dumps({'grossSessions':gross,'netAll':net,'netFresh':fresh,'newFreshEventFloor':291,'contractDraftSha256':sha(P+'responsibility-budget-contract.json'),'outcomeBlindDisplayIncident':1}))

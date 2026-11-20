@@ -1,0 +1,713 @@
+{
+  "1": {
+    "item": "Branch / PR / audited Head",
+    "value": {
+      "branch": "research/phase57-long-only-cash-equity",
+      "PR": 587,
+      "auditedHead": "825da2af3256f554f4586be0db6d5ba36cc23309",
+      "publicationHead": "See Git commit containing this report; final response reports exact remote head."
+    }
+  },
+  "2": {
+    "item": "Latest main",
+    "value": "6b6c4d522cd1863132185463a0aed74bc819be01"
+  },
+  "3": {
+    "item": "Candidate Contract SHA",
+    "value": {
+      "predict/research/phase57-msh-entry-long-v1-validation-candidate-v1.json": {
+        "expected": "4a2f52cd6f25f480fe6d7de9db525860ddf3c1600abed06b6222c0990c055a23",
+        "actual": "4a2f52cd6f25f480fe6d7de9db525860ddf3c1600abed06b6222c0990c055a23",
+        "passed": true
+      }
+    }
+  },
+  "5": {
+    "item": "Selector SHA",
+    "value": {
+      "selectorPayloadSha256": {
+        "expected": "3dc6d222d4039737c0dcfdcfa4a83372202152e29b582225419ab97c00610d59",
+        "actual": "3dc6d222d4039737c0dcfdcfa4a83372202152e29b582225419ab97c00610d59",
+        "passed": true
+      }
+    }
+  },
+  "6": {
+    "item": "Fit Contract SHA",
+    "value": {
+      "predict/research/phase57-msh-entry-long-v1-fit-contract-v1.json": {
+        "expected": "64c20d785be5f23b0a9103f419726b191a12a58fd5d3a7ad5185c69f9644a938",
+        "actual": "64c20d785be5f23b0a9103f419726b191a12a58fd5d3a7ad5185c69f9644a938",
+        "passed": true
+      }
+    }
+  },
+  "7": {
+    "item": "Development Evidence SHA",
+    "value": {
+      "docs/evidence/phase57-msh-entry-long-v1-offline-freeze/development-evidence-freeze.json": {
+        "expected": "68d2a02c988a05b3178e903d628a53662b01bb704fa0700ebcb98e3b32547ead",
+        "actual": "68d2a02c988a05b3178e903d628a53662b01bb704fa0700ebcb98e3b32547ead",
+        "passed": true
+      }
+    }
+  },
+  "4": {
+    "item": "Final model/scaler SHA",
+    "value": {
+      "docs/evidence/phase57-msh-entry-long-v1-final-validation-model/final-model.json": {
+        "expected": "b053a858edda22bee7b9939162648740507964cc5ed8d613c2d778d15534589e",
+        "actual": "b053a858edda22bee7b9939162648740507964cc5ed8d613c2d778d15534589e",
+        "passed": true
+      },
+      "docs/evidence/phase57-msh-entry-long-v1-final-validation-model/final-scaler.json": {
+        "expected": "1e4865915a2ad1ec51dd4ebf2116d48b9f89b9b884f8dc732fdb2861dbf4fe4b",
+        "actual": "1e4865915a2ad1ec51dd4ebf2116d48b9f89b9b884f8dc732fdb2861dbf4fe4b",
+        "passed": true
+      }
+    }
+  },
+  "8": {
+    "item": "Previous ledger counts",
+    "value": {
+      "RESERVED": 5,
+      "EXPOSED": 375,
+      "SEALED": 32,
+      "UNKNOWN": 101,
+      "FRESH_AVAILABLE": 0
+    }
+  },
+  "9": {
+    "item": "Resolved ledger counts",
+    "value": {
+      "total": 513,
+      "dateResolved": 412,
+      "counts": {
+        "EXPOSED": 375,
+        "RESERVED": 4,
+        "SEALED": 25,
+        "PROTECTED": 1,
+        "FRESH_AVAILABLE": 0,
+        "PURGED": 3,
+        "EXCLUDED": 4,
+        "UNKNOWN": 101
+      }
+    }
+  },
+  "10": {
+    "item": "UNKNOWN101 resolution",
+    "value": {
+      "resolved": 0,
+      "pathsSearched": 13,
+      "historicalMetadataBlobs": 15,
+      "sourceOutput": "remainingReserve bounds/count only",
+      "freshPromotions": 0
+    }
+  },
+  "11": {
+    "item": "UNKNOWN remaining",
+    "value": 101
+  },
+  "12": {
+    "item": "SEALED32 purpose",
+    "value": {
+      "LEGACY_ENTRY_VALIDATION": 15,
+      "LEGACY_ENTRY_OOS": 10,
+      "PROTECTED": 1,
+      "PERMANENT_SOURCE_EXCLUSION": 4,
+      "PURGE": 2
+    }
+  },
+  "13": {
+    "item": "RESERVED5 purpose",
+    "value": {
+      "EXIT_DEV_A_AND_LONG_DEVELOPMENT_A": 4,
+      "LEGACY_ENTRY_PURGE_EMBARGO": 1
+    }
+  },
+  "14": {
+    "item": "Future20 protection",
+    "value": {
+      "blockId": "LEGACY_CAPITAL_INTEGRATED_OOS_FUTURE20",
+      "primaryClassification": "RESERVED",
+      "sealed": true,
+      "exactSessionList": null,
+      "sessionSelectionRule": {
+        "id": "FIRST_20_CHRONOLOGICALLY_ELIGIBLE_SESSIONS_FROM_2026_10_22_V1",
+        "ordering": "JPX_MARKET_SESSION_DATE_ASCENDING",
+        "requirements": [
+          "JQUANTS_SOURCE_AVAILABLE_UNDER_EXISTING_ENTITLEMENT",
+          "COMPLETE_FROZEN_SELECTOR_AND_MSH_ENTRY_POINT_IN_TIME_INPUTS",
+          "COMPLETE_FIRST_ENTER_AND_INTRADAY_BAR_PATH",
+          "FROZEN_EXIT_ANALOG_SESSION_DATE_BEFORE_EVALUATED_SESSION",
+          "ANALOG_FULLY_REALIZED_BEFORE_EVALUATED_DECISION_TIMESTAMP",
+          "MINIMUM_REQUIRED_CAUSAL_ANALOG_COUNT_MET",
+          "SOURCE_AND_INPUT_HASHES_FIXED_BEFORE_OUTCOME_MEASUREMENT"
+        ],
+        "unavailableOrIneligibleSessionHandling": "RECORD_DATE_REASON_AND_SOURCE_STATUS_IN_SESSION_ELIGIBILITY_LEDGER_THEN_CONTINUE_TO_NEXT_CHRONOLOGICAL_SESSION",
+        "selectiveReplacementFromPerformanceAllowed": false,
+        "outcomeMayInfluenceEligibility": false
+      },
+      "window": {
+        "notBeforeSessionDate": "2026-10-22",
+        "targetEligibleMarketSessions": 20,
+        "endpointRule": "STOP_AFTER_THE_20TH_CHRONOLOGICALLY_ELIGIBLE_MARKET_SESSION",
+        "extensionOrShorteningFromPerformanceAllowed": false,
+        "comparisonRationale": "Twenty sessions was fixed before outcomes exist, matches the prior diagnostic20 length, and prevents performance-selected endpoints."
+      },
+      "owner": "LEGACY_CAPITAL_ALLOCATION_INTEGRATED_CANDIDATE",
+      "purpose": [
+        "INTEGRATION",
+        "CAPITAL_PORTFOLIO",
+        "EXISTING_ARK_COMPARISON_IN_LEGACY_CONTRACT_SCOPE"
+      ],
+      "longOnlyCandidateTransferAllowed": false,
+      "entryValidationUseAllowed": false,
+      "source": {
+        "ref": "origin/research/phase57-capital-allocation-v3-phase-b-integrated",
+        "commit": "84b296102b85ab2909385a8f3ee7ef336c9b6129",
+        "path": "predict/research/phase57-capital-allocation-future-integrated-oos-precommit.json",
+        "blobSha": "d1bfb170189d626b7d729de93eacf05b57237608",
+        "sha256": "8efcb68d498e6c3e02d93c903493eb691336426383ebeae5cd535d6e0a5d00d9"
+      },
+      "accounting": "ONE_EXISTING_RULE_ONLY_BLOCK; not20 additional dated identities or20 per purpose"
+    }
+  },
+  "15": {
+    "item": "Former candidate30",
+    "value": "NOT_FRESH_25_EXPOSED_4_PERMANENTLY_EXCLUDED_1_PURGE; never reallocate for Fresh Entry Validation"
+  },
+  "16": {
+    "item": "ENTRY_VALIDATION required sessions",
+    "value": {
+      "count": 30,
+      "status": "RESOLVED",
+      "evidence": "longPlan.datasetSplit.validation; inherited blocked Dataset pre-registration"
+    }
+  },
+  "17": {
+    "item": "ENTRY_VALIDATION current allocation",
+    "value": "LONG v3 Validation30; all30 ineligible as fresh"
+  },
+  "18": {
+    "item": "ENTRY_VALIDATION shortage",
+    "value": 30
+  },
+  "19": {
+    "item": "ENTRY_OOS required sessions",
+    "value": {
+      "count": null,
+      "status": "UNRESOLVED",
+      "evidence": "longPlan.datasetSplit.primaryOos=30, contingencyOos=30 are integrated shared roles; legacy Entry Fresh OOS=10 belongs to another candidate"
+    }
+  },
+  "20": {
+    "item": "ENTRY_OOS current allocation",
+    "value": "Shared30+insurance30, cross-research exposed; legacy future10 protected separately"
+  },
+  "21": {
+    "item": "ENTRY_OOS shortage",
+    "value": "UNRESOLVED"
+  },
+  "22": {
+    "item": "EXIT_DEVELOPMENT required sessions",
+    "value": {
+      "count": null,
+      "status": "UNRESOLVED",
+      "evidence": "exitContract.allocation.sessionCounts devA70+devB20; longPlan.datasetSplit.development80 and integratedReuseRequired"
+    }
+  },
+  "23": {
+    "item": "EXIT_DEVELOPMENT current allocation",
+    "value": "Legacy90 reserved; shared LONG80 contains existing76 Entry/Selector Development sessions"
+  },
+  "24": {
+    "item": "EXIT_DEVELOPMENT shortage",
+    "value": "UNRESOLVED"
+  },
+  "25": {
+    "item": "EXIT_VALIDATION required sessions",
+    "value": {
+      "count": null,
+      "status": "UNRESOLVED",
+      "evidence": "exitContract legacy Validation30 + Historical Holdout25; no LONG EXIT-specific sample requirement"
+    }
+  },
+  "26": {
+    "item": "EXIT_VALIDATION current allocation",
+    "value": "Legacy30(28 exposed,2 purge) and holdout25(exposed)"
+  },
+  "27": {
+    "item": "EXIT_VALIDATION shortage",
+    "value": "UNRESOLVED"
+  },
+  "28": {
+    "item": "EXIT_OOS required sessions",
+    "value": {
+      "count": null,
+      "status": "UNRESOLVED",
+      "evidence": "exitContract legacy untouchedOos30 + futureReserve30; not a LONG EXIT-specific contract"
+    }
+  },
+  "29": {
+    "item": "EXIT_OOS current allocation",
+    "value": "Legacy30+reserve30 retained; both have cross-research exposure records"
+  },
+  "30": {
+    "item": "EXIT_OOS shortage",
+    "value": "UNRESOLVED"
+  },
+  "31": {
+    "item": "INTEGRATION_VALIDATION required sessions",
+    "value": {
+      "count": null,
+      "status": "UNRESOLVED",
+      "evidence": "longPlan integratedResearchDataset / humanOverfittingControls; no distinct Integration session budget"
+    }
+  },
+  "32": {
+    "item": "INTEGRATION_VALIDATION current allocation",
+    "value": "No distinct LONG Integration list; existing historical shared roles unavailable as fresh"
+  },
+  "33": {
+    "item": "INTEGRATION_VALIDATION shortage",
+    "value": "UNRESOLVED"
+  },
+  "34": {
+    "item": "CAPITAL_PORTFOLIO required sessions",
+    "value": {
+      "count": null,
+      "status": "UNRESOLVED",
+      "evidence": "longPlan.integratedComparisonContract; legacy capitalFuture first20 eligible sessions not before2026-10-22"
+    }
+  },
+  "35": {
+    "item": "CAPITAL_PORTFOLIO current allocation",
+    "value": "Legacy future20 rule protected; exact dates absent and not assigned to LONG v1"
+  },
+  "36": {
+    "item": "CAPITAL_PORTFOLIO shortage",
+    "value": "UNRESOLVED"
+  },
+  "37": {
+    "item": "FINAL_EXISTING_ARK_COMPARISON required sessions",
+    "value": {
+      "count": null,
+      "status": "UNRESOLVED",
+      "evidence": "longPlan.integratedComparisonContract requires sameEvaluationWindow and sameCostModel; long prospective target25 rule only, exactDatesFrozen=false"
+    }
+  },
+  "38": {
+    "item": "FINAL_EXISTING_ARK_COMPARISON current allocation",
+    "value": "No dedicated LONG exact list; prospective25 rule may overlap legacy Entry26-day reservation and integrated future20"
+  },
+  "39": {
+    "item": "FINAL_EXISTING_ARK_COMPARISON shortage",
+    "value": "UNRESOLVED"
+  },
+  "40": {
+    "item": "Final Integration OOS requirement",
+    "value": {
+      "stage": "FINAL_INTEGRATION_OOS",
+      "requiredSessions": null,
+      "evidence": "long Primary30/Contingency30 integrated roles and legacy integrated future20 exist; no distinct LONG final-stack assignment",
+      "currentAllocation": "Primary/Contingency historical dates exposed; legacy20 future not transferable",
+      "certifiedAvailable": null,
+      "shortage": null,
+      "status": "UNRESOLVED",
+      "proposal": "Resolve whether final comparison and final Integration OOS are one jointly frozen evaluation or distinct blocks, with explicit contract; no implicit sharing."
+    }
+  },
+  "41": {
+    "item": "Existing FRESH_AVAILABLE",
+    "value": 0
+  },
+  "42": {
+    "item": "Existing usable fresh session list",
+    "value": []
+  },
+  "43": {
+    "item": "Protected / sealed not usable for Entry",
+    "value": {
+      "identityFlagUnionCount": 348,
+      "identityListReference": "resolved-master-ledger.json:secondaryFlags.protected OR secondaryFlags.sealed",
+      "future20AdditionalRuleProtected": true,
+      "unionNotAdditionalIndependentSessions": true
+    }
+  },
+  "44": {
+    "item": "Total new fresh sessions required",
+    "value": "UNRESOLVED"
+  },
+  "45": {
+    "item": "Unresolved requirements",
+    "value": [
+      "ENTRY_OOS",
+      "EXIT_DEVELOPMENT",
+      "EXIT_VALIDATION",
+      "EXIT_OOS",
+      "INTEGRATION_VALIDATION",
+      "CAPITAL_PORTFOLIO",
+      "FINAL_EXISTING_ARK_COMPARISON",
+      "FINAL_INTEGRATION_OOS"
+    ]
+  },
+  "46": {
+    "item": "Requirement conflicts",
+    "value": [
+      {
+        "id": "SCOPE_NOT_NUMERIC_EQUIVALENCE",
+        "detail": "Legacy EXIT90, LONG shared Development80, legacy Entry15/10, integrated historical30/20/30/30 and future20/25 are not interchangeable estimates for the same experiment. No choosing a smaller number to fit available data."
+      },
+      {
+        "id": "HISTORICAL_FRESHNESS_CONFLICT",
+        "detail": "Scope-level untouched claims conflict with positive cross-research exposure metadata. Existing historical roles remain protected but cannot satisfy fresh requirements."
+      },
+      {
+        "id": "FUTURE_OWNERSHIP_OVERLAP_UNRESOLVED",
+        "detail": "LONG prospective25 has no exact list; its date rule cannot silently consume legacy Entry reservation2026-09-10..10-21 or capital future20 from10-22."
+      },
+      {
+        "id": "EVALUATION_REUSE_UNRESOLVED",
+        "detail": "Shared raw-data infrastructure and explicit Development reuse do not authorize Entry Validation -> EXIT Development -> OOS reuse. No such downstream adaptive evaluation permission found."
+      }
+    ]
+  },
+  "47": {
+    "item": "A_CONSERVATIVE",
+    "value": {
+      "id": "A_CONSERVATIVE",
+      "rule": "Each stage gets disjoint dated identities; keep all pre-existing reservations",
+      "formula": "N = 30 + N_entry_oos + N_exit_dev + N_exit_val + N_exit_oos + N_integration_val + N_capital_portfolio + N_final_comparison + N_final_integration_oos(if applicable)",
+      "total": null,
+      "limitations": "Every undefined term remains UNRESOLVED. Two baseline/candidate arms are paired within comparison, not counted as separate stage dates. No acquisition or allocation issued."
+    }
+  },
+  "48": {
+    "item": "B_MINIMAL",
+    "value": {
+      "id": "B_MINIMAL",
+      "rule": "Use only explicitly permitted reuse: shared LONG Development, shared physical cache under matching identities, and same-window baseline/candidate comparison",
+      "formula": "N = cardinality(union of explicitly authorized independently evaluated session sets); undeclared sharing provides zero budget reduction",
+      "total": null,
+      "developmentReuse": "longPlan explicitly requires shared Development through EXIT/Allocation/Portfolio; sample sufficiency and required raw payload availability remain unresolved",
+      "evaluationReuse": "No automatic component Validation/OOS reuse for later adaptive stages; legacy future20 remains a single protected block of its own",
+      "limitations": "Cannot collapse all evaluation stages to one30-day or20-day block without a new responsibility/reuse contract."
+    }
+  },
+  "49": {
+    "item": "C_BUFFERED",
+    "value": {
+      "id": "C_BUFFERED",
+      "rule": "Add only a justified precommitted integrity reserve to the resolved base plan",
+      "basePlan": "B_MINIMAL_IF_REUSE_SCOPE_IS_FORMALLY_RESOLVED",
+      "baseTotal": null,
+      "newBufferSessions": null,
+      "existingBufferReferences": "LONG admissionReserve15 and contingencyOos30 remain their original restricted purposes; not free buffers and not imported as a new numeric budget",
+      "limitations": "No session-level failure distribution was established. Event-level label coverage is not a session-loss rate; do not divide session target by label coverage or add arbitrary days. No expansion after poor performance."
+    }
+  },
+  "50": {
+    "item": "Recommended plan",
+    "value": {
+      "id": "B_MINIMAL_CONDITIONAL_DRAFT",
+      "frozen": false,
+      "reason": "Conserves physical acquisition and authorized Development without granting new evaluation reuse. Existing independent-stage reservations and legacy future20 are preserved. Numeric allocation cannot be frozen until stage responsibilities/counts are resolved.",
+      "authorizedStageSessionAssignments": [],
+      "bufferAssignment": null
+    }
+  },
+  "51": {
+    "item": "Independence",
+    "value": "Conserves physical acquisition and authorized Development without granting new evaluation reuse. Existing independent-stage reservations and legacy future20 are preserved. Numeric allocation cannot be frozen until stage responsibilities/counts are resolved."
+  },
+  "52": {
+    "item": "ENTRY_VALIDATION allocation proposal",
+    "value": "No dates allocated. Retain30 as existing target; need an unexposed, unreserved identity."
+  },
+  "53": {
+    "item": "ENTRY_OOS allocation proposal",
+    "value": "Freeze LONG Entry-specific OOS responsibility/count before choosing dates; do not borrow the legacy10."
+  },
+  "54": {
+    "item": "EXIT_DEVELOPMENT allocation proposal",
+    "value": "Define LONG EXIT minimum and scope. Existing LONG Development reuse is explicitly required; verify needed raw-field/cache identities without fitting. No fresh Development addition assumed."
+  },
+  "55": {
+    "item": "EXIT_VALIDATION allocation proposal",
+    "value": "Keep reservations; define independent LONG EXIT Validation budget. Do not transfer Entry Validation into EXIT tuning."
+  },
+  "56": {
+    "item": "EXIT_OOS allocation proposal",
+    "value": "Define LONG EXIT OOS scope/count; no automatic legacy OOS reuse."
+  },
+  "57": {
+    "item": "INTEGRATION_VALIDATION allocation proposal",
+    "value": "INTEGRATION_DATA_NOT_YET_ALLOCATED. Define full-stack freeze boundary and independent role first."
+  },
+  "58": {
+    "item": "CAPITAL_PORTFOLIO allocation proposal",
+    "value": "Define LONG allocation/portfolio evaluation budget; preserve legacy20, no assumption of transfer or separate20 per consumer."
+  },
+  "59": {
+    "item": "FINAL_EXISTING_ARK_COMPARISON allocation proposal",
+    "value": "Freeze common comparison window for two frozen arms; this permits pairing arms, not retuning components on that block."
+  },
+  "60": {
+    "item": "Buffer allocation",
+    "value": "UNRESOLVED; no assignment; old Reserve15 / contingency30 not imported as new budget"
+  },
+  "61": {
+    "item": "J-Quants new acquisition required",
+    "value": "UNRESOLVED"
+  },
+  "62": {
+    "item": "Minimum new acquisition session count",
+    "value": "UNRESOLVED; existing Entry Validation shortage30 is not a Global acquisition budget"
+  },
+  "63": {
+    "item": "Proposed date range",
+    "value": "UNRESOLVED"
+  },
+  "64": {
+    "item": "Exact session list",
+    "value": "UNRESOLVED"
+  },
+  "65": {
+    "item": "Universe",
+    "value": "FROZEN_TSE_PRIME_STANDARD_GROWTH_DOMESTIC_COMMON_EQUITY_POINT_IN_TIME_LONG_ONLY"
+  },
+  "66": {
+    "item": "Symbols rule",
+    "value": "PIT eligible full Selector cross-section on approved dates; no outcome-based Top5-only acquisition, no new liquidity/segment/price filters; date-wide fetch where existing contract requires it."
+  },
+  "67": {
+    "item": "Required fields",
+    "value": {
+      "daily": [
+        "Date",
+        "Code",
+        "AdjC",
+        "AdjFactor",
+        "ExRT",
+        "Vo",
+        "Va"
+      ],
+      "master": [
+        "Date",
+        "Code",
+        "Mkt",
+        "ProdCat"
+      ],
+      "minute": [
+        "symbol",
+        "bar_timestamp_and_availability",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume"
+      ],
+      "additionalFutureStageFields": "UNRESOLVED until LONG EXIT/Portfolio contracts specify their causal inputs"
+    }
+  },
+  "68": {
+    "item": "Cadence",
+    "value": {
+      "entrySelectorDecisionTimesJst": [
+        "09:30",
+        "10:00",
+        "10:30",
+        "11:00",
+        "11:30",
+        "13:00",
+        "13:30",
+        "14:00",
+        "14:30",
+        "15:00"
+      ],
+      "decisionCountPerSession": 10,
+      "providerMinuteToCompleted5m": "EXISTING_CAUSAL_AGGREGATION_CONTRACT",
+      "futureStageDecisionCadence": "UNRESOLVED_WHERE_NOT_ALREADY_CONTRACTED",
+      "new5mSelectorGenerationAllowed": false
+    }
+  },
+  "69": {
+    "item": "Estimated volume",
+    "value": "UNRESOLVED"
+  },
+  "70": {
+    "item": "Estimated provider requests",
+    "value": "UNRESOLVED"
+  },
+  "71": {
+    "item": "Acquisition batching",
+    "value": [
+      "0. Resolve stage budgets, distinct-vs-joint evaluation scope, ownership conflicts and exact session identities; Global Budget still BLOCKED.",
+      "1. If authorized in a later task, inspect private cache manifests, entitlement/availability metadata and necessary fields; freeze acquisition contract before price requests.",
+      "2. Acquire only the frozen Entry Validation block if cache reuse cannot supply it; preserve all later-stage reservations. Candidate measurement still requires separate instruction.",
+      "3. Entry OOS after precommitted release gates. No use of OOS to select1.0/3.0 or retune2.0.",
+      "4. LONG EXIT Development under its own frozen contract; reuse authorized Development raw identities first, acquire only contracted missing inputs.",
+      "5. LONG EXIT Validation and OOS as separately frozen releases.",
+      "6. Integration, Capital/Portfolio and Existing-Ark comparison only after responsibility/reuse contracts establish the required independently evaluated blocks.",
+      "7. Final Integration OOS only if applicable and separately specified; no automatic release or poor-performance extension."
+    ]
+  },
+  "72": {
+    "item": "Minimum sufficient acquisition",
+    "value": "Global stage counts, permitted sharing, exact identities, entitlement and valid cache are unresolved. A nominal30-day acquisition now cannot be certified sufficient for the complete project."
+  },
+  "73": {
+    "item": "Data remaining after ENTRY_VALIDATION",
+    "value": {
+      "after": "ENTRY_VALIDATION",
+      "consumedNow": 0,
+      "laterStages": "Entry OOS, EXIT Dev/Val/OOS, Integration, Capital/Portfolio, Final Comparison all remain required",
+      "remainingIndependentCounts": "UNRESOLVED; legacy reservations unchanged, sufficiency not certified"
+    }
+  },
+  "74": {
+    "item": "Data remaining after ENTRY_OOS",
+    "value": {
+      "after": "ENTRY_OOS",
+      "consumedNow": 0,
+      "laterStages": "EXIT Dev/Val/OOS, Integration, Capital/Portfolio, Final Comparison",
+      "remainingIndependentCounts": "UNRESOLVED"
+    }
+  },
+  "75": {
+    "item": "Data remaining after EXIT_DEVELOPMENT",
+    "value": {
+      "after": "EXIT_DEVELOPMENT",
+      "consumedNow": 0,
+      "laterStages": "EXIT Val/OOS, Integration, Capital/Portfolio, Final Comparison",
+      "remainingIndependentCounts": "UNRESOLVED; Development reuse does not certify later evaluation freshness"
+    }
+  },
+  "76": {
+    "item": "Data remaining after EXIT_VALIDATION",
+    "value": {
+      "after": "EXIT_VALIDATION",
+      "consumedNow": 0,
+      "laterStages": "EXIT OOS, Integration, Capital/Portfolio, Final Comparison",
+      "remainingIndependentCounts": "UNRESOLVED"
+    }
+  },
+  "77": {
+    "item": "Data remaining after EXIT_OOS",
+    "value": {
+      "after": "EXIT_OOS",
+      "consumedNow": 0,
+      "laterStages": "Integration, Capital/Portfolio, Final Comparison",
+      "remainingIndependentCounts": "UNRESOLVED; no automatic reuse"
+    }
+  },
+  "78": {
+    "item": "Data remaining after INTEGRATION",
+    "value": {
+      "after": "INTEGRATION",
+      "consumedNow": 0,
+      "laterStages": "Capital/Portfolio, Final Comparison, Final Integration OOS if distinct",
+      "remainingIndependentCounts": "UNRESOLVED; legacy future20 protected, not allocated to LONG"
+    }
+  },
+  "79": {
+    "item": "Data remaining after CAPITAL_PORTFOLIO",
+    "value": {
+      "after": "CAPITAL_PORTFOLIO",
+      "consumedNow": 0,
+      "laterStages": "Final Comparison / Final Integration OOS as explicitly assigned",
+      "remainingIndependentCounts": "UNRESOLVED"
+    }
+  },
+  "80": {
+    "item": "Data remaining after FINAL_COMPARISON",
+    "value": {
+      "after": "FINAL_COMPARISON",
+      "consumedNow": 0,
+      "laterStages": "Final Integration OOS only if a separate role is contracted",
+      "remainingIndependentCounts": "UNRESOLVED; cannot claim enough data remains"
+    }
+  },
+  "81": {
+    "item": "Outcome access",
+    "value": 0
+  },
+  "82": {
+    "item": "Candidate prediction",
+    "value": 0
+  },
+  "83": {
+    "item": "Validation prediction",
+    "value": 0
+  },
+  "84": {
+    "item": "OOS market/outcome access",
+    "value": 0
+  },
+  "85": {
+    "item": "EXIT outcome access",
+    "value": 0
+  },
+  "86": {
+    "item": "Yahoo price requests",
+    "value": 0
+  },
+  "87": {
+    "item": "J-Quants price requests",
+    "value": 0
+  },
+  "88": {
+    "item": "Other market-data price requests",
+    "value": 0
+  },
+  "89": {
+    "item": "Actual allocation changes",
+    "value": 0
+  },
+  "90": {
+    "item": "Protected / sealed allocation changes",
+    "value": 0
+  },
+  "91": {
+    "item": "Safety all false",
+    "value": {
+      "executionAllowed": false,
+      "brokerWriteAllowed": false,
+      "excelOrderWriteAllowed": false,
+      "rssOrderFunctionAllowed": false,
+      "liveTradingAllowed": false,
+      "paperTradingAllowed": false,
+      "automaticPromotionAllowed": false,
+      "productionUpdateAllowed": false,
+      "transmitted": false,
+      "shortAllowed": false,
+      "marginAllowed": false,
+      "leverageAllowed": false
+    }
+  },
+  "92": {
+    "item": "Global Data Budget Contract SHA",
+    "value": null
+  },
+  "93": {
+    "item": "Verdict",
+    "value": "PHASE57_LONG_ONLY_GLOBAL_DATA_BUDGET_BLOCKED"
+  },
+  "94": {
+    "item": "Blockers",
+    "value": [
+      "UNKNOWN_IDENTITY_UNRESOLVED",
+      "ENTRY_BUDGET_UNRESOLVED",
+      "EXIT_BUDGET_UNRESOLVED",
+      "INTEGRATION_BUDGET_UNRESOLVED",
+      "PORTFOLIO_BUDGET_UNRESOLVED",
+      "PROTECTED_DATA_CONFLICT",
+      "INSUFFICIENT_METADATA"
+    ]
+  },
+  "95": {
+    "item": "Exact next action",
+    "value": "Separate outcome-blind LONG-specific stage-budget and evaluation-reuse contract. Resolve Entry OOS, EXIT Dev/Validation/OOS, Integration/Portfolio/Comparison roles and counts; preserve all existing reservations. No price acquisition or Validation release."
+  }
+}

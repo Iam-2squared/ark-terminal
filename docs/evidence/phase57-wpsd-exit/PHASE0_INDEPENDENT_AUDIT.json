@@ -1,0 +1,53 @@
+{
+  "schema": "phase57-wpsd-phase0-independent-audit-v1",
+  "savedJst": "2026-09-28T22:05:00+09:00",
+  "auditType": "READ_ONLY_INDEPENDENT_RECOMPUTATION_WITHOUT_RUNNER_IMPORT_OR_REPLAY",
+  "precommitSha256": "792c05ab2bd4e8e6222baecfdaa5b7a7990cc97108a9137d03bd3ae0bc703332",
+  "resultSha256": "2f8d211128601890d7d051fc944df69068672e6ab309217c311e3aa88dbd0213",
+  "manifestSha256": "2c01c03211badf04800affadbcb96ce4babe0d227a2999016ef63a26245564a0",
+  "scriptSha256": "28cb237d47cb1a280de9a2063263a9bf3d7777dc01bc8c42aa34370749dd765b",
+  "status": "PASS_AS_AUDIT_OF_RECORDED_PHASE0_NO_GO",
+  "checks": {
+    "pinnedSourceHashes": "PASS",
+    "r54ProtocolHashAnd24Sessions": "PASS",
+    "r45SourceIndexIdentityAllAnchors": "1570_OF_1570_PASS",
+    "savedStateSignalF1F2F4AndEvaluableVotes": "1570_OF_1570_PASS",
+    "savedFullPrefixVersusRawDiagnostic": "1570_OF_1570_PASS",
+    "runtimeVersusEvaluatorAnchorIdentity": "1570_OF_1570_PASS",
+    "runtimeHasNoEvaluatorFutureOrPnlFields": true,
+    "resultManifestFourFileDigests": "PASS",
+    "primaryAnchorCensus": "IM_79_R1_32_NO_ANCHOR_0",
+    "secondaryAnchorCensus": "IM_800_OF_819_R1_770_OF_795_NO_ANCHOR_44",
+    "eachAnchorNowAtOrBeforeExactControlDecision": true,
+    "anchorPlusNoAnchorEqualsFrozenEntryCensus": true
+  },
+  "independentRecomputation": {
+    "primary": {
+      "IM": {"n": 79, "defenseLt5": 52, "winnerGe5": 27, "auc": 0.46545584045584043},
+      "R1": {"n": 32, "defenseLt5": 20, "winnerGe5": 12, "auc": 0.5083333333333333},
+      "combined": {"n": 111, "defenseLt5": 72, "winnerGe5": 39, "auc": 0.4779202279202279}
+    },
+    "bootstrap": {"unit": "SESSION_CLUSTER_24", "seed": 52, "draws": 10000,
+      "valid": 10000, "invalid": 0, "ci95": [0.3318413340670519, 0.6099566569470062]},
+    "secondary": {"IM": {"anchored": 800, "noAnchor": 19, "defenseMedian": 1, "winnerMedian": 2},
+      "R1": {"anchored": 770, "noAnchor": 25, "defenseMedian": 1, "winnerMedian": 2}}
+  },
+  "gateDisposition": {
+    "combinedCiLowerStrictlyAboveHalf": false,
+    "bothArmDirectionNotReversed": false,
+    "secondaryBothArmMedianNotReversed": false,
+    "lineageAndHistoricalAsOf": true,
+    "safety": true,
+    "final": "PHASE0_NO_GO"
+  },
+  "limitations": [
+    "R54 corrected teacher original bytes were unavailable locally; its SHA was crosschecked between frozen protocol and controlling closure, and the teacher is not a Phase 0 runtime input.",
+    "Historical bar-end as-of checks do not certify provider publication latency or live trading readiness.",
+    "This outcome-exposed Development audit does not establish independent predictive performance."
+  ],
+  "newEstimatorFits": 0,
+  "integratedReplays": 0,
+  "providerRequests": 0,
+  "protectedOpened": 0,
+  "candidateImplementation": 0
+}

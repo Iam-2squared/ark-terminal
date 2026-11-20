@@ -1,0 +1,7 @@
+# 500-bar historical RSS bootstrap (2026-10-11)
+
+RssChart supports 5M and 1..3000 requested bars according to the supplied Rakuten MarketSpeed II RSS 2026/3/30 specification, p18. The isolated Excel READ ONLY market probe has been updated from **20 to 500 bars by default**. It allocates a matching A3:J502 range dynamically; `-HistoryBars` may be used to request 20..3000 if capacity/capture performance requires. OfflineSelfTest validates the formula but never opens Excel.
+
+The 5-previous-session validation module independently verifies roughly 330 contiguous 5M bars (66 per normal full JPX day), accounting for lunch breaks, holidays and a still-incomplete Tuesday morning. The Windows probe collects the requested number and sends a local candidate file to the private chart publisher. It does NOT falsely certify past broker observation timestamps, create First Entry scores, or execute Excel RSS orders.
+
+**Known boundary:** The market-private receipt writer saves the requested 5M series only after fresh present-day source validation. The initial history validator is a separate pure analysis stage; this patch does not claim a live background rolling 5-day cache, multi-stock market-wide Selector bootstrap, or Strategy+Broker end-to-end certification. Source quotas and actual returned row count are pending Windows proof. No.1.1 account workbook cannot be open simultaneously with this isolated probe.

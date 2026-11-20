@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "phase57-entry-dual-freeze-r10",
+  "status": "DEVELOPMENT_DUAL_ENTRY_FROZEN_FOR_EXIT_CAPITAL_COMPARISON",
+  "dateJST": "2026-09-25",
+  "selectorDenominator": 2155,
+  "decision": {
+    "retain": ["IMMEDIATE", "ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF"],
+    "retireFromFinalCandidateSetButPreserveEvidence": ["ENTRY_V1", "ORIGINAL_STATE_V3", "ONE_MINUTE"],
+    "noFurtherEntryOptimization": true,
+    "nextStage": "Compare both frozen Entry policies under the same Frozen EXIT and Capital Allocation semantics before choosing the integrated Entry.",
+    "automaticPromotion": false,
+    "freshOosOpenedForThisDecision": false
+  },
+  "immediate": {
+    "policy": "IMMEDIATE",
+    "role": "frozen simple baseline/final candidate",
+    "canonicalEvaluatorRun": 36023075740,
+    "canonicalEvaluatorArtifact": 10818327246,
+    "canonicalEvaluatorArtifactDigest": "sha256:bfe898db66c2a593daea1dbcc9aba2a7a1bd97c8a9e6a875b8d23f7ec64f440d",
+    "scorecardFile": "immediate.json",
+    "scorecardSHA256": "4413da8aefe8e3a6f2efd07a787e64a544301fa39baaa3ff111bece59776e2a2",
+    "population": 2155,
+    "fillRatePct": 91.090487,
+    "meanEntryPositionPct": 65.399277,
+    "medianEntryPositionPct": 42.26,
+    "lowToEntryMeanBps": 251.334,
+    "entryToLaterHighMeanBps": 272.900
+  },
+  "allMaterialR1": {
+    "policy": "ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF",
+    "role": "frozen learned final candidate",
+    "workflowRun": 36099497597,
+    "workflowHead": "afb38b7a5421ca4f6ff6d439bf89096236efd119",
+    "artifact": 10851958443,
+    "artifactDigest": "sha256:33a0f64d48d25701215dadb82b9769a9c3bde2b9fec3d82d9879706f8f90e1a0",
+    "candidateFreezeSHA256": "8e81f6231b7f26dd67ba5db65ec4b77d2f743019f09c3d9431126b847467241b",
+    "intentSHA256": "e9e0735f0474ee039d0c9d6322cc72443284b808775b2562d463840b507829ed",
+    "predictionsSHA256": "cb8ab3182d91eb521a300af52ffa72fa40a3c14f550a6090d8000d4e9a1fed55",
+    "selectionSHA256": "0e40854696d2fb615e1dddb219d1ed2521f79bb190fbe3afe294e632fd60b9d2",
+    "entryRecordsSHA256": "15ddb5cfc5169024878ee72d9dbecc6e1d9dec24e78afa2dcdf8dea891117fa6",
+    "scorecardSHA256": "8817f174e776ea2db321b3518aa4b9189ba81b98b0ed03f25d9e6d787078d037",
+    "resultSHA256": "a8f4eecfbcdedac86c482880ffb791d4f5d42fff73e897b41253f2769fce0d7d",
+    "twoRunsByteIdentical": true,
+    "modelFitsPerRun": 50,
+    "population": 2155,
+    "fillRatePct": 87.47,
+    "meanEntryPositionPct": 61.52993386158878,
+    "medianEntryPositionPct": 46.094680851063535,
+    "lowToEntryMeanBps": 256.27,
+    "entryToLaterHighMeanBps": 288.656296
+  },
+  "comparisonIntent": {
+    "entryStageClosed": true,
+    "doNotSelectWinnerAtEntryOnly": true,
+    "evaluateNext": [
+      "same Frozen EXIT policy",
+      "paired causal EXIT replay",
+      "same cash/cost/event-ordering Capital Allocation",
+      "portfolio return/drawdown/PF/capital lock/concentration"
+    ]
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

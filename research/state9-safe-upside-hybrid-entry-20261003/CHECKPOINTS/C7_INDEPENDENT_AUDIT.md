@@ -1,0 +1,107 @@
+# 💾 C7_INDEPENDENT_AUDIT
+
+## 📌 saved_at_jst
+
+"2026-10-03T10:31:08.004076+09:00"
+
+## 📌 basis_head
+
+"671ad2c5df3826e7703f40683aabb9bc44e7caff"
+
+## 📌 previous_checkpoint_result_head
+
+"671ad2c5df3826e7703f40683aabb9bc44e7caff"
+
+## 📌 current_status
+
+"SAFE_UPSIDE_ENTRY_INDEPENDENT_AUDIT_PASS_NO_HIGH_PRECISION_CANDIDATE"
+
+## 📌 completed_this_checkpoint
+
+[
+  "主model/label helperをimportせず原本R1 archiveと別算術経路で全行cutoff、H0 source、60model preprocessing/weight/split/OOFを確認",
+  "全1,208,796 OOF raw scoreをdense coefficient算術で再現、最大差3.86535e-12",
+  "主forward-prefix scanと異なるdescending-all-candidate activationで全130,249 threshold点とNO_CANDIDATEを確認",
+  "canonical fill/barrier/同bar ambiguity/active-clock/6arm denominator/新arm+1..5Captureを原本から検証",
+  "既定12 prefixで独立RC2/reference/public Path/H1/H2 2,212 steps/358 snapshot確認。new fit/tuning/bootstrap0"
+]
+
+## 📌 key_evidence
+
+{
+  "gate": "PASS",
+  "mismatch_count": 0,
+  "all_row_causal_cutoff_checks": 149900,
+  "H0_original_feature_cells": 71352400,
+  "H0_context_cells": 599600,
+  "model_split_checks": 60,
+  "train_only_numeric_preprocessing_checks": 30220,
+  "OOF_score_checks": 1208796,
+  "max_dense_score_abs_error": 3.865352482534945e-12,
+  "threshold_boundary_checks": 130249,
+  "baseline_fill_primary_checks": 3848,
+  "new_arm_capture_checks": 20,
+  "independent_RC2_Path_steps": 2212,
+  "independent_H1_H2_snapshot_checks": 358,
+  "main_model_label_helpers_imported": false,
+  "new_audit_fits": 0,
+  "threshold_tuning": 0,
+  "bootstrap": 0
+}
+
+## 📌 blockers
+
+[
+  "高precision候補なし。Fresh Validationやproduction昇格を行わない",
+  "bar-end availabilityは研究仮定でありlive PIT受信保証ではない",
+  "row-level価格の公開payloadは保留、private成果物で保持"
+]
+
+## 📌 current_direction
+
+"この有限workは否定的結果として完了。State9を無理に採用しない。先のState-only V6正式結論を維持"
+
+## 📌 next_step
+
+"FINAL 日本語12問回答、比較表・図・hash manifests・privateEvidence納品・GitHub最終checkpoint"
+
+## 📌 frozen_boundaries
+
+[
+  "Primary+2/-1、secondary選択0",
+  "RC2 profile/M0/path/source無変更",
+  "主model/threshold/label無変更",
+  "追加fit0",
+  "unknownゼロ補完0、forcedfallback0",
+  "protected/provider/orders/mainMerge0",
+  "全safety false"
+]
+
+## 📌 exposure_and_budget
+
+{
+  "reads": {
+    "independent_prediction_scores": 1208796,
+    "independent_threshold_boundaries": 130249,
+    "independent_original_feature_cells": 71952000
+  },
+  "writes": {
+    "public_scope": "aggregate/hash/receipt/source only"
+  },
+  "fit": 60,
+  "audit_fit": 0,
+  "threshold_selections": 15,
+  "audit_threshold_tuning": 0,
+  "provider_requests": 0,
+  "protected_opens": 0,
+  "holdout_opens": 0,
+  "validation_new_opens": 0,
+  "OOS_opens": 0,
+  "prospective_opens": 0,
+  "bootstrap": 0,
+  "replay": 0,
+  "orders": 0,
+  "main_merge": 0
+}
+
+Result HEADは保存後のGitHub commitが正本。未来のSHAは本文に記録しない。

@@ -1,0 +1,55 @@
+name: Phase57 LONG Entry v2 Persist Existing Derived Paths
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths: [.github/workflows/phase57-msh-entry-v2-paths-persist.yml]
+permissions:
+  contents: write
+  actions: read
+jobs:
+  persist-derived-only:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/phase57-long-only-cash-equity
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-entry-v2-paths-35155074346
+          path: ${{ runner.temp }}/entry-v2-derived
+          repository: Iam-2squared/ark-terminal
+          run-id: 35155074346
+          github-token: ${{ github.token }}
+      - name: Verify immutable derived artifact and copy only all3800 paths
+        env:
+          ARK_TEST_OFFLINE: '1'
+        run: |
+          python3 scripts/offline/kernel_exec.py python3 - <<'PY'
+          import gzip,hashlib,json,os
+          from pathlib import Path
+          source=Path(os.environ['RUNNER_TEMP'])/'entry-v2-derived'
+          payload=(source/'paths.json.gz').read_bytes()
+          assert hashlib.sha256(payload).hexdigest()==(source/'paths.json.gz.sha256').read_text().strip()
+          obj=json.loads(gzip.decompress(payload))
+          assert obj['contractSHA']=='18818ffd1157c7ba15c93eb4723c3e28945c238e0e2f6a2440bee98c7ad1267f'
+          assert len(obj['events'])==len({r['selectorEventId'] for r in obj['events']})==3800
+          assert obj['legacy277Parity'] and obj['providerRequests']==obj['freshAccess']==obj['oosAccess']==0
+          assert all(v is False for v in obj['safety'].values())
+          dest=Path('docs/evidence/phase57-msh-entry-long-v2-development')
+          dest.mkdir(parents=True,exist_ok=True)
+          for name in ['paths.json.gz','paths.json.gz.sha256']:
+              data=(source/name).read_bytes()
+              if (dest/name).exists(): assert (dest/name).read_bytes()==data
+              else: (dest/name).write_bytes(data)
+          print(json.dumps({'events':3800,'sha256':hashlib.sha256(payload).hexdigest(),'newProviderRequests':0}))
+          PY
+      - name: Persist evidence to research branch only
+        run: |
+          test "${GITHUB_REF_NAME}" = research/phase57-long-only-cash-equity
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/evidence/phase57-msh-entry-long-v2-development/paths.json.gz docs/evidence/phase57-msh-entry-long-v2-development/paths.json.gz.sha256
+          if ! git diff --cached --quiet; then
+            git commit -m "Phase57: retain immutable all3800 Development path projection"
+            git push origin HEAD:research/phase57-long-only-cash-equity
+          fi

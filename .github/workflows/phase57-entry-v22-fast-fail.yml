@@ -1,0 +1,42 @@
+name: Phase57 Entry v2.2 FAST-FAIL Evidence Integrity
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-entry-v22-fast-fail.yml
+      - docs/research/phase57-entry-fast-fail-policy.md
+      - predict/research/phase57-entry-v2-2-fast-fail-protocol-v1.json*
+      - predict/research/phase57_entry_v22_quality_probe.py
+      - scripts/*phase57_entry_v22_fast_fail*
+      - docs/evidence/phase57-entry-v2-2-fast-fail/**
+permissions:
+  contents: read
+jobs:
+  synthetic-and-saved-evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned numerical dependency
+        run: python3 -m pip install numpy==2.3.5
+      - name: Synthetic tests and saved evidence only; no Project fits or predictions
+        env:
+          ARK_TEST_OFFLINE: '1'
+          PYTHONDONTWRITEBYTECODE: '1'
+          OPENBLAS_NUM_THREADS: '1'
+          OMP_NUM_THREADS: '1'
+          MKL_NUM_THREADS: '1'
+        run: python3 scripts/offline/kernel_exec.py python3 -m unittest scripts.test_phase57_entry_v22_fast_fail
+      - name: Verify immutable evidence and implementation manifest
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,pathlib
+          base=pathlib.Path('docs/evidence/phase57-entry-v2-2-fast-fail')
+          raw=(base/'manifest.json').read_bytes()
+          assert hashlib.sha256(raw).hexdigest()==(base/'manifest.json.sha256').read_text().strip()
+          for path,expected in json.loads(raw)['files'].items():
+              assert hashlib.sha256(pathlib.Path(path).read_bytes()).hexdigest()==expected,path
+          print('Evidence/implementation manifest PASS')
+          PY

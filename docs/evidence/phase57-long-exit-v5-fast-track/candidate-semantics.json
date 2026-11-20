@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "schemaId": "PHASE57_EXIT_V5_DEVELOPMENT_FINAL_CANDIDATE_V1",
+  "status": "DEVELOPMENT_FINAL_SELECTED_NOT_VALIDATED",
+  "candidateId": "EXIT_V5_DYNAMIC_RECLAIM_BAR_5",
+  "architecture": {
+    "baseContinuation": "FROZEN_EXIT_V4",
+    "firstBarNonAdverse": "CONTINUE_FROZEN_V4",
+    "firstBarAdverse": "ENTER_DEFENSIVE",
+    "recoveryCondition": "DIRECTIONAL_COMPLETED_CLOSE_RETURN_FROM_ENTRY >= 0 BEFORE_OR_AT_BAR_5",
+    "onRecovery": "CONTINUE_FROZEN_V4",
+    "onNoRecoveryByHorizon": "EXIT_AT_BAR_5_COMPLETED_CLOSE",
+    "recoveryHorizonBars": 5,
+    "roundTripCostPct": 0.05,
+    "symbolSpecificRules": false,
+    "directionSpecificRules": false,
+    "extraOverrideLayer": false
+  },
+  "freezeIntent": {
+    "singleCandidate": true,
+    "retuneBeforeFutureValidation": false,
+    "addFeatureBeforeFutureValidation": false,
+    "changeHorizonBeforeFutureValidation": false,
+    "addSymbolOrDirectionException": false
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "source": {
+    "ref": "ea15a594103bd6c9146f19a4aebafb83067d869b",
+    "path": "predict/research/phase57-exit-v5-development-final-candidate-v1.json",
+    "sha256": "a597ea41f277ef10ab4bb4a763d2a1eb87dc45bed7bd32709798d4d77a44c7af",
+    "lastCommit": "417ad9d6dc92c3110e680cdc4a6c8dcf94b4ee5e"
+  }
+}

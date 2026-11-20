@@ -1,0 +1,36 @@
+name: Phase57 R50 Contract
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - scripts/phase57_exit_winner_lifecycle_r50.py
+      - scripts/phase57_exit_replay_r50.py
+      - scripts/test_phase57_exit_winner_lifecycle_r50.py
+      - docs/evidence/phase57-comprehensive-exit-v1/R50_PRECOMMIT.json
+      - .github/workflows/phase57-r50-contract.yml
+      - .github/workflows/phase57-r50-replay.yml
+permissions: {contents: read}
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.13'}
+      - name: Focused synthetic tests
+        run: python -m unittest -v scripts.test_phase57_exit_winner_lifecycle_r50
+      - name: Frozen identity and zero-performance receipt
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          p='docs/evidence/phase57-comprehensive-exit-v1/R50_PRECOMMIT.json'
+          assert hashlib.sha256(open(p,'rb').read()).hexdigest()=='011b4959bf7cd343694f44e2986d13d87c07b6fa238dc326f5273e86885afe18'
+          x=json.load(open(p)); assert x['candidateCount']==2 and all(v is False for v in x['safety'].values())
+          json.dump({'status':'PASS','protocolSha256':'011b4959bf7cd343694f44e2986d13d87c07b6fa238dc326f5273e86885afe18','candidateCount':2,'modelFits':0,'policyReplays':0,'performanceInspected':False,'providerRequests':0,'protectedOpened':0,'safety':x['safety']},open('r50-contract-receipt.json','w'),sort_keys=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-r50-contract-${{ github.run_id }}
+          path: r50-contract-receipt.json
+          if-no-files-found: error

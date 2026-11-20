@@ -1,0 +1,346 @@
+{
+  "additiveOnly": true,
+  "authorization": "User explicitly authorizes all76 Development labelable rows, one construction fit, then one determinism verification only after first fit passes.",
+  "candidateNotAdoption": true,
+  "candidateThreshold": 2.0,
+  "classWeight": "UNWEIGHTED",
+  "constructionScriptSha256": "9ae5a3ca11a20044a84920a3837d661416d5a7dbe28881a7f304f8df6a0877d5",
+  "dateJst": "2026-09-16",
+  "determinism": {
+    "objectiveAtol": 1e-12,
+    "parametersAtol": 1e-12,
+    "parametersRtol": 0,
+    "scalerExact": true,
+    "solverStatusExact": true
+  },
+  "exitAccessAllowed": false,
+  "failurePolicy": "STOP_NO_RETRY_NO_RECONFIGURATION_NO_FOLD_SUBSTITUTION",
+  "features": {
+    "architectureRisk": "Both inputs are Frozen Selector outputs; v1 can recalibrate/filter Selector strength but cannot observe independent market state.",
+    "decisionPriceRole": "REFERENCE_ONLY",
+    "forwardFillAllowed": false,
+    "mandatoryCore": [
+      "frozenSelectorRidgeScore",
+      "frozenSelectorRidgeRank"
+    ],
+    "mandatoryCoreAvailabilityPct": 100.0,
+    "missingStrategy": "NO_MODEL_FEATURE_MISSINGNESS_IN_V1_CORE",
+    "optionalFeatures": [],
+    "previousSessionSubstitutionAllowed": false,
+    "rawDecisionPriceModelFeatureAllowed": false
+  },
+  "fitBudget": {
+    "construction": 1,
+    "determinismVerificationAfterInitialPass": 1,
+    "performanceRetry": 0
+  },
+  "fitContractPath": "predict/research/phase57-msh-entry-long-v1-fit-contract-v1.json",
+  "fitContractSha256": "64c20d785be5f23b0a9103f419726b191a12a58fd5d3a7ad5185c69f9644a938",
+  "integrityPredictions": {
+    "external": "Five fixed synthetic standardized probes [-2,-1],[ -1,1],[0,0],[1,-1],[2,1]; probability integrity and serialization only.",
+    "internalFit": "Frozen model checks all1828 training probabilities once per fit; no metrics/scores saved.",
+    "projectPerformancePredictions": 0
+  },
+  "label": {
+    "primary": {
+      "candidateRows": 3800,
+      "classes": {
+        "0": "BELOW_PLUS_1_PERCENT",
+        "1": "PLUS_1_TO_BELOW_PLUS_2_PERCENT",
+        "2": "PLUS_2_TO_BELOW_PLUS_3_PERCENT",
+        "3": "PLUS_3_TO_BELOW_PLUS_5_PERCENT",
+        "4": "PLUS_5_PERCENT_OR_MORE"
+      },
+      "completeContinuousFiveMinutePathRequired": true,
+      "coveragePct": 48.1052631579,
+      "labelableRows": 1828,
+      "reference": "DECISION_PRICE",
+      "sameSessionRequired": true,
+      "type": "ORDINAL_FUTURE_HIGH",
+      "window": "STRICT_WALL_CLOCK_PLUS_30_MINUTES"
+    },
+    "supportingDiagnostic": {
+      "hybridLabelAllowed": false,
+      "mixedIntoPrimaryLabel": false,
+      "type": "COMPLETED_FIVE_MINUTE_CLOSE_ORDINAL"
+    },
+    "unlabelable": {
+      "knownReasonCounts": {
+        "LUNCH_BREAK": 380,
+        "PROVIDER_GAP": 1424,
+        "SESSION_END": 168
+      },
+      "negativeClassSubstitutionAllowed": false,
+      "retainAuditLedger": true,
+      "trainingAction": "EXCLUDE_FROM_MODEL_FIT_AND_OOF_SCORING"
+    }
+  },
+  "mathematics": {
+    "classProbabilities": [
+      "P0=F(theta0-x@beta)",
+      "P1=F(theta1-x@beta)-F(theta0-x@beta)",
+      "P2=F(theta2-x@beta)-F(theta1-x@beta)",
+      "P3=F(theta3-x@beta)-F(theta2-x@beta)",
+      "P4=1-F(theta3-x@beta)"
+    ],
+    "cumulativeProbability": "P(Y<=k|x)=sigmoid(theta[k]-x@beta)",
+    "cutpointParameterization": {
+      "epsilon": 1e-08,
+      "orderingGuaranteedDuringOptimization": true,
+      "postFitSortingAllowed": false,
+      "theta0": "a0",
+      "theta1": "theta0+softplus(d1)+epsilon",
+      "theta2": "theta1+softplus(d2)+epsilon",
+      "theta3": "theta2+softplus(d3)+epsilon"
+    },
+    "equation": "logit(P(Y<=k|x))=theta[k]-x@beta, k=0,1,2,3",
+    "gradient": {
+      "finiteDifferenceStep": 1e-06,
+      "maxAbsoluteErrorGate": 2e-05,
+      "maxRelativeErrorGate": 2e-05,
+      "type": "ANALYTIC",
+      "verification": "CENTRAL_FINITE_DIFFERENCE_ON_SYNTHETIC_DATA"
+    },
+    "numericalStability": {
+      "nanInfPolicy": "FIT_FAILED_OR_INPUT_REJECTED",
+      "probabilityClipping": false,
+      "probabilityRenormalization": false,
+      "probabilityTolerance": 1e-12,
+      "stableLogSigmoid": "-logaddexp(0,-z)",
+      "stableMiddleClassLogProbability": true,
+      "stableSigmoid": "scipy.special.expit"
+    },
+    "objective": {
+      "classWeight": "UNWEIGHTED",
+      "cutpointsPenalized": false,
+      "dataLoss": "SUM_NEGATIVE_LOG_LIKELIHOOD",
+      "formula": "-sum_i(log(P(Y_i|x_i)))+lambda/2*||beta||^2",
+      "l2Target": "SLOPE_BETA_ONLY",
+      "lambda": 1.0,
+      "lambdaRationale": "A unit-scale stability penalty under SUM NLL after training-prefix standardization, with only two slopes. No project-data lambda comparison is allowed.",
+      "lambdaSelection": "PREDECLARED_FIXED_NOT_SELECTED_BY_PROJECT_PERFORMANCE",
+      "sampleMeanScaling": false
+    },
+    "sharedSlopeAcrossCutpoints": true
+  },
+  "model": {
+    "alternativeLinkAllowed": false,
+    "binaryDecompositionAllowed": false,
+    "cutpointCount": 4,
+    "fallbackModelAllowed": false,
+    "link": "LOGIT",
+    "modelCount": 1,
+    "modelFamily": "IN_REPOSITORY_PROPORTIONAL_ODDS_ORDINAL_LOGISTIC_REGRESSION",
+    "modelVersion": "phase57-msh-entry-long-v1-proportional-odds-v1",
+    "multinomialSubstitutionAllowed": false,
+    "orderedClasses": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "secondModelAllowed": false,
+    "type": "NEW_LONG_SPECIFIC_ENTRY"
+  },
+  "oofRegenerationAllowed": false,
+  "oosAccessAllowed": false,
+  "performanceEvaluationAllowed": false,
+  "priorFinalAll76SessionRefitZeroRemainsHistoricalFact": true,
+  "providerRequestsAllowed": false,
+  "purpose": "SINGLE_VALIDATION_ARTIFACT_CONSTRUCTION_NOT_DEVELOPMENT_PERFORMANCE",
+  "runtime": {
+    "licenseFootprint": {
+      "numpy": "BSD-3-Clause",
+      "scipy": "BSD-3-Clause"
+    },
+    "newExternalOrdinalDependency": null,
+    "numpy": "2.3.5",
+    "python": "3.12",
+    "scipy": "1.17.0"
+  },
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "leverageAllowed": false,
+    "liveTradingAllowed": false,
+    "marginAllowed": false,
+    "paperTradingAllowed": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "shortAllowed": false,
+    "transmitted": false
+  },
+  "scaler": {
+    "ddof": 0,
+    "implementation": "Frozen model.fit computes scaler internally. Pass RAW Core, never double-standardize.",
+    "nonpositiveStd": "FAIL_CLOSED",
+    "scope": "ALL_76_DEVELOPMENT_LABELABLE_ROWS_ONLY"
+  },
+  "schemaVersion": 1,
+  "selector": {
+    "branch": "research/phase57-long-only-cash-equity",
+    "frozenSelectorFreezeCommit": "565d74b3dea823581fdb32380113aac5913a248d",
+    "frozenSelectorName": "Phase57 LONG-only Frozen Selector v1",
+    "frozenSelectorPayloadSha256": "3dc6d222d4039737c0dcfdcfa4a83372202152e29b582225419ab97c00610d59",
+    "frozenSelectorRidgeArtifactSha256": "994f1dbaba1d32e97458d5dd9d4c646ef443fbb37128650e8166001d8deabefb",
+    "implementationPath": "predict/research/phase57_msh_entry_long_v1_proportional_odds.py",
+    "implementationSha256": "9e5910c476c6957aab65cc24490ffb2759084e5e49b36db42fe284674979ae74",
+    "pullRequest": 587,
+    "repository": "Iam-2squared/ark-terminal",
+    "syntheticTestPath": "predict/tests/test_phase57_msh_entry_long_v1_proportional_odds.py",
+    "syntheticTestSha256": "b334e240ac1ff16dd7a8ea12cc4f8308f049a77350e7ad4bad53fef043e394aa"
+  },
+  "solver": {
+    "allFiveClassesRequiredInEveryTrainingPrefix": true,
+    "failClosedGate": [
+      "OPTIMIZER_SUCCESS_TRUE",
+      "ALL_PARAMETERS_FINITE",
+      "FOUR_CUTPOINTS_STRICTLY_ORDERED",
+      "OBJECTIVE_FINITE",
+      "FIVE_PROBABILITIES_FINITE_NONNEGATIVE_AND_SUM_TO_ONE"
+    ],
+    "failureResult": "FIT_FAILED_NO_ARTIFACT_PROMOTION",
+    "implicitClassRemappingAllowed": false,
+    "initialization": {
+      "beta": "ALL_ZERO",
+      "cutpoints": "EMPIRICAL_CUMULATIVE_CLASS_FREQUENCY_LOGITS",
+      "randomInitialization": false,
+      "seedRequired": false
+    },
+    "solver": {
+      "deterministicInitialization": true,
+      "ftol": 1e-12,
+      "gtol": 1e-08,
+      "library": "scipy.optimize.minimize",
+      "maxiter": 2000,
+      "method": "L-BFGS-B",
+      "requiredDiagnostics": [
+        "success",
+        "status",
+        "message",
+        "nit",
+        "nfev",
+        "njev",
+        "objective"
+      ]
+    }
+  },
+  "sourcePins": {
+    "docs/evidence/phase57-msh-entry-long-v1-offline-freeze/development-evidence-freeze.json": "68d2a02c988a05b3178e903d628a53662b01bb704fa0700ebcb98e3b32547ead",
+    "docs/evidence/phase57-msh-entry-long-v1-preimplementation-feasibility-events.ndjson.gz": "73e566aba4d1a3f5af33b74be52ae90736c088b1091841f1eb44e93d5476084c"
+  },
+  "status": "FROZEN_BEFORE_FINAL_FIT",
+  "thresholdPerformanceAllowed": false,
+  "trainingIdentity": {
+    "allEventIdsSha256": "103ae204ad93ec32a772f0bd966cab3c9072d9509bb78c5a243aea200bbe57fd",
+    "classCounts": [
+      606,
+      423,
+      271,
+      281,
+      247
+    ],
+    "featureOrder": [
+      "frozenSelectorRidgeScore",
+      "frozenSelectorRidgeRank"
+    ],
+    "featureOrderSha256": "7cc53df7093fdc34c14064115ba1b7ec57db9b526b1faf911d0255acbb3afbb3",
+    "hashEncoding": "SORTED_KEY_COMPACT_JSON_UTF8_NO_NEWLINE",
+    "labelableCount": 1828,
+    "rowOrder": "EXISTING_FEASIBILITY_LEDGER_ORDER",
+    "selectionEventCount": 3800,
+    "sessionCount": 76,
+    "sessionListSha256": "de4a4264a7d78446ff01f72c2f927cc29ec45b18126068ca2e9dc2cfe16c5483",
+    "trainingEventIdsSha256": "c9ede1c330b1e5a4ab1765fa901a14258831a17be9a024c4ba7a56db418d8e06",
+    "trainingPayloadSha256": "c323c2c8a329f5b6139f4c5887d75aed392527663f2a5af3edde43c56ba9a63f",
+    "trainingSessions": [
+      "2024-09-17",
+      "2024-09-18",
+      "2024-09-19",
+      "2024-09-20",
+      "2024-09-24",
+      "2024-09-25",
+      "2024-09-26",
+      "2024-09-27",
+      "2024-09-30",
+      "2024-10-01",
+      "2024-10-02",
+      "2024-10-03",
+      "2024-10-04",
+      "2024-10-07",
+      "2024-10-08",
+      "2024-10-09",
+      "2024-10-10",
+      "2024-10-11",
+      "2024-10-15",
+      "2024-10-16",
+      "2024-10-17",
+      "2024-10-18",
+      "2024-10-21",
+      "2024-10-22",
+      "2024-10-23",
+      "2024-10-24",
+      "2024-10-25",
+      "2024-10-28",
+      "2024-10-29",
+      "2024-10-30",
+      "2024-10-31",
+      "2024-11-01",
+      "2024-11-05",
+      "2024-11-06",
+      "2024-11-07",
+      "2024-11-08",
+      "2024-11-11",
+      "2024-11-12",
+      "2024-11-13",
+      "2024-11-14",
+      "2024-11-15",
+      "2024-11-18",
+      "2024-11-19",
+      "2024-11-20",
+      "2024-11-21",
+      "2024-11-22",
+      "2024-11-25",
+      "2024-11-26",
+      "2024-11-27",
+      "2024-11-28",
+      "2024-11-29",
+      "2024-12-02",
+      "2024-12-03",
+      "2024-12-04",
+      "2024-12-05",
+      "2024-12-06",
+      "2024-12-09",
+      "2024-12-10",
+      "2024-12-11",
+      "2024-12-12",
+      "2024-12-13",
+      "2024-12-16",
+      "2024-12-17",
+      "2024-12-18",
+      "2024-12-19",
+      "2024-12-20",
+      "2024-12-23",
+      "2024-12-24",
+      "2024-12-25",
+      "2024-12-26",
+      "2024-12-27",
+      "2024-12-30",
+      "2025-01-06",
+      "2025-01-07",
+      "2025-01-08",
+      "2025-01-09"
+    ],
+    "uniqueSymbolSessions": 2743,
+    "unlabelableCount": 1972,
+    "unlabelableReasons": {
+      "LUNCH_BREAK": 380,
+      "PROVIDER_GAP": 1424,
+      "SESSION_END": 168
+    }
+  },
+  "validationAccessAllowed": false
+}

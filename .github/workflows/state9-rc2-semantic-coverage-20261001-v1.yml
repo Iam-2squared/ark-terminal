@@ -1,0 +1,69 @@
+name: State9 RC2 Semantic Coverage 20261001
+on:
+  push:
+    branches:
+      - state9-rc2-semantic-coverage-20261001-v1
+    paths:
+      - '.github/workflows/state9-rc2-semantic-coverage-20261001-v1.yml'
+      - '.state9_rc2_semantic_coverage_20261001/payload.b64'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: state9-rc2-semantic-coverage-20261001-v1
+  cancel-in-progress: false
+jobs:
+  continuation:
+    if: github.ref == 'refs/heads/state9-rc2-semantic-coverage-20261001-v1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Unpack precommitted frozen continuation source
+        env:
+          STATE9_PAYLOAD_SHA256: ce281a1e4aa4fbe401f6f1f3a432fe4fd7f17171f231f9864c88519983388194
+        run: |
+          python - <<'PY'
+          import base64,hashlib,io,os,pathlib,zipfile
+          payload=base64.b64decode(pathlib.Path('.state9_rc2_semantic_coverage_20261001/payload.b64').read_bytes())
+          assert hashlib.sha256(payload).hexdigest()==os.environ['STATE9_PAYLOAD_SHA256']
+          target=pathlib.Path(os.environ['RUNNER_TEMP'])/'state9-semantic-coverage-code'
+          with zipfile.ZipFile(io.BytesIO(payload)) as archive:archive.extractall(target)
+          PY
+      - name: Existing checkpoint only - prefrozen targeted semantic coverage
+        id: audit
+        env:
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+          STATE9_CONT_RAW: ${{ runner.temp }}/state9-semantic-coverage-private
+          STATE9_CONT_OUT: ${{ runner.temp }}/state9-semantic-coverage-evidence
+        run: python "$RUNNER_TEMP/state9-semantic-coverage-code/coverage.py"
+      - name: Verify final plaintext purge
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os,pathlib,shutil
+          base=pathlib.Path(os.environ['RUNNER_TEMP'])
+          raw=base/'state9-semantic-coverage-private'
+          shutil.rmtree(raw,ignore_errors=True)
+          target=base/'state9-semantic-coverage-evidence'/'DESIGNER_PRIVATE'
+          target.mkdir(parents=True,exist_ok=True)
+          (target/'WORKFLOW_PURGE_RECEIPT.json').write_text(json.dumps({'plaintext_purge_verified':not raw.exists(),'raw_directory_exists':raw.exists(),'classifier_directory_exists':(raw/'classifier-sandbox').exists()})+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: state9-rc2-coverage-private-${{ github.run_id }}
+          path: ${{ runner.temp }}/state9-semantic-coverage-evidence/DESIGNER_PRIVATE
+          retention-days: 7
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: steps.audit.outcome == 'success'
+        with:
+          name: state9-rc2-coverage-public-${{ github.run_id }}
+          path: ${{ runner.temp }}/state9-semantic-coverage-evidence/REVIEWER_PUBLIC
+          retention-days: 7
+          if-no-files-found: error

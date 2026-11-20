@@ -1,0 +1,27 @@
+name: Phase57 LONG EXIT v5 BAR5 Fast Track Integrity
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-long-exit-v5-fast-track.yml
+      - scripts/lib/phase57-long-exit-v5-bar5-adapter.mjs
+      - scripts/phase57_long_exit_v5_fast_track.mjs
+      - scripts/test_phase57_long_exit_v5_*
+      - docs/evidence/phase57-long-exit-v5-fast-track/**
+permissions:
+  contents: read
+jobs:
+  bar5-parity-and-blocked-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Selected BAR5 simulator parity and no invented continuation
+        run: ARK_TEST_OFFLINE=1 python3 scripts/offline/kernel_exec.py node --test scripts/test_phase57_long_exit_v5_bar5.mjs
+      - name: Evidence identity, null metrics and frozen upstream
+        run: ARK_TEST_OFFLINE=1 python3 scripts/offline/kernel_exec.py python3 -m unittest scripts/test_phase57_long_exit_v5_fast_track.py scripts/test_phase57_msh_entry_upstream_freeze.py

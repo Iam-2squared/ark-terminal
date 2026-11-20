@@ -1,0 +1,813 @@
+ARK TERMINAL — Downside V2 / RD02
+購入前の市場情報から大Loser Riskを直接学習する有限Work指示書
+第2層Rankingへ渡す予測器の検証 / 全12帯 n/N / 現行R0との比較
+
+文書ID: ARK_RANK_DOWNSIDE_DIRECT_RD02_20261008
+版: 1.0
+作成日: 2026-10-08
+開始位置: RD01 LEGACY_DOWNSIDE_NO_INCREMENT / COMPLETE_STOP後
+終了位置: 新Downsideの有限学習、初回時系列OOF、全12帯と旧rank内の識別診断、
+          別実装検算、保存モデル再現、GitHub保存・実読戻し、次工程判定まで。
+区分: 新しい直接Downside予測器の研究。旧研究の再開でも本番変更でもない。
+指示書作成時点: 原本の読取りと設計のみ。RD02のfeature build・fit・推論は未実行。
+
+======================================================================
+0. 最上位方針：何のために、どこを変えるのか
+======================================================================
+
+最終目的は、100万円開始・20市場営業日後の最終資産を増やすこと。
+単にAUC、的中率、見送り率、空き枠率を上げることを成功としない。
+
+今回の担当は第2層Rankingの「下方向の判断材料」である。
+  第1層 FIRST LAYER       : 現行状態を固定。
+  第2層 上方向H2/H3/H5・ML : 固定。Entry→Highの思想を変更しない。
+  第2層 下方向予測器       : このWorkで新規研究する。
+  第3層 Capital V5 MAX3    : 固定。Admission・数量配分を変えない。
+  新SHARP_DROP EXIT        : 固定。旧EXITへ戻さない。
+
+今回はDownsideの識別能力そのものを検証する。
+いきなりqへcapを付けてS/A/B/Cを降格させない。RD01の旧rank由来capは再利用しない。
+新rankの本線差し替え、Capital接続、RESET20 Replayは今回の範囲外。
+有望でも自動でそこへ進まない。次のRanking統合仕様の草案まででSTOPする。
+
+一方で、モデル性能の数字だけで終えない。
+現行S/A/B/Cそれぞれの中で、危険側と安全側を分けたときの全12帯n/N、
+大Loser濃縮・Winner巻込み・U2/U3/U5/U10保全を必ず出す。
+「今のSの中の危険なものを見分けられるか」を直接確認する。
+
+新しいDownsideを成功させるために、次を勝手に変えない。
+Selector、Frozen Entry ID/時刻/価格、FIRST LAYER、上方向model/score/rank、
+State9の意味/kernel/reset/gap/quality、EXIT、15:20 EOD、fill/cost、
+MAX3、100株、現物LONG-only、資金配分、既存の禁止/不採用履歴。
+
+追加購入前SHARP_DROP filter P1は、現行比較でOFFだった状態を維持する。
+「FIRST LAYER固定」をP1の新規ONと解釈しない。
+旧FIRST LAYER V1/C03/C05/C06/C08/WB01/C09/C10/C11のmodel、feature、score、
+threshold、Champion、Paretoは新予測器の親にしない。
+同じ原始OHLCや凍結State定義の使用は可能だが、旧feature bundleの改名移植は不可。
+
+Phase 0、RAW recovery、State kernel作り直し、全研究のFreeze再確認へ戻らない。
+必要入力とpinの局所照合は行うが、完了した基盤研究を最初から繰り返さない。
+
+======================================================================
+1. RD01で分かったことと、今回の設計差分
+======================================================================
+
+RD01の保存報告による事実:
+・1039一意Entry / R_NEW既知1016 / 未知23 / 38 Development sessions。
+・R0のrankはS43、A154、B297、C545。
+・R_NEW<=-5%は23件、R_NEW<=-3%は73件、R_NEW<0は587件。
+・R1は上方向4列、R2はそれに旧HL0/D1/D2の3scoreを足した小規模readout。
+・R2のq5は微小改善、q3と全体log lossは悪化。同数上位の改善も一貫せず。
+・新S33件のうち32件はfallback。これを新risk判定成功と扱えない。
+・RD01のt_rankはnative fill時刻。厳密BUY_INTENTでの再利用はNOT_CERTIFIED。
+
+今回の差分:
+1) 旧の弱いscore7列を組み替えるのではなく、価格・Volume・Trading Valueと
+   凍結State prefixから、新しい損失severityを直接学習する。
+2) 入力cutoffをFrozen BUY_INTENTまでに限定する。
+   fill時刻、fillまでの実待ち時間、後で判明したfill Openを入力にしない。
+3) 既存warmup20 sessionsを学習に使う。新EXITのラベルが未保存の分だけ作る。
+   RD01の「初期OOFが貯まるまで学習しない」制約を、直接モデルへ機械的に継承しない。
+4) まず予測器を評価し、rank cap・veto・Capital変更で見かけを整えない。
+5) q3とq5を別々に評価し、良い方だけを選んで成功としない。
+
+これは「市場に下落予測情報がない」と決着を付ける実験ではない。
+今回固定した入力・モデルで、実用へ向けた追加情報が得られたかを検証する。
+
+======================================================================
+2. 権威ある原本・pin・再利用範囲
+======================================================================
+
+公開repo : Iam-2squared/ark-terminal
+非公開repo: Iam-2squared/ark-capital-private-
+
+[RD01]
+  branch: research/rank-reward-downside-rd01-20261008
+  作成時にactual GETで確認したpublic HEAD:
+    6375a00458936078186a1637795241fedf0236a1
+  directory: research/rank-reward-downside-rd01-20261008/
+  REPORT-ja.md Git blob: 7dea60504c83463763915bf2d5b405f605ec2b85
+  ASOF_COMPATIBILITY_REPORT.json Git blob:
+    5fe72206cfb0446c77d5e29bdeba53ab50394ece
+  必須再利用:
+    R_NEW exact labelと未測定reason、R0 rank/ML/m2/m3/m5、U label、
+    1039 ID・block・session、旧readout予測とcoverage、source/State/price manifest、
+    READBACK_RECEIPT_PUBLICATION.json、READBACK_CONFIRMATION.json。
+  privateのcommit/memberはpublic receipt/manifestから解決する。架空名を作らない。
+  旧R1/R2/HL0/D1/D2は保存比較用のみ。新モデルの入力にはしない。
+
+[Capital V5 native]
+  commit: 710656491be06235901b45c50a8b5cbd714ba4eb
+  directory: research/capital-v5-max3-slot-intelligence-20261004-v1/
+  staircase.py Git blob: 6863b2dded50e4d0caa4e2d470619017fcf0b759
+  R0: S ML>=2 / A 1.5<=ML<2 / B 1<=ML<1.5 / C ML<1。
+  H2/H3/H5、PAVA、ML、capacity_band、candidate_orderの変更0。
+  pP DESC / V7 percentile / MRETへの差し替え0。
+
+[Main EXIT]
+  main_exit_id: SHARP_DROP_FIRST_OBSERVED_EXIT_V0
+  freeze commit: 30519cc85042a36097db54a70471de7bc679794e
+  path: research/exit-sharp-drop-overlay-counterfactual-20261007/MAIN_EXIT_FREEZE_20261007.json
+  freeze SHA256:
+    a9845422555b478fe1ed34a95b97fa185f83c2c487c19926f72dbe628eec590d
+  修復済み実装、初回有効SHARP_DROP、旧構造EXIT同時/先行優先、canonical15:20 EODを継承。
+  BUY1.0005 / SELL0.9995各1回、commission0、100株reference。
+  SHARP_DROPがない/正当なState棄権なら旧構造EXIT/EOD。
+  保存証跡gapは「SHARP_DROPなし」へ変換しない。
+
+[原始入力の所在]
+  既存CORE1600行/58 sessions、Frozen P0 first-intent snapshot、
+  分足rawの既存indexed slice、State prefix、calendar/quality/resetの凍結資産。
+  旧RNEG FEATURE_ASOF_CONTRACTは所在・意味確認の参考であり、fill時点featureは除外。
+  旧Capital feature/score bundleの自動全列投入は禁止。
+  過去の全RAWを再走査せず、manifestで特定したsession/symbol/区間だけ読む。
+
+開始時は上記pinを読み、同じbranchに追加receiptがある場合は差分だけ確認する。
+public/private実体・hashが食い違う場合は黙って修正せず、source差分を記録する。
+別の研究が同時進行していても、その新policyを自動的に取り込まない。
+
+======================================================================
+3. 学習・評価母集団とラベル
+======================================================================
+
+3.1 固定単位
+  一意Frozen Entry IDが1サンプル。symbol-dateへ縮約しない。
+  RESET20の重複898取引などを独立サンプルとして増やさない。
+  CORE1600 / warmup20 sessions / 評価38 sessions・1039 ID / 既存8blockを継承する。
+  session全件がtrainか評価側のどちらかへ属する。行単位random splitは禁止。
+
+3.2 Primaryラベル
+  R_NEW_PCT = 100 * (sell_credit_new / buy_debit_frozen - 1)
+  新SHARP_DROP EXIT、元buy fill、既存cost、100株を固定。
+  分子/分母または保存Decimal原値を権威とし、表示丸め前に分類する。
+  RはEntry→EXIT実現net return。MAE、Entry→Low、Entry→Highとは別。
+  損切りtriggerの時刻・EXIT reason・future pathはラベル計算側にのみ置く。
+
+3.3 新モデルが直接学ぶ5分類（排他的）
+  T5       : R_NEW_PCT <= -5
+  T3_5     : -5 < R_NEW_PCT <= -3
+  T2_3     : -3 < R_NEW_PCT <= -2
+  T0_2     : -2 < R_NEW_PCT < 0
+  NONNEG   : R_NEW_PCT >= 0
+
+  出力p[0..4]から以下を算出する。
+    q5   = p(T5)
+    q3   = p(T5) + p(T3_5)
+    q2   = p(T5) + p(T3_5) + p(T2_3)
+    qNEG = p(T5) + p(T3_5) + p(T2_3) + p(T0_2)
+  よって0<=q5<=q3<=q2<=qNEG<=1をモデル構造で満たす。
+  -5〜-3%の推定はq3-q5。細かい1%刻み12帯は観測評価であり、
+  12クラスそれぞれを予測していると主張しない。
+  q3を主識別対象、q5を必須の重大損失対象、q2/qNEGを補助とする。
+  q5の小標本を隠さず、q3だけの改善を「-5%も解決」としない。
+
+3.4 ラベル再利用と欠損
+  RD01の1039 IDは保存R_NEWを再利用。既知1016の再生成0。
+  元23未知はUNKNOWNのまま。未来の価格sourceがないことを購入前gateにしない。
+  warmupは元561行を想定するが、原台帳を権威とする。
+  旧EXITのwarmup Rを新EXITのRとして使わない。
+  warmupに同一新EXIT Rが未保存なら、そのIDだけ最大561件、各1回、
+  保存market/State/修復済みEXITから新namespaceへmaterializeすることを許可する。
+  既存ラベルはhash一致を確認して再利用。生成attempt数/成功/未知を別カウント。
+  必須suffixが欠けたwarmupはラベルUNKNOWN。回復のためprovider/RAW recoveryをしない。
+  不足しても利用可能な過去行で定義済みsupport条件を評価し、勝手な追加期間を足さない。
+
+3.5 時系列成熟
+  block bのfitへ渡すのは、b開始前の凍結train sessionsに属し、
+  ラベル確定可能時刻もbの学習cutoffより前であるIDのみ。
+  将来の日付、同日内のまだ閉じていない結果、全1039のoutcomeで補完/標準化しない。
+  評価対象IDはR未知のままでも削除せず予測対象として保持する。
+
+======================================================================
+4. 最重要：入力時点を厳密BUY_INTENTへ揃える
+======================================================================
+
+新予測器のt_x = Frozen BUY_INTENTの判定cutoff。
+名前だけBUY_INTENTとし、実際はfill時点の情報を混ぜてはいけない。
+
+必須条件:
+  raw/Stateのavailable_at <= t_x
+  rawはclosed barのみ。bar_start+duration=close_timeとavailable_atを区別する。
+  同時刻のイベント順は凍結schedulerに従う。
+  その順序でBUY_INTENTの後に確定する同時刻barは使わない。
+  時刻同値だけで使用可と推定しない。
+
+使用禁止:
+  actual fill clock、intent→実fill delay、後で確定するbuy Open、fill bar H/L/C/Vo/Va、
+  Entry後State・将来SHARP_DROP時刻・将来構造EXIT・EOD価格、
+  実R、Winner bucket、Uラベル、未来High/Low、future availability、
+  旧CapitalのE_ONLY/C_ONLY/funded、未来の空き枠や解放時刻。
+
+入力用の価格基準は、t_xで合法な最後のclosed raw Close。
+ラベルの原価は元のFrozen buy debit。両者を同じものと仮定しない。
+ラベル計算で後に判明するbuy価格を使うことと、その価格をfeatureへ入れることは別。
+
+RD01/R0の旧scoreはnative fill時点の歴史契約だった。
+今回の新入力へは入れず、出力後の評価stratum/参考順位としてのみ使う。
+旧scoreとの比較はLATER_ASOF_REFERENCEを明記し、厳密に同じ情報集合の比較とは呼ばない。
+RD01より時点が厳しくなった影響と、モデル変更の影響が混ざることも記録する。
+
+actual arrivalは従来どおりUNKNOWN。
+historical assumed availabilityを守ったことをlive実受信の証明へ格上げしない。
+
+======================================================================
+5. 入力representation：少数family・事前固定のshape
+======================================================================
+
+今回は以下のF_PRICEとF_STATEだけ。
+新しく学習した上方向score・旧Downside score・銘柄ID・日付ID・fold IDを入力にしない。
+peer/market指数、新しい日足期間、news、板、deep modelを後付けしない。
+
+5.1 共通のデータ処理
+  既存P0 snapshotはexact row IDでjoinし、列の計算定義・cutoffが以下と一致する場合だけreuse。
+  近い名前の列を意味が同じと推定しない。
+  不一致なら、既存raw prefixの限定sliceからこのWorkの新featureとして算出する。
+  全featureはformula、source member/hash、available_at、missing reasonを保存。
+
+  窓は同一session内の直近5/20/60 active minutes。
+  凍結calendarの予定regular分足区間で選び、昼休みの非取引分を足さない。
+  予定欠測を「最後の60本」で埋めず、coverageを下げる。
+  朝以前の前日バーへ延ばさない。過去sessionへの勝手なcarryをしない。
+  reset/gap/lunchにより断絶する隣接リターンを作らない。
+  窓内の最大/最小など集合統計は利用可能な実観測のみ、連続性統計はsegment内のみ。
+
+5.2 F_PRICE（価格・チャート形状・Volume・Trading Value）
+  各w=5/20/60で次の12数値。計36列。
+  a) valid raw数 / 当session内その窓の予定raw数（coverage）
+  b) log(最後のC / 最初のO)：窓内値動き。gapを含む集合統計として明示。
+  c) log(max H / min L)：窓レンジ
+  d) log(最後のC / max H)：窓高値からの位置
+  e) log(最後のC / min L)：窓安値からの位置
+  f) Σ隣接log return / Σ|隣接log return|：符号付き効率
+  g) sqrt(mean(隣接log return^2))：リターンRMS
+  h) segment内close-to-running-close-highの最悪log drawdown
+  i) 有効隣接pair中、close return<0の割合
+  j) 隣接close下落barのVolume合計 / 有効隣接barのVolume合計
+  k) log(1+窓内1観測bar当たり平均Volume)
+  l) log(1+窓内1観測bar当たり平均Trading Value)
+
+  注意:
+  ・hはClose系列だけを用い、同一足High→Lowの順序を推定しない。
+  ・fでpairがあり絶対変化合計0なら0、pairなしならmissing。
+  ・hで長さ>=2のsegmentがなければmissing。値動きが無ければ0。
+  ・jは約定方向の実買い/実売りフローではなく、OHLCVの代理統計。
+  ・k/lのraw単位をpinする。単位換算を結果で変えない。
+  ・missing/NaNを0埋めして下落なしとしない。
+
+  上記に以下9数値を追加。F_PRICEは合計45数値を固定。
+  m) 最後の足のbody=(C-O)/(H-L)
+  n) 最後の足のupper_wick=(H-max(O,C))/(H-L)
+  o) 最後の足のlower_wick=(min(O,C)-L)/(H-L)
+  p) 最後の足がflat OHLCであるindicator（flat時m/n/o=0、欠測時missing）
+  q) log(平均Volume5 / 平均Volume20)
+  r) log(平均TradingValue5 / 平均TradingValue20)
+  s) 当sessionのregular開始からt_xまでの予定active minute数
+  t) 最後のvalid raw closeからt_xまでの予定active minute age
+  u) 直近60 active minutes内の凍結raw segment断絶数
+
+  比率q/rは分子分母のsourceがvalidかつ正のときだけ定義。
+  足不足/分母0へ恣意的epsilonを足して値を捏造しない。
+  tはageがあることを可観測にするだけで、stale Stateの持ち越しを許可しない。
+
+5.3 F_STATE（State9・Transition・Pathの保存prefix）
+  kernelを再計算しない。BUY_INTENT cutoffで合法な保存prefixだけを切り出す。
+  既に契約上失効した最後のStateを「現在State」として持ち越さない。
+
+  4 categorical:
+    ・cutoff時点のprimary State9またはINITIALIZING/QUALITY_ABSTAIN等の品質値
+    ・同一有効segment内、直近State runの1つ前のState
+    ・同じく2つ前のState
+    ・凍結quality/reset reason
+  StateにRISEからSHARP_DROPまで大小の整数順序を付けず、固定語彙one-hot。
+  State語彙は9State＋明示品質語彙＋START/UNKNOWN。
+  固定語彙・列順をfit前にmetadataから確定し、将来の頻度でcategoryを統合しない。
+
+  直近20/60 active minutesで各11数値。計22列。
+    ・9State各々の観測checkpoint占有率（有効State観測数が分母）
+    ・有効State観測checkpoint数 / 予定checkpoint数
+    ・同一有効segment内のState変化回数
+  有効観測0なら9占有率はmissing、coverageは0。
+  同一runの繰返しStateを新transitionと数えない。
+  昼休み/品質断絶を市場のDROP/RANGE transitionへ数えない。
+  segment終端やreset reasonを、t_x後のsuffixから遡って補完しない。
+
+  さらに3数値:
+    ・現在の有効State runのactive-minute duration
+    ・最後の有効State checkpointのactive-minute age
+    ・直近60 active minutesのState reset/segment断絶数
+  合計25数値＋4categoricalを固定。
+
+5.4 INPUT品質とfeature missing
+  raw/Stateの真の欠測・INITIALIZINGは、凍結missingnessとして学習に表現する。
+  「保存すべきprefixファイルがない」というEVIDENCE_GAPとは分ける。
+  F_PRICEに最後の合法valid raw barが無い場合、新モデルの数値予測はUNASSESSED。
+  Stateが正当にINITIALIZINGでもF_PRICEが有効ならcombined modelは予測可能。
+  State記録の保存欠落はcombined系だけUNASSESSED。price-onlyを黙って代入しない。
+  family全体が未回収ならMODEL_NOT_RUN_SOURCE_BLOCKEDとし、別featureへ置換しない。
+
+======================================================================
+6. モデル：3構成だけ、Primaryは先に固定
+======================================================================
+
+名前                  入力              学習器                  役割
+D-LINEAR              PRICE+STATE       L2多項logistic          低容量・線形対照
+D-PRICE               PRICE             浅い勾配boosting木      価格/需給だけの対照
+D-FULL                PRICE+STATE       同じ浅いboosting木      事前固定Primary
+
+旧HL0/D1/D2/RD01の出力は新入力に足さない。deep learning・別アルゴリズム追加なし。
+3構成は同じtrain IDとtargetで比較し、MODEL SOURCE欠損時のmask差を明示する。
+Primaryを結果を見てD-PRICE/D-LINEARへ付け替えない。
+対照が良ければ次工程の候補として報告するが、このcycleで新Championにしない。
+
+6.1 前処理
+  数値70列（PRICE45＋STATE25）はtrain内の中央値で補完。
+  全数値列にmissing indicatorを付ける。train全欠測列の中央値は0として記録。
+  D-LINEARはtrain mean/stdで標準化。std=0はscale=1。
+  木は同じ補完/indicator、標準化なし。
+  固定one-hot categoryを使用し、unseenはUNKNOWN。
+  新TESTの分布で補完/標準化/カテゴリ統合しない。
+  winsorization、PCA、feature選別、SHAPに基づく再選択は0。
+
+6.2 D-LINEAR
+  class order=[T5,T3_5,T2_3,T0_2,NONNEG]
+  objective = mean multiclass negative log likelihood + 0.005 * Σβ^2
+  intercept非正則化。係数全0初期、基準class=NONNEG（β/intercept=0）で一意化。
+  L-BFGS、float64、最大1000 iterations、gradient infinity norm<=1e-7。
+  未収束を成功にしない。iterationを追加して救済することはこのcycleではしない。
+  表記上L2=0.01/2に相当。実装APIのC値と同値と推測せず目的関数を合わせる。
+
+6.3 D-PRICE / D-FULL
+  HistGradientBoostingClassifier互換のmulticlass log_loss。
+  learning_rate=0.05、max_iter=100、max_depth=3、max_leaf_nodes=7、
+  min_samples_leaf=20、l2_regularization=1.0、max_bins=64。
+  class_weight=None、sample_weight=None、early_stopping=False、warm_start=False、
+  random_state=57、categorical_features=None（one-hot済み）、monotonic_cst=None。
+  feature subsamplingは行わない（max_featuresを持つ版では1.0）。
+  行subsampling・balanced weight・SMOTE・oversampling・cost-weighted label変更なし。
+  random validation split、評価blockを渡したearly stoppingを禁止。
+  100 roundsは固定値であり、q5成績を見て増減しない。
+  多クラスのため1round=最大5本の木。1fitを「1本の木」と呼ばない。
+
+  library / Python / NumPy / SciPy / sklearn version、threads、dtype、model形式をpin。
+  保存済み環境を優先し、動作する互換版を1つだけ事前固定。結果のためのversion探索なし。
+  入力数値・logistic・boostingの解釈が異なる場合はfit前に契約不一致として記録。
+
+6.4 非学習baseline
+  B0: 同じtrain labelのclass頻度をDirichlet0.5で平滑化。
+      p_k=(n_k+0.5)/(n_train+2.5)。現在blockの頻度は使わない。
+  定数baselineなのでblock内AUCは0.5（片classならN/A）。pooledはblock差を持ち得る。
+  B0は新予測器の有効coverageとして数えない。
+
+6.5 出力の呼称
+  qは推定riskであり、測っただけで校正済み損失確率とは認定しない。
+  今回calibration fitは0。確率の検証を通過するまで「-5%になる確率が保証○%以下」なし。
+  標準化/補完のfitは各model fitと別にカウントする。
+
+======================================================================
+7. 時系列OOFと有限予算
+======================================================================
+
+既存8つのrolling-origin train/evaluation sessionをそのまま使用する。
+各blockの元trainにはwarmup20 sessionsと、その時点までの過去評価sessionsが含まれる。
+評価38sessions全1039 IDは、利用可能入力に対して各methodで初回OOFを1回出す。
+train/testという旧ファイル名だけでProtected TESTへアクセスしてよいと解釈しない。
+今回許可は既存Development台帳の58sessionsのみ。
+
+各block bの手順:
+  1) train ID、時刻、sourceを固定して、過去の既知R_NEWだけを渡す。
+  2) 前処理とmodelをfit。必要原本をpublic/privateへ保存。
+  3) 評価blockのfeatureのみを予測workerへ渡す。
+  4) q、asof、coverage、model hash、row orderをseal・保存。
+  5) seal後に当blockのR/U/元R0等を評価workerへjoinする。
+  6) blockを保存して次へ進む。成績によるhyperparameter変更はしない。
+
+前処理/model fitの最低support（性能Gateではなく実装事前条件）:
+  train R既知>=200、train sessions>=10、5クラス各>=3。
+  不足blockはOFF_SUPPORT。新qはnull、参考B0を別列に表示。
+  判定対象を後のblockだけへすり替えず、全1039のOFF割合を残す。
+  support3で校正が十分とは主張しない。陽性の少なさは別にLOW_SUPPORT表示する。
+
+上限:
+  新base model fit: 3構成×8block=最大24（新ターゲット5分類のfit）。
+  新calibration fit: 0。
+  旧base refit / 旧score再推論: 0。
+  新S/A/B/C policy生成: 0。
+  runtime threshold探索 / 新veto / Capital Replay: 0。
+  既知1039 R_NEWの再生成: 0。
+  未保存warmupラベルの限定materialization: 最大561 ID、各1回。
+  新feature campaign: 1つの固定仕様、最大1600 ID。完了IDは再利用。
+
+技術修復は最大20cycle。過去cycleの修復数とは別に台帳管理する。
+修復でfeature意味、target、split、モデル設定を変えない。
+fit中断後の同設定再attemptは全model横断で最大4回、24成功fitとは別カウント。
+同一outcomeを見た完了fitのやり直しや別seed試行は不可。
+原ファイル不在なら所在探索を同じ箇所でループせず、不足exact memberを記録する。
+
+======================================================================
+8. 未来漏洩防止と旧研究の再利用境界
+======================================================================
+
+全labelを持つmanagerと、fit/予測workerを分離する。
+fit workerのmounted/input viewにはtrain rowとtrain labelだけ。
+predict workerには当block featureと固定modelのみ、R/UやEXIT suffixを渡さない。
+評価workerはsealed predictionのhash確認後にlabelをjoinする。
+作成者が既にDevelopment報告を読んだ事実は消えない。物理盲検とは呼ばない。
+
+Canary必須:
+  ・t_x後のraw H/L/C/Volume/Valueを変更して新X/qが不変。
+  ・将来State/EXIT/R/Uを入れ替えて新X/qが不変。
+  ・fill時計/実delay/fill Open変更で新X/qが不変。
+  ・ラベルだけ変更すると評価だけ変わり、既存sealed qは変わらない。
+  ・現在/未来blockのclass頻度変更で過去model/補完/scaleが不変。
+  ・日付/銘柄をラベル代理の学習featureにしない。
+  ・初期化/昼休み/正当gapとEVIDENCE_GAPを区別する。
+  ・同じEntryを重複窓へ展開してもtrain Nが増えない。
+  ・riskモデルへR0 rank、ML、旧qを偶然joinしない。
+
+旧targetを新targetの正解へ代用しない。
+qNEG旧score、MAE、SHORT成功、保有後D-headは新q3/q5とは別。
+読み取れるから全部混ぜることを「再利用」とは呼ばない。
+
+======================================================================
+9. 評価：最初に必ず出す表
+======================================================================
+
+9.1 現行rankの基礎表を再表示
+  R0 S/A/B/C × 以下全12帯を、RD01と同じ全1039 IDで表示。
+  同じ保存R_NEWから再集計し、RD01の件数とexact照合する。
+  qが出なかった行も元rank表から消さない。
+
+表示順・排他的境界（Rは百分率）:
+  P5_PLUS : R>=5
+  P4_5    : 4<=R<5
+  P3_4    : 3<=R<4
+  P2_3    : 2<=R<3
+  P1_2    : 1<=R<2
+  P0_1    : 0<R<1
+  L0_1    : -1<R<0
+  L1_2    : -2<R<=-1
+  L2_3    : -3<R<=-2
+  L3_4    : -4<R<=-3
+  L4_5    : -5<R<=-4
+  L5_PLUS : R<=-5
+  ZERO    : R=0
+  R_UNKNOWN: 非finite/正式算定不能（理由別）
+
+各cell:
+  12帯/ZERO = 該当n / その列集合のR既知N（率%）
+  R_UNKNOWN = 未知n / その列集合の全N（率%）
+  N=0は0/0（N/A）。0.00%で代用しない。
+  ALL_MINUS/ALL_PLUS、R既知coverageは補助行であり12帯へ重複加算しない。
+  rank有効/無効、model ACTIVE/OFF、feature available/UNASSESSEDを分ける。
+
+9.2 新予測器のrisk順位表
+  D-LINEAR / D-PRICE / D-FULLごと、q3とq5を別表で出す。
+  各blockの有効予測を高risk順に5等分（Q1=最高risk、Q5=最低risk）。
+  全risk順のtieはcanonical Entry ID昇順。qを丸めず、epsilon tieを作らない。
+  0始まり順位i、N有効予測に対しgroup=1+floor(5*i/N)。小Nの空groupはN/A。
+  1%全12帯を各Qにn/N表示し、欠測予測群は別列。
+  groupを安全S/A/B/Cと改名しない。Q5でも危険かもしれない。
+
+9.3 現行S/A/B/Cの内部を分解
+  各元rank内でq3/q5の高risk20%、残り80%を比較し全12帯n/Nを出す。
+  S/A/B/Cを混ぜた結果だけで判断せず、Sの中で改善可能か確認する。
+  各block×元rankでk=ceil(0.20*N_available)とし、同じrisk/ID順で決める。
+  小Nは件数を主表示し、高riskと残りの両方にsupportを記載する。
+  この表は事後の同数診断であり、BLOCK全体の未来候補数を使うruntime gateではない。
+
+9.4 R0との同数比較
+  旧R0のS、S+A、S+A+Bの各block全件数をKとして固定。
+  新riskが全行で定義される共通mask上で、以下の集合を同数比較する。
+    ・R0のnative orderによる上位K
+    ・q3低risk順の上位K（純riskの診断対照）
+    ・q5低risk順の上位K（重大tailの診断対照）
+  qが欠けた行があるときはKをR0∩共通maskの件数へ縮め、元Kとの差と理由を併記。
+  欠測qを低riskとして最後/最初へ黙って置かない。
+  Highを残せず「静かな弱い銘柄」に偏る現象をここで検出する。
+  K43/197/494は全1039における旧総数で、1時点の買える数とは無関係。
+  R0は元candidate_order、risk順は低qから同点Entry ID昇順を使用する。
+  daily BUY、Capital、採用可能rankの成績とは呼ばない。
+
+9.5 同数高risk FLAG診断
+  各blockで有効予測の上位10%・20%だけをFLAGする2点を事前固定。
+  k=ceil(a*N_available)、a=0.10/0.20。R未知を除く前にkとIDを決める。
+  同点はcanonical Entry IDの昇順で固定し、境界tie数を報告。
+  各method/q3/q5のFLAG/NOT_FLAGGED/UNASSESSEDに全12帯n/N。
+  FLAGは仮想診断であり、FIRST LAYERのDROPやCapitalの売買変更ではない。
+  候補の到着前にwhole-block Kを知れないので、この2点をruntime thresholdへ転用しない。
+
+======================================================================
+10. 損失濃縮とWinner保護を同時に測る
+======================================================================
+
+全て同じraw ID maskと既知labelで計算する。
+  Tail recall: FLAGされたR<=-3/-5件数 / 全該当件数。
+  Tail precision: FLAGされた該当件数 / FLAG内R既知件数。
+  Tail enrichment: precision / 全体同target率。
+  Winner damage: FLAG内R>=+2/+3/+4/+5件数 / 全該当Winner数。
+  U damage: FLAG内U2/U3/U5/U10件数 / 全該当U数。
+  未FLAG側のWinner/U captureとdensityを双方表示する。
+
+無情報対照はblock内で同じkを選んだときの解析的期待件数。
+例えばblockのtarget既知N_b中positive T_b、FLAG内既知k_bなら期待k_b*T_b/N_b。
+R未知を含む実選択では、既知mask条件付きの期待であることを記載。
+「無作為よりtailが多い」だけでWinner保護まで成立としない。
+
+正mass=sum(max(R,0))、負abs mass=sum(max(-R,0))を別々に保存。
+FLAGで失う正massと、FLAGにある負abs massを並べる。
+これは等重みpp-sum。円損益・回避損失・Final Equityではない。
+U5/U10と実現Loserは重なり得る。互いに排他的な正負クラスにしない。
+
+全体、各block、各session、元rank、実行適格集合、元R0通過集合を表示する。
+E0の既存funded集合は追加の条件付き診断のみ。
+fundedされていないEntryを学習から落としたり、未来のE_ONLYへ絞ったりしない。
+
+======================================================================
+11. 確率評価・support・安定性
+======================================================================
+
+q3/q5のBrier、binary log loss、AUROC、Average Precisionを必須。
+q2/qNEGと5-class log lossも同じmaskで併記。
+Brier/log lossと順位skillを別判定し、校正だけ/順位だけで全PASSとしない。
+数値log loss計算のclippingだけeps=1e-15を許可。raw qとrank順は変更しない。
+
+比較は:
+  ・D-FULL vs B0 : 直接予測の価値
+  ・D-FULL vs D-PRICE : State/Path追加の価値
+  ・D-FULL vs D-LINEAR : 非線形interaction追加の価値
+  ・旧RD01 R1/R2の保存q : 同じ初回OOF対応IDがある共通maskの参考比較
+  ・HL0/D1/D2 : raw risk順だけの参考。旧raw scoreへ新tailのBrierを付けない。
+
+RD01 qがある755既知IDと、新モデルが予測できた集合は区別する。
+新モデルのfull評価と、method共通maskのpaired評価の両方を出す。
+モデル出力のない行へB0を足して「model coverage100%」にしない。
+
+Calibration表示:
+  q3/q5: [0,.01),[.01,.02),[.02,.05),[.05,.10),[.10,.20),[.20,.40),[.40,1]
+  q2/qNEG: [0,.05),[.05,.10),[.10,.20),[.20,.40),[.40,.60),[.60,1]
+  各bin n、予測平均、観測positive/known、sessionsを表示。
+  0/Nはリスク0の保証ではない。空binを都合よく併合しない。
+  Brierが下がっただけで条件付きcalibrationが良いとは断定しない。
+
+安定性:
+  pooledだけでなく全8blockの値と、block内AUC/APのsupportを表示。
+  全38sessionを1つずつ除いた固定予測の再集計を行う。再fitなし。
+  陽性が全体で10件未満、または陽性が3sessions未満なら該当target LOW_SUPPORT。
+  元Sの小N、rank内細帯やbinも個別LOW_SUPPORT。
+  依存する同一銘柄が多い場合は全symbol leave-one-outの保存予測再集計を補助で行う。
+  独立月数や将来成功率に変換しない。
+
+この初回ではbootstrapで精密に見せるより、n/N・日別・block別・対称除外を優先。
+新bootstrap campaign、p値による採用、最良session選別は追加しない。
+
+======================================================================
+12. 次工程への分岐：性能と実装完了を分ける
+======================================================================
+
+以下はこの有限研究のレビュー条件であり、統計的保証や実売買許可ではない。
+評価前に固定し、結果を見て変更しない。
+
+(1) HARD_INTEGRITY
+  時点、ID、source、R、費用、split、prediction seal、独立会計・件数がPASS。
+  新入力のt_x厳密性が満たせなければPIT_BLOCKED。良い数字でも先へ進めない。
+
+(2) MEASUREMENT_SUPPORT
+  評価1039行に対する新モデル有効q coverage>=95%、有効評価block>=4。
+  q3/q5それぞれのLOW_SUPPORT状態を確認。
+  未達ならPARTIAL_OR_LOW_SUPPORT。成績の良いsubsetだけでこれを覆さない。
+
+(3) D-FULL PREDICTION_SCREEN
+  q3のBrierとlog lossが、同mask B0の双方より小さいこと。
+  q5のBrierとlog lossが、同mask B0の双方より悪くないこと。
+  q3/q5のpooled APがB0より良いか、block内濃縮があるかを別列で示す。
+  q3のproper score改善方向が、評価可能blockの過半数で一致すること。
+  どれかを欠けば「予測の追加価値未確立」または「順位のみ候補」に分ける。
+  q5だけの改善で全体成功としない。
+
+(4) SELECTIVITY_SCREEN
+  高risk10%/20%の2点で、q3/q5それぞれのtail enrichment>1があるか確認。
+  tail recallがU5 damage、U10 damage、実現R>=+2 damageより高いかを同時比較。
+  両点の改善が無ければ、単なる下落/高ボラ群の識別でないかTRADEOFFとする。
+  高riskを切ったら利益massも減る事実を必ず併記。
+  この相対条件を満たしても「将来Winner95%保持」などの絶対保証にはしない。
+
+(5) WITHIN_RANK_SCREEN
+  S/A/Bの各層内でも危険側にtailが濃いか、同数選択でU捕捉が壊れないかを確認。
+  全体だけ良いのにS/Aの内部で意味が無いなら、Ranking統合候補とは区別する。
+  小NのS1件だけで認定しない。
+
+最終statusを分ける:
+  DIRECT_DOWNSIDE_DESIGN_CANDIDATE
+    = 上記を満たす記述的候補。次のRanking統合の設計へ進む提案まで。
+  RANKING_SIGNAL_ONLY_NOT_PROBABILITY_READY
+    = 順位情報はあるがproper score/calibrationが不十分。
+  DOWNSIDE_WINNER_TRADEOFF
+    = tail識別と同時にWinner/Uを多く巻き込む。
+  NO_INCREMENT_UNDER_TESTED_DESIGN
+    = 今回の入力/モデルで追加価値が未確認。
+  PARTIAL_OR_LOW_SUPPORT / PIT_OR_SOURCE_BLOCKED
+    = 性能とデータ不足を混同しない。
+
+このstatusに関わらずselectedNewRank=null、mainRankChanged=false、Capital Replay0。
+資産改善はNOT_EVALUATED。次のWorkの許可なく自動適用しない。
+
+======================================================================
+13. 独立検算・人工境界・再現
+======================================================================
+
+主実装と別経路で以下を検算する。
+  ・原ID/t_x/available_at/区間選択、sample mask、feature計算。
+  ・原debit/creditからFraction/DecimalのR、5class/12帯。
+  ・全method qのclass和/cumulative順序、group/K/tie、n/N/coverage。
+  ・U/Winner capture、正負mass、Brier/log loss/AUC/AP、日別・block別。
+
+主feature関数や主bucket/evaluatorをimportしない別実装で検算する。
+全1600行のfeature計算を別経路で照合できる場合は実行し、
+難しい部分をfixtureだけで代替したら検算scopeを明示する。
+学習最適化そのものを独立に24回再fitする必要はない。
+保存modelの予測を別の評価実装で検算することと、別作者の盲検監査を区別する。
+同じsource/kernel/libraryを共有する限界を明記する。
+
+人工テスト必須:
+  R=-5,-4,-3,-2,-1,0,+1,+2,+3,+4,+5%の前/同値/後、計33値。
+  数値差は人工fixtureだけ1e-9 percentage points。正式Rへepsilonを持ち込まない。
+  flat OHLC、Volume0、Value0、NaN、missing、invalid interval、空class、
+  空rank、q完全tie、K0、初期化、寄り、昼休み、gap、同時刻イベント順。
+  5class和=1、q5<=q3<=q2<=qNEGの違反を検査。
+
+再現は保存modelからのfeature→q→全表の1campaignだけ。再fit0。
+exact ID/R/bucket/counters/tie/model hashは許容差0。
+同じpin環境の決定論的payloadはbytes/hash一致を要求する。
+独立feature実装のlog/sqrtなど非exact演算は絶対/相対1e-12で別に照合し、
+差を隠す丸めでbin/rankを一致させない。境界分岐が変わるなら不一致として停止。
+新学習lossやscoreを昔の出力に無理に合わせない。
+
+======================================================================
+14. 保存・中断再開・実行予算を無駄にしない
+======================================================================
+
+新専用branch例: research/downside-direct-rd02-20261008
+保存directory例: research/downside-direct-rd02-20261008/
+例の名称が既に使われていればその状態を読んで再開し、上書き/別名重複実行しない。
+既存RD01/AD01/EXIT/Capitalのbranchやmainは更新しない。
+
+Checkpoint:
+  S0 SOURCE_AND_SPEC_SEALED
+  S1 INTENT_FEATURES_AND_LABEL_REUSE_SEALED
+  S2 BLOCK_01 ... BLOCK_08（各model・q・train ID・cutoff・進捗）
+  S3 ALL_PREDICTIONS_SEALED
+  S4 REPORT_AND_INDEPENDENT_AUDIT_COMPLETE
+  S5 REPRODUCED
+  S6 PUBLISHED_AND_ACTUAL_GET_COMPLETE
+
+各block完了時にpublic/privateへ保存し、必要model/予測/再開台帳をactual GET。
+初期sourceの大容量carrierは非公開へ一度だけ保存し、繰返し再送しない。
+安全に保存できるbatch単位でtransportをまとめ、個別checkの過剰な往復を避ける。
+中断時は最後に実GETできた完了blockから再開し、完了fitやlabelを繰り返さない。
+INPUT、PRECOMMIT、成功済みmodel/scoreのhashが一致しないresumeは禁止。
+
+public: 契約、集計、counter、negative evidence、hash、匿名報告。
+private: 個別ID/価格/R、feature、model、split詳細、score、source carrier、個別診断。
+小Nの連続統計の抑制はprivacy規則を維持し、countsとn/Nを勝手に変えない。
+
+保存完了は「commitした」で終わらない。
+  READBACK_RECEIPT_PUBLICATION.json:
+    repo、実commit、path、bytes、SHA256、Git blob、actual GET結果。
+  READBACK_CONFIRMATION.json:
+    上のreceipt自体を後続GETした結果。
+receiptに自分の最終hashを内包する再帰構成は作らない。
+失敗した通信/修復もappend-only記録し、成功だけを残さない。
+
+workflow treeとtriggerを確認し、自動本番処理を起動しない研究branchで保存。
+skip ciだけで安全と仮定しない。workflow dispatch/注文/main mergeは0。
+
+======================================================================
+15. 必須成果物
+======================================================================
+
+00_READ_FIRST.txt（この指示書そのもの）
+SOURCE_BINDING.json / REUSE_AND_DELTA_ONLY.json
+RD01_COMPARISON_SCOPE.json / CUTOFF_ASOF_CONTRACT.json
+FEATURE_FORMULAS_AND_SCHEMA.json / FEATURE_AVAILABILITY.csv
+FEATURE_CAUSALITY_CANARY.json
+LABEL_REUSE_AND_WARMUP_MATERIALIZATION.json
+TARGET_5CLASS_AND_12BAND_CONTRACT.json
+TRAIN_AND_EVAL_ID_MANIFEST.json
+MODEL_PRECOMMIT.json / ENVIRONMENT_LOCK.json
+FIT_LEDGER.json / BLOCK_CHECKPOINTS.json / CURRENT_STATE.json
+OOF_PROBABILITIES（private、モデルとasof/coverageを含む）
+R0_RANK_FULL_12BAND.csv
+RISK_QUINTILE_FULL_12BAND.csv
+WITHIN_R0_RANK_RISK_12BAND.csv
+EQUAL_K_SELECTION_12BAND.csv
+FIXED_RISK_FLAG_TRADEOFF.csv
+UPSIDE_AND_WINNER_PRESERVATION.csv
+PROBABILITY_METRICS.csv / CALIBRATION_DIAGNOSTICS.csv
+BLOCK_SESSION_STABILITY.csv / LEAVE_ONE_SESSION_DIAGNOSTIC.csv
+OLD_MODEL_PAIRED_REFERENCE.csv
+INDEPENDENT_FEATURE_LABEL_AUDIT.json
+INDEPENDENT_METRIC_AUDIT.json
+REPRODUCTION_RECEIPT.json
+REPAIR_AND_ATTEMPT_LEDGER.json
+NEXT_STAGE_DESIGN_ONLY.md / REPORT-ja.md / MANIFEST.json
+READBACK_RECEIPT_PUBLICATION.json / READBACK_CONFIRMATION.json
+
+巨大な重複表を増やすより、1つのcanonical long tableから必要な表を作る。
+N・mask・model・target・rank・group・asof・statusをキーにし、集計の食違いを防ぐ。
+REPORTの先頭は「現行rankの12帯」「各rank内での高/低riskの12帯」「同数比較」。
+AUCやfit成功数を冒頭の結論にしない。
+
+======================================================================
+16. 最終報告で必ず答えること
+======================================================================
+
+1. 購入前に、R<=-3%とR<=-5%の危険を選択的に識別できたか。
+2. 現行S/A/Bの内部にも追加情報があるか。それとも元rankの違いを言い直しただけか。
+3. 高riskとされた群に、U5/U10・実現+2/+5%以上が何分の何含まれたか。
+4. 同じ人数で比べても改善か。件数削減だけの見かけではないか。
+5. q5の小標本とsession依存はどの程度か。
+6. D-FULLはprice-only/linear対照に追加価値があったか。
+7. 旧RD01との差にasof/train supportの違いがあることを明示したか。
+8. 全1039中、予測できない/fallbackの行は何件か。新しい安全判定に混ぜていないか。
+9. 旧保存Rと未保存warmupだけの処理を分け、基盤再生成を避けたか。
+10. 次はRanking統合を設計する価値があるか、それとも今回仕様のNO_INCREMENTか。
+
+有望なら次の1案だけ:
+  上方向H2/H3/H5は固定し、検証済みDownsideを別軸で併記して、
+  過去だけの校正/統合、上位同数、Winner保全を保つRanking研究を設計する。
+  このWork内でcapの探索、新rank採用、Capital比較へ進まない。
+
+不十分なら:
+  最も不足していたものを、input information / nonlinear skill / probability / support /
+  asof/source / Winner tradeoffから1つの主因として記録する。
+  同cycleで第四モデル、別feature、別target、別seedを追加しない。
+  「一度失敗したからDownside予測全般は不可能」と結論しない。
+
+======================================================================
+17. Safety・終点
+======================================================================
+
+executionAllowed=false
+brokerWriteAllowed=false
+excelOrderWriteAllowed=false
+rssOrderFunctionAllowed=false
+liveTradingAllowed=false
+paperTradingAllowed=false
+automaticPromotionAllowed=false
+productionUpdateAllowed=false
+transmitted=false
+productionReady=false
+
+上のSafety9は実売買/本番への許可を指す。
+この指示書で明示したoffline研究fit/評価の許可とは区別する。
+
+mainCapital=CAPITAL_MAX3_SLOT_RESERVE_V1
+mainExit=SHARP_DROP_FIRST_OBSERVED_EXIT_V0
+mainRank=保存R0（変更しない）
+firstLayerChanged=false
+additionalPreBuyP1GateActivated=false
+mainRankChanged=false
+selectedNewRank=null
+CapitalReplay=0
+capitalImprovement=NOT_EVALUATED
+freshValidation=NOT_RUN
+Protected/Fresh/Prospective opens=0
+
+完了した研究データはADAPTIVE/ITERATIVE DEVELOPMENTとして扱う。
+予測が過去だけで作られていても、繰返し見たDevelopmentをFresh/OOSへ改名しない。
+
+終了status例:
+  RD02_DIRECT_DOWNSIDE_COMPLETE_DEVELOPMENT
+  ＋上記性能status
+  ＋coverageとpublication status
+  ＋COMPLETE_STOP
+
+======================================================================
+18. Workへの開始文
+======================================================================
+
+RD01の完了地点を引き継ぎ、このRD02だけを実行してください。
+上方向H2/H3/H5、R0、FIRST LAYER、V5、SHARP_DROP EXITは固定です。
+
+今回は旧scoreの小さなreadoutではなく、BUY_INTENTまでに合法な価格・Volume・
+Trading Value・State prefixから5クラスの損失severityを直接学習します。
+D-LINEAR / D-PRICE / D-FULLの3構成・最大24fitだけを、既存8blockで比較してください。
+新rank capやCapitalを先に触らず、大Loserの識別とWinner保全を全12帯n/Nで確認してください。
+
+工程ごとの確認待ちは挟まず、許可範囲を有限に完走してください。
+入力不足時は定義されたUNKNOWN/OFFを保ち、架空の比較や成功判定を作らないでください。
+保存済み1039 R_NEW、raw、State、失敗記録を再利用し、warmupで本当に未保存の
+新EXIT Rだけを限定作成してください。Phase 0やRAW recoveryへ戻らないでください。
+
+各blockを保存・実読戻しし、独立検算・保存モデル再現・最終保存確認まで完了してください。
+その後、性能とcoverageを分けて報告し、Ranking統合は設計提案まででSTOPしてください。
+
+======================================================================
+参考（モデルAPI仕様の確認用・市場成績の根拠ではない）
+======================================================================
+scikit-learn公式 HistGradientBoostingClassifier documentation:
+  multiclass log_loss、class別predict_proba、max_leaf_nodes/min_samples_leaf、
+  class_weight、early_stopping=False、multiclass時のtrees/iterationの仕様。
+実装時は使用する版の公式APIと保存環境を照合し、全defaultを解決してpinする。
+この文書の定数は有限実験用の設計値であり、最適性や将来確率精度の保証ではない。

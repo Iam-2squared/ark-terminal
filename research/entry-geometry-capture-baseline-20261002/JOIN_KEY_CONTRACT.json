@@ -1,0 +1,21 @@
+{
+  "primary": [
+    "opportunity"
+  ],
+  "opportunity_format": "session|symbol",
+  "exact_checks": [
+    "session",
+    "symbol",
+    "selectorMinute",
+    "selectorPrice",
+    "entryId",
+    "entryMinute",
+    "price",
+    "sourceHash"
+  ],
+  "row_unit": "one opportunity per arm; arms paired, no independent sample duplication",
+  "mismatch_action": "retain JOIN_MISMATCH row with null metrics and stop on unresolved source/time contradiction",
+  "no_entry": "explicit row retained",
+  "unknown": "null + reason; never zero fill",
+  "state_join": "Only exact timestamp/session/security/source/semantic revision; no new State generation or silent legacy-to-RC2 substitution"
+}

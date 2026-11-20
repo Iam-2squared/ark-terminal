@@ -1,0 +1,326 @@
+{
+  "Entry_N": 322,
+  "candidate": "C04_HGB_B",
+  "clock": {
+    "JST": "2026-10-07T00:49:12.688194+09:00",
+    "UTC": "2026-10-06T15:49:12.688194+00:00"
+  },
+  "config": {
+    "V1_INTERACTIONS": true,
+    "added_families": [
+      "C01"
+    ],
+    "candidate_id": "C04_HGB_B",
+    "complexity": [
+      1,
+      12,
+      2,
+      100,
+      0
+    ],
+    "family": "HGB",
+    "hgb_options": {
+      "categorical_features": null,
+      "early_stopping": false,
+      "l2_regularization": 1.0,
+      "learning_rate": 0.05,
+      "loss": "log_loss",
+      "max_depth": 4,
+      "max_iter": 200,
+      "max_leaf_nodes": 15,
+      "min_samples_leaf": 30,
+      "random_state": 570107
+    },
+    "new_interactions": [
+      {
+        "category": "S.primary",
+        "group": "C03current",
+        "numeric": [
+          "C01.open_progress",
+          "C01.range_position",
+          "C01.connected_efficiency",
+          "C01.mean_value"
+        ]
+      },
+      {
+        "category": "H.primary",
+        "group": "C03history",
+        "numeric": [
+          "C01.from_high",
+          "C01.from_low",
+          "C01.high_update_count",
+          "C01.value_up_fraction"
+        ]
+      },
+      {
+        "binary": "Q.current_state_available",
+        "group": "C03available",
+        "numeric": [
+          "C01.direction_agreement",
+          "C01.tail_vs_full_efficiency",
+          "C01.mean_volume",
+          "C01.support_fraction"
+        ]
+      }
+    ],
+    "parent_id": "C03_STATE_CHART_LOGIT",
+    "regularization_multiplier": 1.0
+  },
+  "exposure": "ADAPTIVE_DEVELOPMENT",
+  "metrics": {
+    "90": {
+      "M": 172,
+      "MINUS_remaining": 0.8255813953488372,
+      "MINUS_removal": 0.1744186046511628,
+      "M_drop": 30,
+      "M_keep": 142,
+      "P": 144,
+      "PLUS_retention": 0.8472222222222222,
+      "P_drop": 22,
+      "P_keep": 122,
+      "UNKNOWN_drop": 0,
+      "UNKNOWN_keep": 6,
+      "ZERO_drop": 0,
+      "ZERO_keep": 0,
+      "blocks": {
+        "S1": {
+          "M": 81,
+          "MINUS_remaining": 0.8271604938271605,
+          "MINUS_removal": 0.1728395061728395,
+          "M_drop": 14,
+          "M_keep": 67,
+          "P": 78,
+          "PLUS_retention": 0.8846153846153846,
+          "P_drop": 9,
+          "P_keep": 69,
+          "UNKNOWN_drop": 0,
+          "UNKNOWN_keep": 5,
+          "ZERO_drop": 0,
+          "ZERO_keep": 0,
+          "target_integer": false
+        },
+        "S2": {
+          "M": 91,
+          "MINUS_remaining": 0.8241758241758241,
+          "MINUS_removal": 0.17582417582417584,
+          "M_drop": 16,
+          "M_keep": 75,
+          "P": 66,
+          "PLUS_retention": 0.803030303030303,
+          "P_drop": 13,
+          "P_keep": 53,
+          "UNKNOWN_drop": 0,
+          "UNKNOWN_keep": 1,
+          "ZERO_drop": 0,
+          "ZERO_keep": 0,
+          "target_integer": false
+        }
+      },
+      "current_state": {
+        "available": {
+          "M": 84,
+          "MINUS_remaining": 0.7976190476190477,
+          "MINUS_removal": 0.20238095238095238,
+          "M_drop": 17,
+          "M_keep": 67,
+          "P": 61,
+          "PLUS_retention": 0.8032786885245902,
+          "P_drop": 12,
+          "P_keep": 49,
+          "UNKNOWN_drop": 0,
+          "UNKNOWN_keep": 0,
+          "ZERO_drop": 0,
+          "ZERO_keep": 0,
+          "target_integer": false
+        },
+        "unavailable": {
+          "M": 88,
+          "MINUS_remaining": 0.8522727272727273,
+          "MINUS_removal": 0.14772727272727273,
+          "M_drop": 13,
+          "M_keep": 75,
+          "P": 83,
+          "PLUS_retention": 0.8795180722891566,
+          "P_drop": 10,
+          "P_keep": 73,
+          "UNKNOWN_drop": 0,
+          "UNKNOWN_keep": 6,
+          "ZERO_drop": 0,
+          "ZERO_keep": 0,
+          "target_integer": false
+        }
+      },
+      "target_integer": false
+    },
+    "95": {
+      "M": 172,
+      "MINUS_remaining": 0.877906976744186,
+      "MINUS_removal": 0.12209302325581395,
+      "M_drop": 21,
+      "M_keep": 151,
+      "P": 144,
+      "PLUS_retention": 0.875,
+      "P_drop": 18,
+      "P_keep": 126,
+      "UNKNOWN_drop": 0,
+      "UNKNOWN_keep": 6,
+      "ZERO_drop": 0,
+      "ZERO_keep": 0,
+      "blocks": {
+        "S1": {
+          "M": 81,
+          "MINUS_remaining": 0.9135802469135802,
+          "MINUS_removal": 0.08641975308641975,
+          "M_drop": 7,
+          "M_keep": 74,
+          "P": 78,
+          "PLUS_retention": 0.9230769230769231,
+          "P_drop": 6,
+          "P_keep": 72,
+          "UNKNOWN_drop": 0,
+          "UNKNOWN_keep": 5,
+          "ZERO_drop": 0,
+          "ZERO_keep": 0,
+          "target_integer": false
+        },
+        "S2": {
+          "M": 91,
+          "MINUS_remaining": 0.8461538461538461,
+          "MINUS_removal": 0.15384615384615385,
+          "M_drop": 14,
+          "M_keep": 77,
+          "P": 66,
+          "PLUS_retention": 0.8181818181818182,
+          "P_drop": 12,
+          "P_keep": 54,
+          "UNKNOWN_drop": 0,
+          "UNKNOWN_keep": 1,
+          "ZERO_drop": 0,
+          "ZERO_keep": 0,
+          "target_integer": false
+        }
+      },
+      "current_state": {
+        "available": {
+          "M": 84,
+          "MINUS_remaining": 0.8571428571428571,
+          "MINUS_removal": 0.14285714285714285,
+          "M_drop": 12,
+          "M_keep": 72,
+          "P": 61,
+          "PLUS_retention": 0.819672131147541,
+          "P_drop": 11,
+          "P_keep": 50,
+          "UNKNOWN_drop": 0,
+          "UNKNOWN_keep": 0,
+          "ZERO_drop": 0,
+          "ZERO_keep": 0,
+          "target_integer": false
+        },
+        "unavailable": {
+          "M": 88,
+          "MINUS_remaining": 0.8977272727272727,
+          "MINUS_removal": 0.10227272727272728,
+          "M_drop": 9,
+          "M_keep": 79,
+          "P": 83,
+          "PLUS_retention": 0.9156626506024096,
+          "P_drop": 7,
+          "P_keep": 76,
+          "UNKNOWN_drop": 0,
+          "UNKNOWN_keep": 6,
+          "ZERO_drop": 0,
+          "ZERO_keep": 0,
+          "target_integer": false
+        }
+      },
+      "target_integer": false
+    },
+    "99": {
+      "M": 172,
+      "MINUS_remaining": 0.936046511627907,
+      "MINUS_removal": 0.06395348837209303,
+      "M_drop": 11,
+      "M_keep": 161,
+      "P": 144,
+      "PLUS_retention": 0.9513888888888888,
+      "P_drop": 7,
+      "P_keep": 137,
+      "UNKNOWN_drop": 0,
+      "UNKNOWN_keep": 6,
+      "ZERO_drop": 0,
+      "ZERO_keep": 0,
+      "blocks": {
+        "S1": {
+          "M": 81,
+          "MINUS_remaining": 0.9382716049382716,
+          "MINUS_removal": 0.06172839506172839,
+          "M_drop": 5,
+          "M_keep": 76,
+          "P": 78,
+          "PLUS_retention": 0.9487179487179487,
+          "P_drop": 4,
+          "P_keep": 74,
+          "UNKNOWN_drop": 0,
+          "UNKNOWN_keep": 5,
+          "ZERO_drop": 0,
+          "ZERO_keep": 0,
+          "target_integer": false
+        },
+        "S2": {
+          "M": 91,
+          "MINUS_remaining": 0.9340659340659341,
+          "MINUS_removal": 0.06593406593406594,
+          "M_drop": 6,
+          "M_keep": 85,
+          "P": 66,
+          "PLUS_retention": 0.9545454545454546,
+          "P_drop": 3,
+          "P_keep": 63,
+          "UNKNOWN_drop": 0,
+          "UNKNOWN_keep": 1,
+          "ZERO_drop": 0,
+          "ZERO_keep": 0,
+          "target_integer": false
+        }
+      },
+      "current_state": {
+        "available": {
+          "M": 84,
+          "MINUS_remaining": 0.9404761904761905,
+          "MINUS_removal": 0.05952380952380952,
+          "M_drop": 5,
+          "M_keep": 79,
+          "P": 61,
+          "PLUS_retention": 0.9344262295081968,
+          "P_drop": 4,
+          "P_keep": 57,
+          "UNKNOWN_drop": 0,
+          "UNKNOWN_keep": 0,
+          "ZERO_drop": 0,
+          "ZERO_keep": 0,
+          "target_integer": false
+        },
+        "unavailable": {
+          "M": 88,
+          "MINUS_remaining": 0.9318181818181818,
+          "MINUS_removal": 0.06818181818181818,
+          "M_drop": 6,
+          "M_keep": 82,
+          "P": 83,
+          "PLUS_retention": 0.963855421686747,
+          "P_drop": 3,
+          "P_keep": 80,
+          "UNKNOWN_drop": 0,
+          "UNKNOWN_keep": 6,
+          "ZERO_drop": 0,
+          "ZERO_keep": 0,
+          "target_integer": false
+        }
+      },
+      "target_integer": false
+    }
+  },
+  "phase": "SEARCH",
+  "prediction_sha256": "05865ecf7fcb5370736537dcde997b86bafed139171354deedc0b63cb80218da"
+}

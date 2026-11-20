@@ -1,0 +1,199 @@
+{
+  "future_causal_leakage_N": 0,
+  "gates": [
+    {
+      "No": 1,
+      "check_N": 1600,
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "gate": "Frozen Entry identity",
+      "independent_check": "Frozen_Entry_identity_and_fill",
+      "result": "PASS"
+    },
+    {
+      "No": 2,
+      "check_N": 1600,
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "gate": "V3 Full trace exact hash",
+      "independent_check": "Full_State9_Path_trace_exact_reuse",
+      "result": "PASS"
+    },
+    {
+      "No": 3,
+      "check_N": 9,
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "gate": "No reconstruction",
+      "independent_check": "no_engine_model_provider_import",
+      "result": "PASS"
+    },
+    {
+      "No": 4,
+      "check_N": 1600,
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "gate": "local L exact fields",
+      "independent_check": "floor_current_L_exact_fields",
+      "result": "PASS"
+    },
+    {
+      "No": 5,
+      "check_N": 717,
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "gate": "kind L/DC_CONFIRMED",
+      "independent_check": "floor_kind_DC_context_above_main",
+      "result": "PASS"
+    },
+    {
+      "No": 6,
+      "check_N": 2560,
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "gate": "confirmation causality",
+      "independent_check": "floor_L_DC_confirmed_causal",
+      "result": "PASS"
+    },
+    {
+      "No": 7,
+      "check_N": 127,
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "gate": "same segment",
+      "independent_check": "D_same_segment",
+      "result": "PASS"
+    },
+    {
+      "No": 8,
+      "check_N": 127,
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "gate": "context UP",
+      "independent_check": "D_UP_exact_break",
+      "result": "PASS"
+    },
+    {
+      "No": 9,
+      "check_N": 717,
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "gate": "L > main protected",
+      "independent_check": "floor_kind_DC_context_above_main",
+      "result": "PASS"
+    },
+    {
+      "No": 10,
+      "check_N": 717,
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "gate": "effective next bar",
+      "independent_check": "floor_effective_next_not_same_bar",
+      "result": "PASS"
+    },
+    {
+      "No": 11,
+      "check_N": 717,
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "gate": "floor monotonicity",
+      "independent_check": "floor_monotonic",
+      "result": "PASS"
+    },
+    {
+      "No": 12,
+      "check_N": 166162,
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "gate": "reset clear",
+      "independent_check": "no_cross_segment_carry",
+      "result": "PASS"
+    },
+    {
+      "No": 13,
+      "check_N": 127,
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "gate": "D exact arithmetic",
+      "independent_check": "D_UP_exact_break",
+      "result": "PASS"
+    },
+    {
+      "No": 14,
+      "check_N": 127,
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "gate": "D while context still UP",
+      "independent_check": "D_intent_exact_market_fields",
+      "result": "PASS"
+    },
+    {
+      "No": 15,
+      "check_N": 1600,
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "gate": "A/B/C/D precedence",
+      "independent_check": "first_valid_A_B_C_D_precedence",
+      "result": "PASS"
+    },
+    {
+      "No": 16,
+      "check_N": 1600,
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "gate": "first valid exit",
+      "independent_check": "first_valid_A_B_C_D_precedence",
+      "result": "PASS"
+    },
+    {
+      "No": 17,
+      "check_N": 1600,
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "gate": "canonical fill5bps",
+      "independent_check": "sell_exact_decimal_5bps_no_double_Entry_cost",
+      "result": "PASS"
+    },
+    {
+      "No": 18,
+      "check_N": 1600,
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "gate": "V3 saved-result join",
+      "independent_check": "V3_V4_saved_pair_exact_join",
+      "result": "PASS"
+    },
+    {
+      "No": 19,
+      "check_N": 1,
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "gate": "exclusive2–5 denominators",
+      "independent_check": "exclusive_2_to_5_426_417",
+      "result": "PASS"
+    },
+    {
+      "No": 20,
+      "check_N": 1600,
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "gate": "paired economics",
+      "independent_check": "independent_economics_realized_return_pct",
+      "result": "PASS"
+    },
+    {
+      "No": 21,
+      "check_N": 1,
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "gate": ">=5 protection",
+      "independent_check": "GE5_253_denominator",
+      "result": "PASS"
+    },
+    {
+      "No": 22,
+      "check_N": 1600,
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "gate": "post-exit decision0",
+      "independent_check": "post_exit_decision_zero",
+      "result": "PASS"
+    },
+    {
+      "No": 23,
+      "check_N": 9,
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "gate": "model/teacher/search0",
+      "independent_check": "no_model_fit_predict_provider_calls",
+      "result": "PASS"
+    },
+    {
+      "No": 24,
+      "check_N": 36,
+      "evidence": "INDEPENDENT_AUDIT.json",
+      "gate": "Re-entry/Capital0",
+      "independent_check": "budget_exact",
+      "result": "PASS"
+    }
+  ],
+  "mismatch_N": 0,
+  "required_gates_N": 24
+}

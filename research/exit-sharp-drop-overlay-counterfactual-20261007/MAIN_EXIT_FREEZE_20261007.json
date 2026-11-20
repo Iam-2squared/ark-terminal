@@ -1,0 +1,138 @@
+{
+  "document_id": "ARK_MAIN_EXIT_SHARP_DROP_FREEZE_20261007",
+  "date_jst": "2026-10-07",
+  "status": "MAIN_EXIT_FROZEN_BY_EXPLICIT_USER_DECISION",
+  "scope": "ARK_TERMINAL_RESEARCH_MAINLINE_NOT_LIVE_DEPLOYMENT",
+  "authorization": {
+    "source": "Explicit user instruction in this conversation on 2026-10-07",
+    "decision": "Freeze the tested SHARP_DROP Emergency EXIT as the new main EXIT for subsequent work; preserve the previous EXIT.",
+    "basis": "USER_DESIGN_SELECTION_NOT_PERFORMANCE_GATE_PASS",
+    "supersedes": "Earlier selectedExitReplacement=null for future mainline selection only; earlier diagnostic reports remain unchanged."
+  },
+  "selectedExitReplacement": "SHARP_DROP_FIRST_OBSERVED_EXIT_V0",
+  "main_exit_name": "State9 Structural EXIT v3 Local Guard + SHARP_DROP Emergency EXIT + canonical 15:20 EOD",
+  "candidate_semantics_changed_from_measured_version": false,
+  "previous_main": {
+    "name": "State9 Structural EXIT v3 Local Guard + canonical 15:20 EOD",
+    "role": "PRESERVED_FROZEN_COMPARATOR_AND_FALLBACK_COMPONENT",
+    "source_mutated": false,
+    "freeze_commit": "1ecbcc43f75279fa302f19fd896add2aac15b537",
+    "v3_evidence_commit": "c7a5e5c25eb19cbd58b45c3e4ffff977f4648fad",
+    "v3_contract_sha256": "ee573737833ca000beb543da617ce7c4d3815d92108d728a48baa725481381a3",
+    "canonical_execution_sha256": "7f084415ed92344fb99ef26e27ac48f2beeb868e643fba720bb61355339a8bc8",
+    "canonical_source_commit": "4a0b6d5fef69ecee34a05c36789c57478ab37a7a"
+  },
+  "frozen_rule": {
+    "trigger": "First valid, causally available, post-fill State9 Primary exactly SHARP_DROP while position remains open and no earlier SELL_INTENT exists.",
+    "action": "Issue a latched full-position SELL_INTENT immediately at recognition; execute under the pinned legal fill contract, not at the signal Close.",
+    "control_priority": "An earlier or same-checkpoint Control SELL_INTENT takes priority. No duplicate sell.",
+    "lifecycle": "Applies in PRE_UP_STRUCTURE and ACTIVE. Do not add an UP-arm requirement.",
+    "profit_condition": "NONE. Trigger also applies while in profit. No loss-only or minimum-loss condition.",
+    "confirmation_delay": "NONE beyond the frozen valid closed-bar recognition semantics.",
+    "transition_requirement": "NONE. First post-fill valid observation suffices; do not copy pre-fill State.",
+    "no_trigger": "Delegate to the preserved structural EXIT and canonical EOD.",
+    "other_states": "DROP, DROP_STOP, PULLBACK, REBOUND and fast_flag alone do not trigger this overlay.",
+    "unavailable_state": "No overlay action at that checkpoint; Control continues. Never impute SHARP_DROP. Evidence gaps remain unresolved rather than fabricated holds.",
+    "after_trigger": "Do not cancel on recovery or future Winner labels. Follow the pinned pending/fill/terminal contract.",
+    "execution": "Inherit the measured corrected Decimal price adapter, next eligible regular raw Open, opening-mixed exclusion, locked terminal handling and canonical 15:20 EOD. Do not substitute standalone V3 15:30 returns.",
+    "cost": "Same buy debit; buy 1.0005 and sell 0.9995 exactly once each, commission 0; R denominator is original buy debit. Saved evaluation basis is 100 shares, not portfolio sizing.",
+    "fixed_dependencies": "State9/kernel/profile/quality/reset/gap/session/lunch/PIT, Frozen Entry, fill/cost and canonical EOD are unchanged.",
+    "disallowed_additions": "No thresholds, grace periods, extra confirmations, normal-DROP exits, profit/loss filters, scores, retraining or re-entry changes."
+  },
+  "source_pins": {
+    "branch": "research/exit-sharp-drop-overlay-counterfactual-20261007",
+    "public_repository": "Iam-2squared/ark-terminal",
+    "public_evidence_commit": "03c0ecb07811de25315c9366966163b036fbd2a9",
+    "evidence_directory": "research/exit-sharp-drop-overlay-counterfactual-20261007/technical-resume-72-20261007",
+    "report_path": "research/exit-sharp-drop-overlay-counterfactual-20261007/technical-resume-72-20261007/REPORT-ja.md",
+    "report_git_blob": "e38b9d10a3912547aa0a8a2581992bfc89e7f4ea",
+    "completion_handoff_git_blob": "d1478bf89d0cb554900f8c7599d2d9fb6af933f6",
+    "execution_receipt_git_blob": "191258c04c1ec87cb21134307f376c83bf895f9d",
+    "private_repository": "Iam-2squared/ark-capital-private-",
+    "private_evidence_commit": "03c013cd4d9b4f94340cda8f14d1927ac68b9531",
+    "private_manifest_path": "research/exit-sharp-drop-overlay-counterfactual-20261007/technical-resume-72-20261007/PRIVATE_CARRIER_MANIFEST.json",
+    "private_manifest_git_blob": "57191d5d6de8c456edfcfeecf865a45d3059f15f",
+    "private_archive": "PRIVATE_TECHNICAL_COMPLETION_EVIDENCE.tar.xz",
+    "private_archive_sha256": "293da80200312d6ae1c17175010fdfc4ef1005a863bf68bacd997dc5384be73d",
+    "private_archive_git_blob": "fb7f1d3ce7a1ffd1b7108885c7625b24f035a624",
+    "private_archive_bytes": 16492220,
+    "private_archive_parts": 28,
+    "implementation_binding": "The exact corrected implementation, sealed intent set, fill/R results and dependency manifests inside the pinned completion archive; not the earlier failed fill implementation."
+  },
+  "next_work": {
+    "main_exit_reference": "Use this frozen composite EXIT as the default for subsequent authorized research, not the old structural-only Control.",
+    "return_namespace": "R_MAIN_EXIT_SHARP_DROP_V0",
+    "existing_322_reference": "The saved candidate R_E becomes the new-main reference under its original source IDs; 316 known, 6 unknown. Old R_C remains the preserved old-Control result.",
+    "labels": "Recompute bucket membership from the new-main saved R_E only when running a separately authorized analysis. Never relabel old-Control teachers in place or mix C-based and E-based Winner/Loser cohorts.",
+    "old_first_layer": "Do not inherit old V1/C03/C05/C06/C08/WB01/C09/C10/C11 model/feature/score/threshold/Champion/Pareto as a parent.",
+    "entry_filter": "Purchase-time SHARP_DROP filter P1 remains a separate saved decision lineage; this freeze does not alter or independently promote it.",
+    "capital": "No Capital, sizing, slot, re-entry or live integration is executed by this freeze."
+  },
+  "evidence_preserved": {
+    "exposure": "ADAPTIVE_DEVELOPMENT_ALREADY_OBSERVED_OUTCOMES",
+    "process_status": "SHARP_DROP_EXIT_COUNTERFACTUAL_COMPLETE_DEVELOPMENT",
+    "performance_finding": "WINNER_DAMAGE_OBSERVED",
+    "policy_performance_pass": false,
+    "primary_entry_N": 322,
+    "paired_known_N": 316,
+    "original_unknown_N": 6,
+    "intervention_fill_R_known_N": 72,
+    "all_entry_R_le_minus5_N_before_after": [
+      10,
+      5
+    ],
+    "all_entry_R_le_minus3_N_before_after": [
+      28,
+      17
+    ],
+    "all_minus_N_before_after": [
+      172,
+      182
+    ],
+    "original_ge_plus2_winner_damage_N": 13,
+    "original_ge_plus5_winner_damage_N": 4,
+    "all_entry_net_delta_pp_sum": "11.768364376602",
+    "saved_P1_keep_net_delta_pp_sum": "-6.051663038259",
+    "big_losers_eliminated": false,
+    "interpretation": "User prioritizes downside reduction and selects this research mainline despite measured Winner damage and negative P1-subset net delta. No claim of zero loss, all large losers removed, or demonstrated Capital improvement.",
+    "source_audit_scope": "Prior same-author independent implementation and reproduction are inherited. This freeze does not rerun market calculations or claim third-party blind validation.",
+    "source_readback_limit": "Completion report and private carrier manifest were read at pinned commits. Full 28-part archive reconstruction and missing prior final-publication receipt are not certified anew by this selection."
+  },
+  "publication": {
+    "mode": "APPEND_ONLY_FREEZE_RECORD_AND_RESEARCH_SELECTION_POINTER",
+    "main_branch_merge": false,
+    "old_reports_overwritten": false,
+    "individual_data_publication": false,
+    "skip_ci": true,
+    "workflow_tree_unchanged_pin": "0c488bf224b3f5f0e29a0164b0d01a940f9442c5"
+  },
+  "execution_this_freeze": {
+    "new_fits": 0,
+    "new_policy_replays": 0,
+    "new_intents": 0,
+    "teacher_regenerations": 0,
+    "State_regenerations": 0,
+    "condition_searches": 0,
+    "provider_requests": 0,
+    "protected_opens": 0,
+    "orders": 0,
+    "production_updates": 0
+  },
+  "oldFrozenExitArtifactsChanged": false,
+  "researchMainExitSelectionChanged": true,
+  "runtimeStrategyConfigChanged": false,
+  "productionReady": false,
+  "capitalImprovement": "NOT_EVALUATED",
+  "freshValidation": "NOT_RUN",
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  }
+}

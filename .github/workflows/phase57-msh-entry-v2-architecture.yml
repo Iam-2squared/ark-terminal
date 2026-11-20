@@ -1,0 +1,27 @@
+name: Phase57 LONG Entry v2 Architecture Integrity
+on:
+  push:
+    branches: [research/phase57-long-only-cash-equity]
+    paths:
+      - .github/workflows/phase57-msh-entry-v2-architecture.yml
+      - scripts/*phase57_msh_entry_v2_architecture*
+      - predict/research/phase57-msh-entry-long-v2-architecture-diagnostic-v1.json
+      - docs/evidence/phase57-msh-entry-long-v2-architecture/**
+permissions:
+  contents: read
+jobs:
+  cash-long-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Offline ledger, replay reproduction, frozen EXIT and upstream
+        env:
+          ARK_TEST_OFFLINE: '1'
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: python3 scripts/offline/kernel_exec.py python3 -m unittest scripts/test_phase57_msh_entry_v2_architecture.py scripts/test_phase57_long_portfolio_bottleneck.py scripts/test_phase57_long_capital_integration.py scripts/test_phase57_long_exit_continuation.py scripts/test_phase57_msh_entry_upstream_freeze.py

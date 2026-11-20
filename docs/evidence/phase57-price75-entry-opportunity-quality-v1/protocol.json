@@ -1,0 +1,65 @@
+{
+  "id": "PRICE75_NEW_ENTRY_OPPORTUNITY_QUALITY_V1",
+  "sourceHead": "2ff1cd9312d8728997471cec501c9641fa46a760",
+  "scope": "DIAGNOSTIC_ONLY_NO_ENTRY_EXIT_CAPITAL_CHANGE",
+  "population": {
+    "sessions": 76,
+    "initial": 2841,
+    "dip": 667,
+    "total": 3508,
+    "timestamps": 1181
+  },
+  "definitions": {
+    "reference": "Exact saved REFERENCE_OPEN; missing/expired unpriced kept but metrics null. No substitution with Selector price.",
+    "time": "opportunityTimestamp; saved referenceTimestamp must equal emission time for this population, otherwise stop",
+    "horizons": [
+      5,
+      10,
+      15,
+      30,
+      60
+    ],
+    "returns": "Gross close/reference minus1 percent, exact elapsed wall-clock endpoint; complete contiguous5m bars inside same morning/afternoon segment required. No cost/fill/EXIT inference.",
+    "primary": "STRICT30: six contiguous completed5m bars, same prior strict30 definition",
+    "secondary": "SAME_SESSION: all remaining expected regular5m bars; observed extrema explicitly incomplete if any missing; known hits true, known negatives only if entire window complete, else unknown. Lunch structurally excluded from bars, elapsed minutes includes lunch.",
+    "ohlc": "Parent accepted5m OHLC may have fewer than5 observed underlying minutes. No new provider/minute data. Record fullObservedMinute coverage separately.",
+    "breadth": "Unique symbol within actual emission timestamp. Fixed original candidate count1..5 even for top3 exclusion sensitivity. Primary complete-case winner distributions plus all-timestamp true-winner lower bounds and unknown-as-possible-winner upper bounds.",
+    "timeToHit": "First observed HIGH touch interval [bar start,bar end] in elapsed minutes. Only paths without preceding missing expected bars yield identified-first-hit time quantiles; others separate. Never assume HIGH/LOW ordering.",
+    "rank": "Frozen Selector anchor newEligibleRank and savedV1Score, even for later DIP; descriptive only. No Entry score invented.",
+    "robustness": "4 chronological blocks of19 sessions; top3 by full opportunity frequency fixed before label aggregation; ties symbol ascending."
+  },
+  "verdict": {
+    "precedence": [
+      "MULTIPLE_HIGH_QUALITY_OPPORTUNITIES_COMMON",
+      "ENTRY_OPPORTUNITY_QUALITY_DILUTES_AT_HIGH_BREADTH",
+      "ENTRY_OPPORTUNITY_QUALITY_SUFFICIENT",
+      "INCONCLUSIVE"
+    ],
+    "common": "For original4/5 groups pooled, SAME_SESSION all-timestamp lower-bound P(>=2 +3) >=20% AND P(>=2 +5)>=10%, n>=100; same gates in>=3/4 chronological blocks and after fixed top3 exclusion (original denominators retained). Descriptive definition of common, not profitability.",
+    "dilution": "Within each source INITIAL/DIP with >=30 strict30 complete events per low(1..3)/high(4..5) arm: high-minus-low reach <=-10pp at+3 AND <=-5pp at+5. Both sources and>=3/4 overall blocks must satisfy; no post-hoc cutpoints.",
+    "sufficient": "If common/dilution not met: original4/5 SAME_SESSION lower-bound P(>=2 +3)>=10% AND P(>=2 +5)>=5%, n>=100; same conditions >=3/4 blocks and after top3 exclusion. Means evidence of plural opportunities, not investment utility or validation.",
+    "weak": "Not assignable without a pre-existing economically justified utility/quality benchmark; do not invent one from outcomes.",
+    "closure": "REOPEN_JUSTIFIED only for robust dilution; otherwise FREEZE_MAINTAIN. INCONCLUSIVE preserves freeze by no-change default, not proven adequacy.",
+    "outcomeExposed": "Prior aggregate strict30/session reaches already exposed; these descriptive verdict cutoffs are not independent performance acceptance gates."
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "freshOOSOpened": false,
+  "sourcePins": {
+    "docs/evidence/phase57-selector-min-price75-v1/measurement/downstream/entry-decisions.json.gz": "42877a45f6040786d93ef354b11b31d72ecd918c44c06ff24e24efec708b0e0b",
+    "docs/evidence/phase57-selector-min-price75-v1/measurement/downstream/entry-ledger.json.gz": "265628bc9205a0f0548fc1e4cfe691f154e2d13b33a8fd290d416f60c587b050",
+    "docs/evidence/phase57-selector-min-price75-v1/measurement/new-paths.json.gz": "eeb15545a278a7058a0b40042169df8ad7560077289c7bef3412977decc524d2",
+    "docs/evidence/phase57-selector-min-price75-v1/measurement/selector/selector-ledger.json.gz": "df9f6a6c728249b2e3fd924fa8803ce01f8c7d7ddcae3b9203effa434ca44a77",
+    "docs/evidence/phase57-price75-entry-opportunity-timestamp-counts-v1/summary.json": "a19e75e7745676e833a0333fe65992c0331652d4fd7da8a2fba4aeface5f45a5",
+    "scripts/phase57_new_long_entry_exit_conditional.py": "2b359a7a2e9239616927213f2eaf67d85e14cb689976ff4ea39d083b66046d54"
+  }
+}

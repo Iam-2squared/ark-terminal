@@ -1,0 +1,678 @@
+{
+  "chronologicalSplitFeasibility": {
+    "firstSession": "2024-09-17",
+    "fiveFoldBlocked": "SEMANTICALLY_POSSIBLE_BUT_UNEVEN_BLOCK_SIZES",
+    "foldCountDecision": "NOT_FROZEN_IN_THIS_AUDIT",
+    "fourFoldBlocked": "SEMANTICALLY_POSSIBLE_AS_4_CONTIGUOUS_19_SESSION_BLOCKS",
+    "lastSession": "2025-01-09",
+    "recommended": "SESSION-grouped expanding-window chronological split. All events from a JST session stay in one fold, which also keeps every symbol-session together. Fold count remains unfrozen; ordinary stratified K-fold is prohibited.",
+    "sessions": 76,
+    "stratifiedKFold": "PROHIBITED_BREAKS_TIME_AND_DEPENDENCE"
+  },
+  "contractId": "PHASE57_MSH_ENTRY_LONG_V1_PREIMPLEMENTATION_FEASIBILITY_AUDIT",
+  "contractSha256": "0ca83c40eba83f6f6bbec89875a7d8d49f953e889667febdfdacc12646edb8d8",
+  "coreScoreability": {
+    "A": {
+      "ALL": {
+        "scoreabilityPct": 100.0,
+        "scoreable": 3800,
+        "total": 3800
+      },
+      "OPEN_EARLY": {
+        "scoreabilityPct": 100.0,
+        "scoreable": 380,
+        "total": 380
+      },
+      "OTHER_TIMES": {
+        "scoreabilityPct": 100.0,
+        "scoreable": 3420,
+        "total": 3420
+      },
+      "features": [
+        "selectorScore"
+      ]
+    },
+    "B": {
+      "ALL": {
+        "scoreabilityPct": 100.0,
+        "scoreable": 3800,
+        "total": 3800
+      },
+      "OPEN_EARLY": {
+        "scoreabilityPct": 100.0,
+        "scoreable": 380,
+        "total": 380
+      },
+      "OTHER_TIMES": {
+        "scoreabilityPct": 100.0,
+        "scoreable": 3420,
+        "total": 3420
+      },
+      "features": [
+        "selectorScore",
+        "ridgeRank"
+      ]
+    },
+    "C": {
+      "ALL": {
+        "scoreabilityPct": 65.1578947368,
+        "scoreable": 2476,
+        "total": 3800
+      },
+      "OPEN_EARLY": {
+        "scoreabilityPct": 83.6842105263,
+        "scoreable": 318,
+        "total": 380
+      },
+      "OTHER_TIMES": {
+        "scoreabilityPct": 63.0994152047,
+        "scoreable": 2158,
+        "total": 3420
+      },
+      "features": [
+        "selectorScore",
+        "directionalMomentum3Pct"
+      ]
+    },
+    "D": {
+      "ALL": {
+        "scoreabilityPct": 65.1578947368,
+        "scoreable": 2476,
+        "total": 3800
+      },
+      "OPEN_EARLY": {
+        "scoreabilityPct": 83.6842105263,
+        "scoreable": 318,
+        "total": 380
+      },
+      "OTHER_TIMES": {
+        "scoreabilityPct": 63.0994152047,
+        "scoreable": 2158,
+        "total": 3420
+      },
+      "features": [
+        "selectorScore",
+        "ridgeRank",
+        "directionalMomentum3Pct"
+      ]
+    }
+  },
+  "dataAllocation": {
+    "developmentReuseAllowed": true,
+    "oosNewAccess": 0,
+    "providerRequests": 0,
+    "reuseScope": "MSH_ENTRY_LONG_V1_DEVELOPMENT_ONLY",
+    "validationNewAccess": 0
+  },
+  "feasibilityVerdict": "MSH_ENTRY_LONG_V1_FEASIBLE_WITH_CONTRACT_CHANGES",
+  "featureAvailability": {
+    "currentAtomicGate": {
+      "note": "ALREADY_ENTERED PASS events are not counted as feature score-ready.",
+      "scoreReady": 1006,
+      "scoreReadyPct": 26.4736842105,
+      "statuses": {
+        "BLOCKED": 1929,
+        "PASS": 162,
+        "REJECT": 753,
+        "WAIT": 956
+      }
+    },
+    "openEarly": {
+      "direction": {
+        "availabilityPct": 100.0,
+        "available": 380,
+        "minimumHistoryAndDependency": "constant LONG=1; semantically redundant in a LONG-only model",
+        "statuses": {
+          "AVAILABLE": 380
+        }
+      },
+      "directionalMomentum3Pct": {
+        "availabilityPct": 83.6842105263,
+        "available": 318,
+        "minimumHistoryAndDependency": "4 completed same-session 5m bars; latest close / close 3 completed bars earlier; lunch boundary skips scheduled recess; no prior session and no fill",
+        "statuses": {
+          "AVAILABLE": 318,
+          "BLOCKED_BY_GRID": 62
+        }
+      },
+      "directionalMomentumAccelerationPct": {
+        "availabilityPct": 0.0,
+        "available": 0,
+        "minimumHistoryAndDependency": "7 completed same-session 5m bars; Momentum3 minus Momentum6; no prior session and no fill",
+        "statuses": {
+          "BLOCKED_BY_GRID": 2,
+          "BLOCKED_BY_HISTORY": 378
+        }
+      },
+      "directionalPullback6Pct": {
+        "availabilityPct": 61.8421052632,
+        "available": 235,
+        "minimumHistoryAndDependency": "6 completed same-session 5m bars including High; no prior session and no fill",
+        "statuses": {
+          "AVAILABLE": 235,
+          "BLOCKED_BY_GRID": 145
+        }
+      },
+      "directionalReturnFromOpenPct": {
+        "availabilityPct": 71.0526315789,
+        "available": 270,
+        "minimumHistoryAndDependency": "exact 09:00 open plus latest completed close; session-open dependent, intervening gaps not used by the formula",
+        "statuses": {
+          "AVAILABLE": 270,
+          "BLOCKED_BY_GRID": 2,
+          "BLOCKED_BY_SESSION_OPEN": 108
+        }
+      },
+      "directionalVwapDistancePct": {
+        "availabilityPct": 61.8421052632,
+        "available": 235,
+        "minimumHistoryAndDependency": "complete observed session-to-date 5m grid beginning 09:00 and positive volume; session-open and grid dependent",
+        "statuses": {
+          "AVAILABLE": 235,
+          "BLOCKED_BY_GRID": 37,
+          "BLOCKED_BY_SESSION_OPEN": 108
+        }
+      },
+      "hybridReciprocalRank": {
+        "availabilityPct": 100.0,
+        "available": 380,
+        "minimumHistoryAndDependency": "selector rank only; 1/rank",
+        "statuses": {
+          "AVAILABLE": 380
+        }
+      },
+      "minutesSinceFirstSelection": {
+        "availabilityPct": 100.0,
+        "available": 380,
+        "minimumHistoryAndDependency": "selector event lineage only; wall-clock elapsed time",
+        "statuses": {
+          "AVAILABLE": 380
+        }
+      },
+      "priorSelectionCount": {
+        "availabilityPct": 100.0,
+        "available": 380,
+        "minimumHistoryAndDependency": "earlier Top5 events for the same symbol-session",
+        "statuses": {
+          "AVAILABLE": 380
+        }
+      },
+      "relativeVolume5": {
+        "availabilityPct": 61.8421052632,
+        "available": 235,
+        "minimumHistoryAndDependency": "6 completed same-session 5m bars and positive prior-five mean volume",
+        "statuses": {
+          "AVAILABLE": 235,
+          "BLOCKED_BY_GRID": 145
+        }
+      }
+    },
+    "otherTimes": {
+      "direction": {
+        "availabilityPct": 100.0,
+        "available": 3420,
+        "minimumHistoryAndDependency": "constant LONG=1; semantically redundant in a LONG-only model",
+        "statuses": {
+          "AVAILABLE": 3420
+        }
+      },
+      "directionalMomentum3Pct": {
+        "availabilityPct": 63.0994152047,
+        "available": 2158,
+        "minimumHistoryAndDependency": "4 completed same-session 5m bars; latest close / close 3 completed bars earlier; lunch boundary skips scheduled recess; no prior session and no fill",
+        "statuses": {
+          "AVAILABLE": 2158,
+          "BLOCKED_BY_GRID": 1262
+        }
+      },
+      "directionalMomentumAccelerationPct": {
+        "availabilityPct": 54.8245614035,
+        "available": 1875,
+        "minimumHistoryAndDependency": "7 completed same-session 5m bars; Momentum3 minus Momentum6; no prior session and no fill",
+        "statuses": {
+          "AVAILABLE": 1875,
+          "BLOCKED_BY_GRID": 1545
+        }
+      },
+      "directionalPullback6Pct": {
+        "availabilityPct": 57.7485380117,
+        "available": 1975,
+        "minimumHistoryAndDependency": "6 completed same-session 5m bars including High; no prior session and no fill",
+        "statuses": {
+          "AVAILABLE": 1975,
+          "BLOCKED_BY_GRID": 1445
+        }
+      },
+      "directionalReturnFromOpenPct": {
+        "availabilityPct": 76.5789473684,
+        "available": 2619,
+        "minimumHistoryAndDependency": "exact 09:00 open plus latest completed close; session-open dependent, intervening gaps not used by the formula",
+        "statuses": {
+          "AVAILABLE": 2619,
+          "BLOCKED_BY_GRID": 217,
+          "BLOCKED_BY_SESSION_OPEN": 584
+        }
+      },
+      "directionalVwapDistancePct": {
+        "availabilityPct": 28.0116959064,
+        "available": 958,
+        "minimumHistoryAndDependency": "complete observed session-to-date 5m grid beginning 09:00 and positive volume; session-open and grid dependent",
+        "statuses": {
+          "AVAILABLE": 958,
+          "BLOCKED_BY_GRID": 1878,
+          "BLOCKED_BY_SESSION_OPEN": 584
+        }
+      },
+      "hybridReciprocalRank": {
+        "availabilityPct": 100.0,
+        "available": 3420,
+        "minimumHistoryAndDependency": "selector rank only; 1/rank",
+        "statuses": {
+          "AVAILABLE": 3420
+        }
+      },
+      "minutesSinceFirstSelection": {
+        "availabilityPct": 100.0,
+        "available": 3420,
+        "minimumHistoryAndDependency": "selector event lineage only; wall-clock elapsed time",
+        "statuses": {
+          "AVAILABLE": 3420
+        }
+      },
+      "priorSelectionCount": {
+        "availabilityPct": 100.0,
+        "available": 3420,
+        "minimumHistoryAndDependency": "earlier Top5 events for the same symbol-session",
+        "statuses": {
+          "AVAILABLE": 3420
+        }
+      },
+      "relativeVolume5": {
+        "availabilityPct": 57.7485380117,
+        "available": 1975,
+        "minimumHistoryAndDependency": "6 completed same-session 5m bars and positive prior-five mean volume",
+        "statuses": {
+          "AVAILABLE": 1975,
+          "BLOCKED_BY_GRID": 1445
+        }
+      }
+    },
+    "overall": {
+      "direction": {
+        "availabilityPct": 100.0,
+        "available": 3800,
+        "minimumHistoryAndDependency": "constant LONG=1; semantically redundant in a LONG-only model",
+        "statuses": {
+          "AVAILABLE": 3800
+        }
+      },
+      "directionalMomentum3Pct": {
+        "availabilityPct": 65.1578947368,
+        "available": 2476,
+        "minimumHistoryAndDependency": "4 completed same-session 5m bars; latest close / close 3 completed bars earlier; lunch boundary skips scheduled recess; no prior session and no fill",
+        "statuses": {
+          "AVAILABLE": 2476,
+          "BLOCKED_BY_GRID": 1324
+        }
+      },
+      "directionalMomentumAccelerationPct": {
+        "availabilityPct": 49.3421052632,
+        "available": 1875,
+        "minimumHistoryAndDependency": "7 completed same-session 5m bars; Momentum3 minus Momentum6; no prior session and no fill",
+        "statuses": {
+          "AVAILABLE": 1875,
+          "BLOCKED_BY_GRID": 1547,
+          "BLOCKED_BY_HISTORY": 378
+        }
+      },
+      "directionalPullback6Pct": {
+        "availabilityPct": 58.1578947368,
+        "available": 2210,
+        "minimumHistoryAndDependency": "6 completed same-session 5m bars including High; no prior session and no fill",
+        "statuses": {
+          "AVAILABLE": 2210,
+          "BLOCKED_BY_GRID": 1590
+        }
+      },
+      "directionalReturnFromOpenPct": {
+        "availabilityPct": 76.0263157895,
+        "available": 2889,
+        "minimumHistoryAndDependency": "exact 09:00 open plus latest completed close; session-open dependent, intervening gaps not used by the formula",
+        "statuses": {
+          "AVAILABLE": 2889,
+          "BLOCKED_BY_GRID": 219,
+          "BLOCKED_BY_SESSION_OPEN": 692
+        }
+      },
+      "directionalVwapDistancePct": {
+        "availabilityPct": 31.3947368421,
+        "available": 1193,
+        "minimumHistoryAndDependency": "complete observed session-to-date 5m grid beginning 09:00 and positive volume; session-open and grid dependent",
+        "statuses": {
+          "AVAILABLE": 1193,
+          "BLOCKED_BY_GRID": 1915,
+          "BLOCKED_BY_SESSION_OPEN": 692
+        }
+      },
+      "hybridReciprocalRank": {
+        "availabilityPct": 100.0,
+        "available": 3800,
+        "minimumHistoryAndDependency": "selector rank only; 1/rank",
+        "statuses": {
+          "AVAILABLE": 3800
+        }
+      },
+      "minutesSinceFirstSelection": {
+        "availabilityPct": 100.0,
+        "available": 3800,
+        "minimumHistoryAndDependency": "selector event lineage only; wall-clock elapsed time",
+        "statuses": {
+          "AVAILABLE": 3800
+        }
+      },
+      "priorSelectionCount": {
+        "availabilityPct": 100.0,
+        "available": 3800,
+        "minimumHistoryAndDependency": "earlier Top5 events for the same symbol-session",
+        "statuses": {
+          "AVAILABLE": 3800
+        }
+      },
+      "relativeVolume5": {
+        "availabilityPct": 58.1578947368,
+        "available": 2210,
+        "minimumHistoryAndDependency": "6 completed same-session 5m bars and positive prior-five mean volume",
+        "statuses": {
+          "AVAILABLE": 2210,
+          "BLOCKED_BY_GRID": 1590
+        }
+      }
+    },
+    "semantics": "INTRINSIC_MINIMUM_DEPENDENCY_AVAILABILITY_USING_UNCHANGED_EXISTING_FORMULAS; CURRENT_ATOMIC_GATE_REPORTED_SEPARATELY"
+  },
+  "finalContractRecommendations": {
+    "coreFeatures": "Mandatory v1 core: frozen Selector Ridge score and rank. Both are complete Selector outputs and require no market-bar imputation.",
+    "cvSplit": "SESSION-grouped expanding-window chronological split. All events from a JST session stay in one fold, which also keeps every symbol-session together. Fold count remains unfrozen; ordinary stratified K-fold is prohibited.",
+    "developmentAllocation": "The same 76 already outcome-exposed sessions may be reused only as MSH-Entry LONG v1 Development. They cannot become Validation/OOS. Preserve all sealed Validation/OOS/EXIT/integration/allocation/portfolio data.",
+    "missingStrategy": "Do not use raw missing=0. Keep mandatory core fully observed. If an optional feature is admitted later, use an explicit missing indicator plus training-only standardized neutral value; otherwise omit it from v1. No forward-fill or previous-session substitution.",
+    "optionalFeatures": "Momentum3 is intrinsically available for 65.16% overall and 83.68% Open Early; treat it and other bar-derived features as optional until a missing contract is frozen. Raw Decision Price is reference-only; LONG direction is constant and should not be a model feature.",
+    "primaryLabelSemantics": "Candidate ordinal 0..4 from maximum future continuous 5m HIGH over a complete strict +30 wall-clock-minute same-session path; unlabelable rows excluded, never class 0. Freeze only after independent review.",
+    "state": "Stateless ENTER or SKIP_THIS_DECISION at each frozen selection event. Re-evaluate only on a later explicit Frozen Selector reselection; do not inherit WATCH/WAIT/terminal-expiry semantics. Position/re-entry safety remains external.",
+    "supportingLabelDiagnostic": "Completed 5m CLOSE ordinal confirmation from the identical complete 30m path, stored separately from the primary HIGH-touch label.",
+    "trainingRowUnit": "One frozen Top5 selection event. Repeats remain correlated observations, never independent trades."
+  },
+  "integrity": {
+    "checks": {
+      "decisionTimestamps760": true,
+      "longOnly": true,
+      "priorEventFieldsExact": true,
+      "priorEventIdentityMatch": true,
+      "priorFilterAuditReportPinned": true,
+      "priorTransferLedgerGzipPinned": true,
+      "priorTransferLedgerPayloadPinned": true,
+      "priorTransferReportPinned": true,
+      "selectionEvents3800": true,
+      "selectorArtifactUnchanged": true,
+      "selectorFreezeUnchanged": true,
+      "sessions76": true,
+      "uniqueEventIds": true
+    },
+    "failures": [],
+    "identityMismatchExamples": [],
+    "pass": true
+  },
+  "limitations": [
+    "Availability and class counts are feasibility evidence, not predictive performance.",
+    "Intrinsic per-feature availability preserves existing formulas but deliberately removes the legacy shared atomic gate for diagnosis only.",
+    "No feature was selected by outcome and no model, coefficient, threshold, class weight, regularization value, or fold count was chosen."
+  ],
+  "methodology": {
+    "cvPerformanceRuns": 0,
+    "featureImportanceRuns": 0,
+    "modelFitCalls": 0,
+    "newProviderRequests": 0,
+    "oosOpened": false,
+    "predictionRows": 0,
+    "sameOpenedDevelopmentReused": true,
+    "thresholdSearches": 0,
+    "validationOpened": false
+  },
+  "missingSemanticsRecommendation": "Do not use raw missing=0. Keep mandatory core fully observed. If an optional feature is admitted later, use an explicit missing indicator plus training-only standardized neutral value; otherwise omit it from v1. No forward-fill or previous-session substitution.",
+  "ordinalLabelFeasibility": {
+    "byDecisionTime": {
+      "09:30": {
+        "coveragePct": 80.7894736842,
+        "events": 380,
+        "labelable": 307,
+        "unlabelableReasons": {
+          "PROVIDER_GAP": 73
+        }
+      },
+      "10:00": {
+        "coveragePct": 61.0526315789,
+        "events": 380,
+        "labelable": 232,
+        "unlabelableReasons": {
+          "PROVIDER_GAP": 148
+        }
+      },
+      "10:30": {
+        "coveragePct": 55.5263157895,
+        "events": 380,
+        "labelable": 211,
+        "unlabelableReasons": {
+          "PROVIDER_GAP": 169
+        }
+      },
+      "11:00": {
+        "coveragePct": 57.8947368421,
+        "events": 380,
+        "labelable": 220,
+        "unlabelableReasons": {
+          "PROVIDER_GAP": 160
+        }
+      },
+      "11:30": {
+        "coveragePct": 0.0,
+        "events": 380,
+        "labelable": 0,
+        "unlabelableReasons": {
+          "LUNCH_BREAK": 380
+        }
+      },
+      "13:00": {
+        "coveragePct": 60.0,
+        "events": 380,
+        "labelable": 228,
+        "unlabelableReasons": {
+          "PROVIDER_GAP": 152
+        }
+      },
+      "13:30": {
+        "coveragePct": 53.1578947368,
+        "events": 380,
+        "labelable": 202,
+        "unlabelableReasons": {
+          "PROVIDER_GAP": 178
+        }
+      },
+      "14:00": {
+        "coveragePct": 52.6315789474,
+        "events": 380,
+        "labelable": 200,
+        "unlabelableReasons": {
+          "PROVIDER_GAP": 180
+        }
+      },
+      "14:30": {
+        "coveragePct": 60.0,
+        "events": 380,
+        "labelable": 228,
+        "unlabelableReasons": {
+          "PROVIDER_GAP": 150,
+          "SESSION_END": 2
+        }
+      },
+      "15:00": {
+        "coveragePct": 0.0,
+        "events": 380,
+        "labelable": 0,
+        "unlabelableReasons": {
+          "PROVIDER_GAP": 214,
+          "SESSION_END": 166
+        }
+      }
+    },
+    "classCounts": {
+      "0": 606,
+      "1": 423,
+      "2": 271,
+      "3": 281,
+      "4": 247
+    },
+    "classImbalanceMaxToMinRepresented": 2.4534412955,
+    "classSharePct": {
+      "0": 33.1509846827,
+      "1": 23.1400437637,
+      "2": 14.8249452954,
+      "3": 15.3719912473,
+      "4": 13.5120350109
+    },
+    "closeAvailability": {
+      "available": 1828,
+      "classCounts": {
+        "0": 852,
+        "1": 358,
+        "2": 212,
+        "3": 211,
+        "4": 195
+      },
+      "coveragePct": 48.1052631579
+    },
+    "coveragePct": 48.1052631579,
+    "highAvailability": {
+      "available": 1828,
+      "coveragePct": 48.1052631579
+    },
+    "highTouchGreaterThanCloseClass": 473,
+    "labelableEvents": 1828,
+    "priorEndpointOnlyReference": {
+      "note": "The new ordinal audit requires the complete HIGH/CLOSE path, which is stricter than endpoint-only availability.",
+      "source": "docs/phase57-long-only-eligibility-aware-ridge-report-2026-09-16.md",
+      "strictWallClock30mEndpointCoveragePct": 71.16,
+      "strictWallClock30mEndpointEvaluableEvents": 2704
+    },
+    "representedClasses": 5,
+    "selectionEvents": 3800,
+    "touchSemanticsAssessment": "Both are computable from the same complete historical 30m path. Future HIGH touch is suitable only as the candidate primary ordinal label; completed CLOSE must remain a separately lineage-bound supporting diagnostic, not a hybridized label in this audit.",
+    "unlabelableEvents": 1972,
+    "unlabelableReasons": {
+      "LUNCH_BREAK": 380,
+      "PROVIDER_GAP": 1424,
+      "SESSION_END": 168
+    }
+  },
+  "repeatedSelectionLeakageRisk": {
+    "reason": "Repeated events share symbol, session path, Selector context and overlapping future-label windows.",
+    "recommendedGrouping": "WHOLE_JST_SESSION; SYMBOL_SESSION_CONTAINMENT_IS_THEN_AUTOMATIC",
+    "risk": "MATERIAL_IF_EVENT_ROWS_ARE_RANDOMLY_SPLIT"
+  },
+  "reportSha256": "4b108bb5b1f177a6ff503a2ce96ecf2f663433eb269eda1dcfd8e1b39793de77",
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "leverageAllowed": false,
+    "liveTradingAllowed": false,
+    "marginAllowed": false,
+    "paperTradingAllowed": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "shortAllowed": false,
+    "transmitted": false
+  },
+  "schemaVersion": 1,
+  "selectorOutputAudit": {
+    "decisionPrice": {
+      "availabilityPct": 100.0,
+      "available": 3800,
+      "freshAgeAudit": {
+        "availabilityPct": 100.0,
+        "available": 3800,
+        "max": 5,
+        "min": 0,
+        "missing": 0,
+        "nonfiniteOrInvalid": 0
+      },
+      "max": 38000,
+      "min": 3,
+      "missing": 0,
+      "nonfiniteOrInvalid": 0,
+      "roleReason": "Required for label, opportunity and execution-reference semantics; raw nominal price has no architecture-level scale invariance that justifies a predictive feature without performance evidence.",
+      "roleVerdict": "REFERENCE_ONLY",
+      "sourceCounts": {
+        "LATEST_ACCEPTED_MINUTE_CLOSE": 3492,
+        "TERMINAL_AUCTION_CLOSE": 308
+      }
+    },
+    "eventIdDuplicates": 0,
+    "ridgeRank": {
+      "availabilityPct": 100.0,
+      "available": 3800,
+      "duplicateRankDecisionGroups": 0,
+      "max": 5,
+      "min": 1,
+      "missing": 0,
+      "nonfiniteOrInvalid": 0,
+      "rankCounts": {
+        "1": 760,
+        "2": 760,
+        "3": 760,
+        "4": 760,
+        "5": 760
+      }
+    },
+    "ridgeScore": {
+      "availabilityPct": 100.0,
+      "available": 3800,
+      "duplicateEventValuesAllowed": true,
+      "exactTieDecisionGroups": 0,
+      "max": 262.82448882486483,
+      "min": 19.734208122495183,
+      "missing": 0,
+      "nonfiniteOrInvalid": 0,
+      "tieBreakSemantics": "RIDGE_SCORE_DESC_THEN_SYMBOL_ASC"
+    },
+    "timestampIntegrityFailures": 0
+  },
+  "source": {
+    "currentEntryFeatureContractSha256": "cc70b1eb07c0719f72c4a8caa0f165a2812aec4af0b2fdeae42ef3ff400c4115",
+    "currentEntryFeatureImplementationSha256": "7cd4ab03f4de8e0b845fc5f7fb2893d9585feee0989b0f6b085a18a28be73ba0",
+    "currentEntryModelSha256": "f05def20081e51dfe7391c7e80e8b8474e5c140c42a47dc29dcd94bca367ab8a",
+    "frozenSelectorArtifactSha256": "994f1dbaba1d32e97458d5dd9d4c646ef443fbb37128650e8166001d8deabefb",
+    "frozenSelectorFreezeCommit": "565d74b3dea823581fdb32380113aac5913a248d"
+  },
+  "status": "MSH_ENTRY_LONG_V1_PREIMPLEMENTATION_FEASIBILITY_AUDIT_COMPLETE_STOP",
+  "stopBoundary": "ISSUE_FEASIBILITY_VERDICT_AND_CONTRACT_RECOMMENDATIONS_THEN_STOP_BEFORE_IMPLEMENTATION_OR_TRAINING",
+  "trainingRows": {
+    "independentTradeInterpretationAllowed": false,
+    "repeatedSelectionDistribution": {
+      "frequency": {
+        "1": 2059,
+        "2": 431,
+        "3": 169,
+        "4": 56,
+        "5": 20,
+        "6": 8
+      },
+      "max": 6,
+      "median": 1,
+      "p90": 2,
+      "repeatedSymbolSessions": 684
+    },
+    "selectionEvents": 3800,
+    "uniqueSymbolSessions": 2743,
+    "unit": "FROZEN_SELECTOR_TOP5_SELECTION_EVENT"
+  }
+}

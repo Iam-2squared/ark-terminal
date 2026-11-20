@@ -1,0 +1,127 @@
+{
+  "unique_figures": 12,
+  "new_fits": 0,
+  "new_draws": 0,
+  "figures": [
+    {
+      "figure": "01_v3_vs_v4_dangerous_rate",
+      "PNG": "CHARTS/01_v3_vs_v4_dangerous_rate.png",
+      "SVG": "CHARTS/01_v3_vs_v4_dangerous_rate.svg",
+      "source_CSVs": {
+        "INHERITED_V3/UP_TO_DOWN_DANGEROUS_FALSE_POSITIVE.csv": "0fcb23c45a0907a4964fb135e3de25e6e6a594681dedfa61a091f77e00d03f11",
+        "UP_TO_DOWN_DANGEROUS_FALSE_POSITIVE_V4.csv": "26c9820c9bf3c93a30c680732edf93f31947b474998359817fdbeca644bf0b2e"
+      },
+      "description": "V3 vs V4 dangerous UP-to-DOWN error; different Development cohorts"
+    },
+    {
+      "figure": "02_r1_r4_reversal_metrics",
+      "PNG": "CHARTS/02_r1_r4_reversal_metrics.png",
+      "SVG": "CHARTS/02_r1_r4_reversal_metrics.svg",
+      "source_CSVs": {
+        "REVERSAL_METRICS_V4.csv": "572a3cceb4b9ede17e71f16ac485f4779af17f6059e7a24e3b669cd128e0ae35"
+      },
+      "description": "V4: 882 anchors / 27 dates / 2 folds; classification and probability quality are separate"
+    },
+    {
+      "figure": "03_down_up_precision_recall_f1",
+      "PNG": "CHARTS/03_down_up_precision_recall_f1.png",
+      "SVG": "CHARTS/03_down_up_precision_recall_f1.svg",
+      "source_CSVs": {
+        "REVERSAL_PER_CLASS_METRICS_V4.csv": "eb81d5b64b881366399ea48f6e748aaa4ca87e81b6ab9a012fd9d727f30c2b25"
+      },
+      "description": "DOWN recall measures missed reversals; dangerous error uses predicted UP denominator"
+    },
+    {
+      "figure": "04_calibration_curve",
+      "PNG": "CHARTS/04_calibration_curve.png",
+      "SVG": "CHARTS/04_calibration_curve.svg",
+      "source_CSVs": {
+        "CALIBRATION_BUCKETS_V4.csv": "438149bf888137c7003fed8034c263dd0171f3bf308f28ee42b7e27d9643ffc1"
+      },
+      "description": "Fixed reliability buckets; temperature selected on train-only inner date"
+    },
+    {
+      "figure": "05_down_probability_vs_actual",
+      "PNG": "CHARTS/05_down_probability_vs_actual.png",
+      "SVG": "CHARTS/05_down_probability_vs_actual.svg",
+      "source_CSVs": {
+        "CALIBRATION_BUCKETS_V4.csv": "438149bf888137c7003fed8034c263dd0171f3bf308f28ee42b7e27d9643ffc1"
+      },
+      "description": "DOWN probability vs actual rate, with bucket support; empty buckets are not zero rates"
+    },
+    {
+      "figure": "06_fold_stability",
+      "PNG": "CHARTS/06_fold_stability.png",
+      "SVG": "CHARTS/06_fold_stability.svg",
+      "source_CSVs": {
+        "REVERSAL_METRICS_BY_FOLD_V4.csv": "23bbb2becb3df9294b22f91ec79bf4cdb9d0c92d839f7626779f0ffa4932eae0",
+        "UP_TO_DOWN_DANGEROUS_FALSE_POSITIVE_V4.csv": "26c9820c9bf3c93a30c680732edf93f31947b474998359817fdbeca644bf0b2e"
+      },
+      "description": "Fixed folds retain missing dates; no availability-driven refolding"
+    },
+    {
+      "figure": "07_date_security_concentration",
+      "PNG": "CHARTS/07_date_security_concentration.png",
+      "SVG": "CHARTS/07_date_security_concentration.svg",
+      "source_CSVs": {
+        "UP_TO_DOWN_DANGEROUS_FALSE_POSITIVE_V4.csv": "26c9820c9bf3c93a30c680732edf93f31947b474998359817fdbeca644bf0b2e",
+        "PROMOTION_GATE_V4.csv": "069ac6377465e787d11dbe9e8b098fbbd67002e08a987109d86c2ea2aac870e1"
+      },
+      "description": "Stability across dates/securities; full positive-gain concentration gates saved in CSV"
+    },
+    {
+      "figure": "08_path_length_reversal_support",
+      "PNG": "CHARTS/08_path_length_reversal_support.png",
+      "SVG": "CHARTS/08_path_length_reversal_support.svg",
+      "source_CSVs": {
+        "PATH_ANATOMY_LENGTH1_V4.csv": "5158e548c78055bd73848640d31dbc9151098d7077a415aad5a0b543cbc36763",
+        "PATH_ANATOMY_LENGTH2_V4.csv": "c4843a04c25f5eb669ae0981cf780641d1b238bff0804bd0678267a55238dd51",
+        "PATH_ANATOMY_LENGTH3_V4.csv": "85a349e1e72b2d9ed06427d540732061011360cda7dfdf8efb2300ca813c9b2a",
+        "PATH_ANATOMY_LENGTH4_V4.csv": "db535cf82a7203813918135541bec5307f349fd79442bed4e968db0cfe52709d"
+      },
+      "description": "Path lengths1\u20134: 7 sequences meet N100 / dates8 / securities3"
+    },
+    {
+      "figure": "09_top_down_reversal_paths",
+      "PNG": "CHARTS/09_top_down_reversal_paths.png",
+      "SVG": "CHARTS/09_top_down_reversal_paths.svg",
+      "source_CSVs": {
+        "PATH_ANATOMY_LENGTH2_V4.csv": "c4843a04c25f5eb669ae0981cf780641d1b238bff0804bd0678267a55238dd51",
+        "PATH_ANATOMY_LENGTH3_V4.csv": "85a349e1e72b2d9ed06427d540732061011360cda7dfdf8efb2300ca813c9b2a",
+        "PATH_ANATOMY_LENGTH4_V4.csv": "db535cf82a7203813918135541bec5307f349fd79442bed4e968db0cfe52709d"
+      },
+      "description": "Descriptive paths: support qualification is stated for each panel"
+    },
+    {
+      "figure": "10_top_up_continue_paths",
+      "PNG": "CHARTS/10_top_up_continue_paths.png",
+      "SVG": "CHARTS/10_top_up_continue_paths.svg",
+      "source_CSVs": {
+        "PATH_ANATOMY_LENGTH2_V4.csv": "c4843a04c25f5eb669ae0981cf780641d1b238bff0804bd0678267a55238dd51",
+        "PATH_ANATOMY_LENGTH3_V4.csv": "85a349e1e72b2d9ed06427d540732061011360cda7dfdf8efb2300ca813c9b2a",
+        "PATH_ANATOMY_LENGTH4_V4.csv": "db535cf82a7203813918135541bec5307f349fd79442bed4e968db0cfe52709d"
+      },
+      "description": "Descriptive paths: support qualification is stated for each panel"
+    },
+    {
+      "figure": "11_nine_state_precision_v2_v3_v4",
+      "PNG": "CHARTS/11_nine_state_precision_v2_v3_v4.png",
+      "SVG": "CHARTS/11_nine_state_precision_v2_v3_v4.svg",
+      "source_CSVs": {
+        "INHERITED_V2/PER_STATE_PRECISION_RECALL_F1.csv": "a9de9e6f80d089ade0c764cc87f986b1ec4b5a61ce637c9f35b51182b2a073d9",
+        "INHERITED_V3/PER_STATE_PRECISION_RECALL_F1_V3.csv": "bdcb4aafd5374859420b3714ff6023a36a6a1c75700060dfe41ba1449c750946",
+        "PER_STATE_PRECISION_RECALL_F1_V4.csv": "a0a923514b4aaa2f15abf46b9203764c16068eb59b0f58b319b61ce80929b21e"
+      },
+      "description": "V2 / V3 / V4 nine-State precision (%): different cohorts, not controlled causal gains"
+    },
+    {
+      "figure": "12_nine_by_nine_confusion",
+      "PNG": "CHARTS/12_nine_by_nine_confusion.png",
+      "SVG": "CHARTS/12_nine_by_nine_confusion.svg",
+      "source_CSVs": {
+        "CONFUSION_MATRIX_9STATE_V4.csv": "4e8abea0d36ead6bb5198e468c317693f69e1d95c9a7320a78d6d4ad88976be1"
+      },
+      "description": "All nine States retained, including zero support; R0 also saved in full CSV"
+    }
+  ]
+}

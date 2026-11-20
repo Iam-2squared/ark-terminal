@@ -1,0 +1,43 @@
+{
+  "status": "REPAIRED_WITHOUT_TABLE_MUTATIONS",
+  "cycles": 2,
+  "cap": 5,
+  "failures_and_repairs": [
+    {
+      "cycle": 1,
+      "category": "serialization / remote transfer text validation",
+      "failure": "Python len counts Unicode characters, JavaScript string.length counts UTF-16 code units; emoji in REPORT caused validation failure",
+      "failed_phase": "load validated local files into remote write payload before any GitHub mutation",
+      "before_mutation": true,
+      "repair": "use Array.from(content).length for Unicode character count; preserve original contents and bytes",
+      "input_rows_changed": 0,
+      "teacher_changed": 0,
+      "decisions_changed": 0,
+      "buckets_changed": 0,
+      "aggregation_reruns": 0,
+      "clock_UTC": "2026-10-07T06:01:38.927986+00:00",
+      "max_cycles": 5
+    },
+    {
+      "cycle": 2,
+      "category": "serialization / transfer newline preservation",
+      "failure": "Path.read_text universal newline conversion removed CR from CSV CRLF while metadata counted original disk characters",
+      "failed_files": [
+        "ACCOUNTING_IDENTITY_CHECK.csv",
+        "ALL_KEEP_REFERENCE.csv",
+        "CUMULATIVE_LOSER_WINNER_KEEP_DROP.csv",
+        "DROP_COMPOSITION.csv",
+        "ENTRY_EXIT_R_DISTRIBUTION.csv",
+        "LEGACY_R_BAND_KEEP_DROP.csv",
+        "RETURN_MASS_DECOMPOSITION.csv"
+      ],
+      "failed_before_any_GitHub_mutation": true,
+      "repair": "read_bytes().decode(utf-8), preserving every original newline and byte",
+      "R_changed": 0,
+      "decisions_changed": 0,
+      "cohort_changed": 0,
+      "table_bytes_changed": 0,
+      "clock_UTC": "2026-10-07T06:03:04.175805+00:00"
+    }
+  ]
+}

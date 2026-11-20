@@ -1,0 +1,31 @@
+{
+  "closureManifestSHA256": "af2beb82459c22427257c71837f5909d6485f35253b0aa6c1c17c4b165700b7d",
+  "completedAt": "2026-09-19T00:42:57Z",
+  "detail": "PR synchronize also triggered the pre-existing v1 reproducibility workflow. Its old step reran the fixed v1 fit and matched saved evidence; this was not needed for v2 and should have been prevented before the first push. No regenerated v1 result was adopted or written to the branch.",
+  "detectedAfterCommit": "7e1082e2640fff9f478b7aa8c8275cf8cbdb3539",
+  "developmentTestOpened": false,
+  "freshOOSOpened": false,
+  "job": 105808245402,
+  "measurementEvidenceChanged": false,
+  "mitigation": "Replace v1 regeneration with saved manifest/source/code/model/ledger hash verification; patch Model.fit to fail closed during this audit. Existing synthetic unit tests remain.",
+  "protocolChanged": false,
+  "researchConsequence": "No new architecture, tuning, selection or v2 fit. Frozen B2 baseline continues to use the original saved ledgers.",
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "status": "MITIGATED",
+  "step": "Deterministic regeneration and evidence content audit",
+  "unintendedAutomaticRun": 35410235726,
+  "v2AdditionalResumeFits": 0,
+  "v2ResearchEstimatorBudget": 5,
+  "workflow": ".github/workflows/phase57-comprehensive-entry.yml",
+  "workflowSHA256": "2925bd11ab03118968051dd6f3301226bf2d509d3ca2891c9c9f9d61648c4c3d"
+}

@@ -1,0 +1,130 @@
+name: Phase57 G Five Minute Reference v1
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase57-five-minute-reference-g-v1.yml'
+      - 'docs/evidence/phase57-five-minute-reference-g-v1/CI_TRIGGER.json'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: phase57-five-minute-reference-g-v1
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: github.event.pull_request.number == 587 && github.head_ref == 'research/phase57-long-only-cash-equity' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /docs/phase57-five-minute-entry-state/mechanical-v1/
+            /docs/phase57-five-minute-entry-state/ADOPTED_DEFINITION.json
+            /docs/evidence/phase57-five-minute-reference-g-v1/
+            /docs/evidence/phase57-entry-pattern-v2/ci-result/substrate/opportunities.json.gz
+            /docs/evidence/phase57-entry-pattern-v2/ci-result/substrate/raw-paths-evaluator-only.json.gz
+            /docs/evidence/phase57-entry-pattern-v2/ci-result/substrate/source-ledger.json
+            /docs/evidence/phase57-entry-pattern-v2/ci-result/substrate/inventory.json
+            /docs/evidence/phase57-entry-pattern-v2/ci-result/substrate/manifest.json
+            /docs/evidence/phase57-entry-timing-signal-census-v1/protocol.json
+            /docs/evidence/phase57-causal-entry-state-v1/ci-result/daily.json.gz
+            /docs/evidence/phase57-causal-entry-state-v1/ci-result/receipt.json
+            /docs/evidence/phase57-future-path-deep-audit-v1/ci-result/measurement/raw/audit-records.json.gz
+            /docs/evidence/phase57-future-path-deep-audit-v1/ci-result/measurement/raw/future-paths.json.gz
+            /docs/evidence/phase57-future-path-deep-audit-v1/ci-result/receipt.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.5'
+      - name: Verify adopted source and G implementation lock
+        run: |
+          python - <<'PY'
+          import json,hashlib
+          from pathlib import Path
+          root=Path('docs/evidence/phase57-five-minute-reference-g-v1')
+          lock=json.loads((root/'CI_TRIGGER.json').read_text())
+          adopted=json.loads(Path('docs/phase57-five-minute-entry-state/ADOPTED_DEFINITION.json').read_text())
+          assert adopted['selected_version']=='five-minute-state-mechanical-v1'
+          for path,wanted in lock['implementationSHA256'].items():
+              assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==wanted,path
+          assert lock['authorizedGate']=='G_ONLY' and lock['noNextGate'] is True
+          assert not (root/'measurement').exists(),'G_ALREADY_PRESERVED_NO_AUTOMATIC_RERUN'
+          PY
+      - name: Run definition and adapter synthetic tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/g-result/verification"
+          (cd docs/phase57-five-minute-entry-state/mechanical-v1 && python -m unittest -v test_reference) 2>&1 | tee "$RUNNER_TEMP/g-result/verification/definition-tests.log"
+          (cd docs/evidence/phase57-five-minute-reference-g-v1 && python -m unittest -v test_adapter) 2>&1 | tee "$RUNNER_TEMP/g-result/verification/adapter-tests.log"
+      - name: G only - fixed table from preserved Development, no provider or trading
+        run: |
+          python docs/evidence/phase57-five-minute-reference-g-v1/generate_reference.py --output "$RUNNER_TEMP/g-result/measurement" --workers 2
+      - name: Compare every measured output with independent local replay
+        env:
+          G_RESULT: ${{ runner.temp }}/g-result
+          EXECUTION_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python - <<'PY'
+          import json,hashlib,os,datetime
+          from pathlib import Path
+          root=Path('docs/evidence/phase57-five-minute-reference-g-v1')
+          lock=json.loads((root/'CI_TRIGGER.json').read_text())
+          out=Path(os.environ['G_RESULT'])
+          manifest=out/'measurement/manifest.json'
+          got=hashlib.sha256(manifest.read_bytes()).hexdigest()
+          assert got==lock['expectedMeasurementManifestSHA256'],('MEASUREMENT_REPLAY_MISMATCH',got)
+          m=json.loads(manifest.read_text())
+          for path,h in m.items():
+              assert hashlib.sha256((out/'measurement'/path).read_bytes()).hexdigest()==h,path
+          s=json.loads((out/'measurement/summary.json').read_text())
+          assert s['opportunityN']==2155 and s['definitionChanges']==0 and s['stop'] is True
+          assert all(v is False for v in s['safety'].values())
+          receipt={'status':'G_DEDICATED_REPLAY_PASS_NOT_PR_GREEN','recordedAtJST':datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).isoformat(),'executionHead':os.environ['EXECUTION_HEAD'],'runId':os.environ['GITHUB_RUN_ID'],'definitionSyntheticTests':93,'adapterSyntheticTests':22,'measurementFilesVerified':len(m),'measurementManifestSHA256':got,'independentLocalReplayMatched':True,'nextGateStarted':False,'marketProviderRequests':0,'protectedDataOpened':0,'safety':s['safety']}
+          (out/'verification/ci-receipt.json').write_text(json.dumps(receipt,sort_keys=True,indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase57-five-minute-reference-g-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/g-result
+          retention-days: 90
+  preserve:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          sparse-checkout: docs/evidence/phase57-five-minute-reference-g-v1
+      - uses: actions/download-artifact@v4
+        with:
+          name: phase57-five-minute-reference-g-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/g-result
+      - name: Preserve new G evidence only, never change definition or advance Gate
+        env:
+          BRANCH: ${{ github.head_ref }}
+          EXPECTED: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$BRANCH" = research/phase57-long-only-cash-equity
+          test "$(git ls-remote origin "refs/heads/$BRANCH" | cut -f1)" = "$EXPECTED"
+          DEST=docs/evidence/phase57-five-minute-reference-g-v1
+          test -z "$(git ls-tree -r HEAD -- "$DEST/measurement" "$DEST/verification")"
+          test -s "$RUNNER_TEMP/g-result/verification/ci-receipt.json"
+          cp -R "$RUNNER_TEMP/g-result/measurement" "$DEST/measurement"
+          cp -R "$RUNNER_TEMP/g-result/verification" "$DEST/verification"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$DEST/measurement" "$DEST/verification"
+          git commit -m 'Phase57: preserve G fixed State reference table and STOP [skip ci]'
+          git push origin "HEAD:$BRANCH"

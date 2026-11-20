@@ -1,0 +1,39 @@
+{
+  "schema": "phase57-ccmg-start-audit-v1",
+  "savedJst": "2026-09-29T01:04:24+09:00",
+  "repository": "Iam-2squared/ark-terminal",
+  "branch": "research/phase57-long-only-cash-equity",
+  "observedHead": "7a563a785e0ef9612801392e3b46318a5a0260ac",
+  "pullRequest": {"number": 587, "open": true, "draft": true, "merged": false},
+  "latestCommits": ["7a563a785e0ef9612801392e3b46318a5a0260ac", "471a4170b0d3313b8099961a566fa72e460db97d", "8358e67f4001210f43b0f5762bd33e0a2c0d5eab"],
+  "actions": {
+    "finalHeadWorkflowsSeen": 87,
+    "completed": 86,
+    "pending": 1,
+    "previousMilestoneGuardDedicatedRuns": [
+      {"runId": 36440782657, "conclusion": "failure", "failure": "missing pandas dependency at import before any Phase 0 regeneration"},
+      {"runId": 36442165937, "conclusion": "failure", "failure": "same missing pandas dependency"}
+    ],
+    "interpretation": "Legacy branch workflows are not CCMG evidence. Previous MG local 5/5 tests and byte-identical regeneration passed, but GitHub CI did not pass."
+  },
+  "duplicateCcmgRunObserved": false,
+  "controlling": {
+    "previousMilestoneGuard": "GUARD_FEASIBILITY_UNMEASURABLE; NO_SELECTION; selected=null; productionReady=false",
+    "r54": "CYCLE2_CORRECTED_D_TEACHER_CLOSED; FORECAST_FAIL_D_INCREMENTAL_SKILL; WINNER_FAIL; MEASUREMENT_BLOCKED; selected=null",
+    "wpsd": "PHASE0_NO_GO; selected=null",
+    "separateArchitecture": "CCMG uses only fresh closed checkpoint close for milestone and floor decisions. Old intrabar first-passage Gate and closure stay intact."
+  },
+  "sourcePinsSha256": {
+    "checkpointImplementation": "8b45b491fc9baf2d56cd6272c62aa8570769db103f0788531986338de3f93f27",
+    "previousGuardFinalClosure": "fa9e9d455122b916c538036b1c51c384f410431e741438a82fbba4aa6dab20ac",
+    "r54FinalClosure": "5c8bf5d474787372bfd8b1670114f2a11f718c2d22b5f60a25bae81c0ba896f4",
+    "wpsdFinalClosure": "c1ef34e041c4ab44ab057a3a181cbf6488574bf8539a464c62cf16424042d3c4",
+    "r50ControlLedger": "2fbf1df2d7ddfbd5f07fbe87da8daeb37b80cb96bb6bfab60a3aa2496f7ae185",
+    "r45ExistingDevelopmentZip": "d3936171002e7579e431568b9900ee5fa1fc8ade3dae0bf6de92870c8dbe4b38",
+    "r54ExistingReplayZip": "894fe6de153e6647cdbc54e81edcae9df7da16f2fa9e416221d5a1c6661ef2f4",
+    "r34ExistingAuditZip": "46c513221e98498c39c19271f8b90bbbef774f45c80aa645be41fe6af0584b47",
+    "existingRawPath": "37853e73799544be6fd6eb955de514073dd13671692426291a9fdb6d80056c6b"
+  },
+  "exposureAtStart": {"providerRequests": 0, "restrictedPartitionsOpened": 0, "newEstimatorFits": 0, "integratedReplayInvocations": 0, "orders": 0, "mainMerges": 0},
+  "next": "WRITE_AND_HASH_NEW_CYCLE_PRECOMMIT_BEFORE_CCMG_READINESS_OR_ECONOMIC_RESULTS"
+}

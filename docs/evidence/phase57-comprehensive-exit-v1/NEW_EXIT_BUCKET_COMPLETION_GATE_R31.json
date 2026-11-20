@@ -1,0 +1,138 @@
+{
+  "schemaVersion": "phase57-new-exit-bucket-completion-gate-r31",
+  "dateJST": "2026-09-26",
+  "basisHeadBeforeCheckpoint": "84d839d838483cb16458f54e89e3aabcdbfdb5d4",
+  "status": "PRECOMMITTED_BEFORE_ANY_NEW_EXIT_FIT_OR_CANDIDATE_PERFORMANCE_INSPECTION",
+  "purpose": "Freeze the canonical bucket anatomy and finite completion expectations required by R29 before the R25 24-configuration Development fit.",
+  "currentState": "R30 machine closure is implemented and CI-green; R31 is the final pre-performance completion-gate checkpoint before Pre-Design OFFICIAL PASS.",
+  "entryDualFreezeCommit": "4878a1cc53430e816261dea0fb16aeb53b3c238d",
+  "sources": {
+    "orderedGeometrySourceSHA256": "4b9afd72ccfff0b557fb4a5e067ac122ace90ae501d15a79627a89af9554a01e",
+    "orderedScorecardSourceSHA256": "878aeae3f41af43fbbbde1d00d96be61a709a514ce96457a79bf89a2b0fed6b5",
+    "rawPathsEvaluatorOnlySHA256": "37853e73799544be6fd6eb955de514073dd13671692426291a9fdb6d80056c6b",
+    "immediateEntryRecordsSHA256": "4522bea9ac94f597affc8518c4cb25354e27f9e64141152cde8b8a4b9e09df9c",
+    "r1EntryRecordsSHA256": "15ddb5cfc5169024878ee72d9dbecc6e1d9dec24e78afa2dcdf8dea891117fa6",
+    "immediateArtifact": {"runId": 35753310526, "artifactId": 10707562250},
+    "r1Artifact": {"runId": 36099497597, "artifactId": 10851958443},
+    "patternArtifact": {"runId": 35510863265, "artifactId": 10605887642},
+    "r30FocusedCi": {
+      "runId": 36199796765,
+      "head": "84d839d838483cb16458f54e89e3aabcdbfdb5d4",
+      "conclusion": "success",
+      "artifactId": 10891970429,
+      "artifactDigest": "sha256:2ba4cab53f0a017bcc6e6478f0f25b8975027850baf4b75c0874abdfffbfc169"
+    }
+  },
+  "canonicalOpportunityGeometry": {
+    "population": 2155,
+    "evaluable": 2053,
+    "notEvaluable": 102,
+    "buckets": {"<1%": 158, "1-2%": 391, "2-3%": 361, "3-4%": 289, "4-5%": 188, ">=5%": 666},
+    "notEvaluableReasons": {
+      "FULL_SESSION_OBSERVATION_INSUFFICIENT": 63,
+      "INSUFFICIENT_ORDERED_ROWS": 14,
+      "NON_POSITIVE_ORDERED_RANGE": 25
+    },
+    "use": "EVALUATOR_ONLY_NEVER_MODEL_INPUT_PREPROCESSING_FIT_STRATUM_WEIGHT_THRESHOLD_OR_SELECTION_FEATURE"
+  },
+  "anatomy": {
+    "IMMEDIATE": {
+      "entryToSameOrderedHighPct": {
+        "overall": {"count": 1920, "mean": 2.7289987962016835, "median": 1.6524181476337718},
+        "<1%": {"count": 114, "mean": -0.012444630955160588, "median": 0.15521889289643598},
+        "1-2%": {"count": 345, "mean": 0.19407465779113434, "median": 0.496199987437973},
+        "2-3%": {"count": 345, "mean": 0.7114065062735785, "median": 1.1419332922976366},
+        "3-4%": {"count": 278, "mean": 1.239840475234673, "median": 2.058839631605469},
+        "4-5%": {"count": 183, "mean": 2.0620846783695166, "median": 2.88973160478585},
+        ">=5%": {"count": 655, "mean": 6.422394239354097, "median": 5.331270816489386}
+      },
+      "entryToPostEntryBestHighPct": {
+        "overall": {"count": 1963, "mean": 3.2759536262693145, "median": 1.853834987268277},
+        "<1%": {"count": 117, "mean": 0.23287386994424808, "median": 0.27453805564749967},
+        "1-2%": {"count": 350, "mean": 0.6808448865651969, "median": 0.6906893584077367},
+        "2-3%": {"count": 346, "mean": 1.3215950806325325, "median": 1.42347873780716},
+        "3-4%": {"count": 279, "mean": 1.9060061949366218, "median": 2.187712114092233},
+        "4-5%": {"count": 183, "mean": 2.6903406343970944, "median": 3.0359605788872424},
+        ">=5%": {"count": 656, "mean": 7.113963981502998, "median": 5.440024533093101}
+      }
+    },
+    "ALL_MATERIAL_R1_TEMPORAL_NESTED_OOF": {
+      "entryToSameOrderedHighPct": {
+        "overall": {"count": 1703, "mean": 2.8865629606996888, "median": 1.7491254372813625},
+        "<1%": {"count": 75, "mean": -0.08414792837967082, "median": 0.10324423889231937},
+        "1-2%": {"count": 285, "mean": 0.263923564998839, "median": 0.5157798459261009},
+        "2-3%": {"count": 308, "mean": 0.7925172171088135, "median": 1.1706452663361233},
+        "3-4%": {"count": 251, "mean": 1.2687926842976247, "median": 1.8721408526506167},
+        "4-5%": {"count": 168, "mean": 2.1233481877852842, "median": 2.5496846239848825},
+        ">=5%": {"count": 616, "mean": 6.376014348213037, "median": 5.100723190864642}
+      },
+      "entryToPostEntryBestHighPct": {
+        "overall": {"count": 1885, "mean": 3.08034166631174, "median": 1.6673793687348892},
+        "<1%": {"count": 102, "mean": 0.15644090352084905, "median": 0.14982527601785645},
+        "1-2%": {"count": 327, "mean": 0.5790212734325455, "median": 0.5773263995617395},
+        "2-3%": {"count": 336, "mean": 1.1519546071237654, "median": 1.1858860540299054},
+        "3-4%": {"count": 272, "mean": 1.7031432984517745, "median": 1.852145441931019},
+        "4-5%": {"count": 181, "mean": 2.4095372652985967, "median": 2.5479052539393754},
+        ">=5%": {"count": 643, "mean": 6.685919516373413, "median": 5.049516058297399}
+      }
+    }
+  },
+  "completionGateDerivation": {
+    "candidatePerformanceUsed": false,
+    "conservativeHeadroom": "MIN(IMMEDIATE,R1) within each bucket using Entry->post-Entry best High anatomy only",
+    "meanFloorRule": "FLOOR_TO_0.25PP(0.50 * conservative mean post-Entry headroom)",
+    "medianFloorRule": "FLOOR_TO_0.25PP(0.40 * conservative median post-Entry headroom)",
+    "captureRule": "For canonical buckets >=2%, median per-trade post-Entry capture must be >=50%; bucket is evaluator-only.",
+    "smallOpportunityRule": "<1% has no absolute-return floor; 1-2% uses only the finite derived +0.25% mean expectation and no capture floor.",
+    "aggregatePrimaryTarget": "Each Frozen Entry arm mean net Entry->Exit >= +2.00% under the preregistered cost/accounting convention.",
+    "r25GatesRemainControlling": true
+  },
+  "bucketCompletionExpectations": {
+    "<1%": {"meanNetFloorPct": 0.0, "medianNetFloorPct": 0.0, "medianCaptureFloorPct": null, "role": "LOSS_CONTAINMENT_ONLY_NO_POSITIVE_ABSOLUTE_FLOOR"},
+    "1-2%": {"meanNetFloorPct": 0.25, "medianNetFloorPct": 0.0, "medianCaptureFloorPct": null, "role": "SMALL_OPPORTUNITY_PRESERVATION"},
+    "2-3%": {"meanNetFloorPct": 0.5, "medianNetFloorPct": 0.25, "medianCaptureFloorPct": 50.0, "role": "CAPTURE_AND_RETURN"},
+    "3-4%": {"meanNetFloorPct": 0.75, "medianNetFloorPct": 0.5, "medianCaptureFloorPct": 50.0, "role": "CAPTURE_AND_RETURN"},
+    "4-5%": {"meanNetFloorPct": 1.0, "medianNetFloorPct": 1.0, "medianCaptureFloorPct": 50.0, "role": "CAPTURE_AND_RETURN"},
+    ">=5%": {"meanNetFloorPct": 3.25, "medianNetFloorPct": 2.0, "medianCaptureFloorPct": 50.0, "role": "CRITICAL_WINNER_CONTINUATION"}
+  },
+  "compositeCompletion": {
+    "requires": [
+      "R31 aggregate primary target in both Entry arms",
+      "R31 finite bucket expectations under metric-specific denominators",
+      "R25 Winner Continuation",
+      "R25 Profit Retention",
+      "R25 Loss Containment",
+      "R25 cost robustness",
+      "R25 concentration",
+      "R25 Run A/B byte-identical reproducibility",
+      "missing/censored/terminal unresolved accounting without zero-fill or fabrication"
+    ],
+    "aggregateMeanRatioIsNotMeanPerTradeCaptureRatio": true,
+    "performanceDependentGateChangesForbidden": true,
+    "gridExpansionAfterResultsForbidden": true
+  },
+  "exposure": {
+    "newExitModelFits": 0,
+    "candidatePerformanceInspected": false,
+    "candidateWinnerSelected": false,
+    "providerRequests": 0,
+    "protectedPartitionsOpened": 0
+  },
+  "safety": {
+    "executionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "automaticPromotionAllowed": false,
+    "productionUpdateAllowed": false,
+    "transmitted": false
+  },
+  "nextPlan": [
+    "Run the existing focused pre-design CI on this append-only checkpoint and require GREEN without weakening any gate.",
+    "Record Pre-Design OFFICIAL PASS referencing R30 CI and this R31 contract.",
+    "Immediately start exactly the R25 24 Development configurations; do not add a 25th configuration or inspect protected data."
+  ],
+  "supersedes": "R29 remains controlling for the +2.00% primary objective; R31 adds the pre-performance finite bucket anatomy and completion expectations and does not relax R25."
+}

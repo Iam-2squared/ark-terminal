@@ -1,0 +1,127 @@
+{
+  "CAL_threshold_decisions": 9,
+  "Entry_EXIT_State_changes": 0,
+  "State_engine_rerun": 0,
+  "TEST_aggregate_evaluation": 1,
+  "TEST_prediction_seals": 3,
+  "capital_orders_production_main_force": 0,
+  "clock": {
+    "JST": "2026-10-06T23:34:07.120958+09:00",
+    "UTC": "2026-10-06T14:34:07.120958+00:00"
+  },
+  "events": [
+    {
+      "FIT_N": 912,
+      "JST": "2026-10-06T23:28:10.361382+09:00",
+      "UTC": "2026-10-06T14:28:10.361382+00:00",
+      "block": 1,
+      "kind": "PREPROCESS_FIT_STARTED"
+    },
+    {
+      "FIT_ID_sha256": "dc3e632af2d7a48f828b74bf6d9729670a48db29cd2aa9d79e6a73eda0c99498",
+      "JST": "2026-10-06T23:28:10.869650+09:00",
+      "UTC": "2026-10-06T14:28:10.869650+00:00",
+      "block": 1,
+      "kind": "MODEL_FIT_STARTED",
+      "matrix_columns": 1429,
+      "matrix_rows": 912
+    },
+    {
+      "JST": "2026-10-06T23:28:11.140723+09:00",
+      "TEST_Entry_N": 156,
+      "TEST_teacher_read": false,
+      "UTC": "2026-10-06T14:28:11.140723+00:00",
+      "block": 1,
+      "kind": "TEST_PREDICTIONS_SEALED",
+      "model_fit_success": 1,
+      "seal_sha256": "b5af0de493df2fcd9390ef81e0ed396a4e4da9ee370164abef492296da57b160"
+    },
+    {
+      "FIT_N": 1069,
+      "JST": "2026-10-06T23:28:11.601725+09:00",
+      "UTC": "2026-10-06T14:28:11.601725+00:00",
+      "block": 2,
+      "kind": "PREPROCESS_FIT_STARTED"
+    },
+    {
+      "FIT_ID_sha256": "a457e9dfe1a2846fa0cde91673469c1e3173adc4f2e9498478f2b5016e2559df",
+      "JST": "2026-10-06T23:28:12.201459+09:00",
+      "UTC": "2026-10-06T14:28:12.201459+00:00",
+      "block": 2,
+      "kind": "MODEL_FIT_STARTED",
+      "matrix_columns": 1435,
+      "matrix_rows": 1069
+    },
+    {
+      "JST": "2026-10-06T23:28:12.452515+09:00",
+      "TEST_Entry_N": 181,
+      "TEST_teacher_read": false,
+      "UTC": "2026-10-06T14:28:12.452515+00:00",
+      "block": 2,
+      "kind": "TEST_PREDICTIONS_SEALED",
+      "model_fit_success": 2,
+      "seal_sha256": "79bb58426b992174e83a39eebe673c9b0acbcccf948817c2d2896ce6b0847284"
+    },
+    {
+      "FIT_N": 1223,
+      "JST": "2026-10-06T23:28:12.460482+09:00",
+      "UTC": "2026-10-06T14:28:12.460482+00:00",
+      "block": 3,
+      "kind": "PREPROCESS_FIT_STARTED"
+    },
+    {
+      "FIT_ID_sha256": "0bdb5a66d51c5225e9d12d1ecc7e83cbd01a1c3e7d25c1fd0d851e15f5c873af",
+      "JST": "2026-10-06T23:28:13.143633+09:00",
+      "UTC": "2026-10-06T14:28:13.143633+00:00",
+      "block": 3,
+      "kind": "MODEL_FIT_STARTED",
+      "matrix_columns": 1448,
+      "matrix_rows": 1223
+    },
+    {
+      "JST": "2026-10-06T23:28:13.501397+09:00",
+      "TEST_Entry_N": 164,
+      "TEST_teacher_read": false,
+      "UTC": "2026-10-06T14:28:13.501397+00:00",
+      "block": 3,
+      "kind": "TEST_PREDICTIONS_SEALED",
+      "model_fit_success": 3,
+      "seal_sha256": "a7fdb5bdd469dbe1ccf1a1a70f4055411f501c1407e44ede6ed258ebab876c2a"
+    },
+    {
+      "CAL_threshold_decisions": 9,
+      "JST": "2026-10-06T23:28:13.501652+09:00",
+      "UTC": "2026-10-06T14:28:13.501652+00:00",
+      "block": null,
+      "fit_attempts": 3,
+      "fit_success": 3,
+      "kind": "ALL3_SEALED_BEFORE_TEST_EVALUATION",
+      "preprocessing_fit": 3
+    },
+    {
+      "TEST_Entry_N": 501,
+      "UTC": "2026-10-06T14:30:00.087353+00:00",
+      "kind": "TEST_TEACHER_JOIN_AFTER_ALL3_SEALS",
+      "spec_changes": 0
+    }
+  ],
+  "feature_build": 1,
+  "model_fit_attempts": 3,
+  "model_fit_success": 3,
+  "next": "STOP after saved actual readback; no Layer2/3/Capital/production",
+  "owner": "Iam-2squared / Codex",
+  "preprocessing_fit": 3,
+  "protected_holdout_open": 0,
+  "provider_requests": 0,
+  "spec_changes_after_TEST": 0,
+  "status": "FIRST_LAYER_V1_IMPLEMENTED_AND_EVALUATED_DEVELOPMENT",
+  "technical_retries": 0,
+  "warnings": [
+    "All58 sessions pre-exposed Development; no Fresh/OOS certification",
+    "MINUS rejection only3.83% at PRIMARY; no performance PASS declared",
+    "Block2 PLUS retention92.31% below nominal95%; no threshold change",
+    "CAL PLUS66/78/78 =>99% and100% all k0, same thresholds",
+    "Historical actual received_at remains UNKNOWN; frozen assumed bar_end availability",
+    "Native EXIT/EOD/cost accounting certification reused; no replay"
+  ]
+}

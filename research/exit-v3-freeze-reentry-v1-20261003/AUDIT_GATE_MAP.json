@@ -1,0 +1,203 @@
+{
+  "future_bucket_decision_reads": 0,
+  "future_causal_leakage_N": 0,
+  "gates": [
+    {
+      "PASS": true,
+      "check_N": 1600,
+      "independent_check": "Frozen_FIRST_entry_identity",
+      "item": 1,
+      "requirement": "FIRST_ENTRY_v2_freeze_identity"
+    },
+    {
+      "PASS": true,
+      "check_N": 1,
+      "independent_check": "FIRST_EXIT_OFFICIAL_FREEZE_identities",
+      "item": 2,
+      "requirement": "EXIT_v3_OFFICIAL_FREEZE_identity"
+    },
+    {
+      "PASS": true,
+      "check_N": 588,
+      "independent_check": "V4_D_never_adopted",
+      "item": 3,
+      "requirement": "V4_D_unused"
+    },
+    {
+      "PASS": true,
+      "check_N": 157133,
+      "independent_check": "every_saved_P1_score_threshold_grid_exact_projection",
+      "item": 4,
+      "requirement": "P1_Q70_lineage"
+    },
+    {
+      "PASS": true,
+      "check_N": 22042,
+      "independent_check": "score_only_strictly_after_sell_fill",
+      "item": 5,
+      "requirement": "post_EXIT_scoring"
+    },
+    {
+      "PASS": true,
+      "check_N": 22042,
+      "independent_check": "no_Entry_decision_in_any_open_position",
+      "item": 6,
+      "requirement": "no_scoring_open"
+    },
+    {
+      "PASS": true,
+      "check_N": 588,
+      "independent_check": "SELL_fill_then_flat_not_intent",
+      "item": 7,
+      "requirement": "SELL_fill_flat"
+    },
+    {
+      "PASS": true,
+      "check_N": 2188,
+      "independent_check": "reset_strictly_below_threshold",
+      "item": 8,
+      "requirement": "reset_LT"
+    },
+    {
+      "PASS": true,
+      "check_N": 2188,
+      "independent_check": "fresh_cross_previous_below_current_GE",
+      "item": 9,
+      "requirement": "fresh_cross_LT_GE"
+    },
+    {
+      "PASS": true,
+      "check_N": 2188,
+      "independent_check": "all_chronological_cycles_without_arbitrary_cap",
+      "item": 10,
+      "requirement": "no_cooldown_or_cap"
+    },
+    {
+      "PASS": true,
+      "check_N": 588,
+      "independent_check": "reentry_BUY_exact_next_regular_Open_plus5bps",
+      "item": 11,
+      "requirement": "next_open_BUY_plus5bps"
+    },
+    {
+      "PASS": true,
+      "check_N": 588,
+      "independent_check": "new_V3_phase_no_prior_position_carry",
+      "item": 12,
+      "requirement": "fresh_V3_per_fill"
+    },
+    {
+      "PASS": true,
+      "check_N": 4,
+      "independent_check": "Frozen_V3_A_B_C_PRE_quality_fill_calendar_unchanged",
+      "item": 13,
+      "requirement": "A_B_C_unchanged"
+    },
+    {
+      "PASS": true,
+      "check_N": 588,
+      "independent_check": "sell_next_open_or_exact_close_minus5bps",
+      "item": 14,
+      "requirement": "SELL_minus5bps"
+    },
+    {
+      "PASS": true,
+      "check_N": 588,
+      "independent_check": "no_position_overlap",
+      "item": 15,
+      "requirement": "no_overlap"
+    },
+    {
+      "PASS": true,
+      "check_N": 588,
+      "independent_check": "no_same_bar_sell_buy",
+      "item": 16,
+      "requirement": "no_same_bar"
+    },
+    {
+      "PASS": true,
+      "check_N": 1600,
+      "independent_check": "consecutive_trade_indices",
+      "item": 17,
+      "requirement": "cycles_chronology"
+    },
+    {
+      "PASS": true,
+      "check_N": 1361,
+      "independent_check": "session_close_terminal_reentry_zero",
+      "item": 18,
+      "requirement": "close_terminal"
+    },
+    {
+      "PASS": true,
+      "check_N": 1600,
+      "independent_check": "original_first_bucket_fixed",
+      "item": 19,
+      "requirement": "fixed_original_bucket"
+    },
+    {
+      "PASS": true,
+      "check_N": 5,
+      "independent_check": "future_bucket_engine_reads_zero",
+      "item": 20,
+      "requirement": "no_bucket_decision"
+    },
+    {
+      "PASS": true,
+      "check_N": 1600,
+      "independent_check": "watch_economics_simple_cumulative_realized_return_pct",
+      "item": 21,
+      "requirement": "simple_sum"
+    },
+    {
+      "PASS": true,
+      "check_N": 1600,
+      "independent_check": "watch_economics_same_watch_compounded_return_pct",
+      "item": 22,
+      "requirement": "compound"
+    },
+    {
+      "PASS": true,
+      "check_N": 1,
+      "independent_check": "trade_index_quality_tables",
+      "item": 23,
+      "requirement": "trade_index_tables"
+    },
+    {
+      "PASS": true,
+      "check_N": 1600,
+      "independent_check": "unresolved_not_zero_imputed",
+      "item": 24,
+      "requirement": "null_not_zero"
+    },
+    {
+      "PASS": true,
+      "check_N": 1361,
+      "independent_check": "session_close_terminal_reentry_zero",
+      "item": 25,
+      "requirement": "no_post_close_Reentry"
+    },
+    {
+      "PASS": true,
+      "check_N": 5,
+      "independent_check": "fit_predict_search_provider_orders_zero",
+      "item": 26,
+      "requirement": "Capital_Portfolio0"
+    }
+  ],
+  "mismatch_N": 0,
+  "position_overlap_N": 0,
+  "safety": {
+    "automaticPromotionAllowed": false,
+    "brokerWriteAllowed": false,
+    "excelOrderWriteAllowed": false,
+    "executionAllowed": false,
+    "liveTradingAllowed": false,
+    "paperTradingAllowed": false,
+    "productionReady": false,
+    "productionUpdateAllowed": false,
+    "rssOrderFunctionAllowed": false,
+    "transmitted": false
+  },
+  "saved_at_jst": "2026-10-03T23:13:32.126252+09:00"
+}

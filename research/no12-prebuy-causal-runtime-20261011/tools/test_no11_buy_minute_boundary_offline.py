@@ -6,6 +6,8 @@ from pathlib import Path
 import re
 from types import SimpleNamespace
 import unittest
+from copy import deepcopy
+from no11_buy_latency_stage import staged_source, EDITS, blob
 
 HERE = Path(__file__).resolve().parent
 SESSION = "2026-11-30"
@@ -30,7 +32,7 @@ def instant(value, session):
 
 
 def extract(filename, names, env, class_method=None):
-    tree = ast.parse((HERE / filename).read_text(encoding="utf-8-sig"))
+    tree = ast.parse(staged_source(filename))
     nodes = tree.body if class_method is None else next(
         n.body for n in tree.body if isinstance(n, ast.ClassDef)
         and any(isinstance(m, ast.FunctionDef) and m.name == class_method for m in n.body))
@@ -137,6 +139,55 @@ class TestBoundary(unittest.TestCase):
         other["symbol"] = "6758.T"
         with self.assertRaises(ValueError):
             calculate({"results": [row, other]}, account, {"8": {}})
+
+    def test_original_source_pins_and_tamper_rejection(self):
+        for name, rule in EDITS.items():
+            source = (HERE / name).read_text(encoding="utf-8")
+            self.assertEqual(blob(source), rule["blob"])
+            self.assertNotEqual(staged_source(name), source)
+            with self.assertRaises(ValueError):
+                staged_source(name, source + "\n# tampered\n")
+
+    def test_native_buy_compiles_and_validates_in_one_bridge_call(self):
+        # Actual staged _command and submit_intents bodies; pure synthetic
+        # bridge and ledger boundaries. No native process or transport.
+        calls = []
+        def bridge(request):
+            calls.append(request)
+            if request["action"] == "compile-and-validate-config":
+                return dict(request["input"])
+            if request["action"] == "compile":
+                return dict(request["input"])
+            if request["action"] == "validate-config":
+                return request["config"]
+            raise AssertionError(request["action"])
+        env = {"need": self.e["need"], "ledger": SimpleNamespace(
+            digest=repr, COMMAND_MODES={"OFFLINE_REPLAY": "SYNTHETIC"}),
+            "node_bridge": bridge, "deepcopy": deepcopy,
+            "CONFIRMED_NON_COMMON_EQUITY": frozenset(), "ERRORS": (ValueError,)}
+        extract("no11_broker_execution_service.py", ["_command", "_validate_physical_config", "submit_intents"], env, class_method="submit_intents")
+        service = SimpleNamespace(session=SESSION, bridge=bridge,
+            source={"sessionKey": "test"}, entry_halted=False,
+            config={"transport": {"mode": "OBSERVE_ONLY"}, "evidenceMode": "OFFLINE_REPLAY",
+                    "orderTerms": {}},
+            _fresh_id=lambda at, assigned: 1 + len(assigned),
+            _source_current=lambda at: True, _buying_power_verified=lambda at: True,
+            book=SimpleNamespace(source_checkpoint=lambda k: None,
+                                 snapshot=lambda at: {"newBuysAllowed": True}),
+            _send_enabled=lambda: False)
+        service._command = lambda *a, **kw: env["_command"](service, *a, **kw)
+        service._validate_physical_config = lambda *a, **kw: env["_validate_physical_config"](service, *a, **kw)
+        intent = {"intentId": "test", "symbol": "7203.T", "side": "BUY",
+                  "quantity": 100, "account": "TEST"}
+        result = env["submit_intents"](service, [intent], stamp("09:36:01"))
+        self.assertEqual([x["action"] for x in calls], ["compile-and-validate-config"])
+        self.assertEqual(result[0]["status"], "OBSERVE_ONLY_DRAFT")
+        self.assertFalse(result[0]["orderTransmission"])
+        calls.clear()
+        service.bridge = lambda request: bridge(request)
+        second = env["submit_intents"](service, [intent], stamp("09:36:01"))
+        self.assertEqual([x["action"] for x in calls], ["compile", "validate-config"])
+        self.assertEqual(second, result)
 
     def test_service_funds_once_and_never_replays(self):
         env = {"h": self.e["h"], "need": self.e["need"]}

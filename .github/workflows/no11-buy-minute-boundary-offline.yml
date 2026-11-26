@@ -1,0 +1,26 @@
+name: No11 BUY minute boundary offline
+on:
+  pull_request:
+    paths:
+      - 'research/no12-prebuy-causal-runtime-20261011/tools/no11_broker_execution_service.py'
+      - 'research/no12-prebuy-causal-runtime-20261011/tools/no11_broker_decision_bridge.py'
+      - 'research/no12-prebuy-causal-runtime-20261011/tools/test_no11_buy_minute_boundary_offline.py'
+      - '.github/workflows/no11-buy-minute-boundary-offline.yml'
+permissions:
+  contents: read
+jobs:
+  isolated:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python research/no12-prebuy-causal-runtime-20261011/tools/test_no11_buy_minute_boundary_offline.py -v

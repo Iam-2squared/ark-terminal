@@ -6,6 +6,9 @@ from pathlib import Path
 import re
 from types import SimpleNamespace
 import unittest
+import json
+import subprocess
+import tempfile
 from copy import deepcopy
 from no11_buy_latency_stage import staged_source, EDITS, blob
 
@@ -188,6 +191,49 @@ class TestBoundary(unittest.TestCase):
         second = env["submit_intents"](service, [intent], stamp("09:36:01"))
         self.assertEqual([x["action"] for x in calls], ["compile", "validate-config"])
         self.assertEqual(second, result)
+
+    def test_actual_node_fused_command_equals_original_and_rejects_invalid_config(self):
+        # Only the pure JSON bridge is invoked, in the test checkout.
+        # No physical sink, permit, Excel or account access.
+        inp = {"kind": "ORDER", "commandId": "a" * 64,
+               "intentId": "b" * 64, "sessionDate": SESSION,
+               "rssSessionKey": "synthetic", "rssOrderId": 1,
+               "symbol": "7203.T", "side": "BUY", "quantity": 100,
+               "account": "特定", "createdAtJst": stamp("09:36:01"),
+               "evidenceMode": "SYNTHETIC_OFFLINE_ONLY",
+               "orderTerms": {"orderType": "MARKET", "limitPrice": None,
+                              "timeInForce": "DAY", "sor": True,
+                              "accountType": 0, "accountTypeVerified": True}}
+        config = {"mode": "OBSERVE_ONLY", "orderTransmission": False}
+        def run(path, request):
+            return subprocess.run(["node", str(path)], input=json.dumps(request),
+                                  capture_output=True, text=True, encoding="utf-8",
+                                  timeout=15, check=False)
+        original = HERE / "no11_broker_bridge.mjs"
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".mjs", prefix="no11-test-",
+                                         dir=HERE, encoding="utf-8", delete=False) as f:
+            temp = Path(f.name)
+            f.write(staged_source(original.name))
+        try:
+            compiled = run(original, {"action": "compile", "input": inp})
+            self.assertEqual(compiled.returncode, 0, compiled.stderr)
+            command = json.loads(compiled.stdout)
+            self.assertEqual(command["arguments"][1], "0")
+            validated = run(original, {"action": "validate-config", "command": command,
+                                       "config": config, "now": stamp("09:36:01")})
+            self.assertEqual(validated.returncode, 0, validated.stderr)
+            request = {"action": "compile-and-validate-config", "input": inp,
+                       "config": config, "now": stamp("09:36:01")}
+            combined = run(temp, request)
+            self.assertEqual(combined.returncode, 0, combined.stderr)
+            self.assertEqual(json.loads(combined.stdout), command)
+            request["config"] = {"mode": "OBSERVE_ONLY", "orderTransmission": True}
+            rejected = run(temp, request)
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("DISABLED_CONFIG_CANNOT_TRANSMIT", rejected.stderr)
+            self.assertEqual(rejected.stdout, "")
+        finally:
+            temp.unlink()
 
     def test_service_funds_once_and_never_replays(self):
         env = {"h": self.e["h"], "need": self.e["need"]}

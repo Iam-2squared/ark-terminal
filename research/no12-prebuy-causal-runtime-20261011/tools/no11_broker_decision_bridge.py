@@ -78,15 +78,45 @@ def original_eod(position, *, session, at):
             'originalEodExecuted': True, 'fillTimeUnknown': True}
 
 
+def candidate_current_for_funding(row, at, session):
+    """Keep existing 90s freshness, not wall-clock minute equality.
+
+    A decision cannot travel across a market recess, session, cutoff, or
+    backwards in time. This is pre-BUY admission, not an order permit.
+    """
+    decision = h.timestamp(row['decisionAtJst'], session)
+    current = h.timestamp(at, session)
+    elapsed = instant(at, session) - instant(row['decisionAtJst'], session)
+    return (0 <= elapsed <= 90_000_000_000
+            and any(lo <= h.minute(decision) <= h.minute(current) < hi
+                    for lo, hi in ((540, 690), (750, 920))))
+
+
+def capital_strategy_time(batch, at, session):
+    """Preserve the original decision minute for the frozen slot policy.
+
+    Never rewrite source receipts or the actual account/intent clock.
+    The existing R0 same-minute validator still rejects mixed-minute batches.
+    """
+    rows = batch['results']
+    if not rows:
+        return at
+    need(all(candidate_current_for_funding(row, at, session) for row in rows),
+         'R0_CANDIDATE_NOT_CURRENT')
+    return max((row['decisionAtJst'] for row in rows),
+               key=lambda value: instant(value, session))
+
+
 def calculate_capital(batch, account, arrival):
     """Run the original gate and allocator on a bounded, current account view."""
     need(type(account) is dict and account.get('schemaId') == 'ARK_NO11_BROKER_CAPITAL_INPUT_V1', 'ACCOUNT')
     session, at = account['sessionDate'], account['decisionAtJst']
     instant(at, session)
+    strategy_at = capital_strategy_time(batch, at, session)
     # No real account values enter a SYNTHETIC scenario. Reuse its exact source
     # and causal checks as a zero-cash validation pass, with no funding call.
     validation = {'schemaId': hcap.SCENARIO, 'evidenceMode': 'SYNTHETIC_OFFLINE_ONLY',
-        'sessionDate': session, 'decisionAtJst': at,
+        'sessionDate': session, 'decisionAtJst': strategy_at,
         'arkCapitalInputs': {'cash': '0', 'equity': '0', 'exposure': '0'},
         'externalSymbols': [], 'arkManagedSymbols': [], 'existingBands': [],
         'afterFirstLegalSellFill': False, 'pendingBrokerOrders': False,

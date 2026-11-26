@@ -628,7 +628,7 @@ class BrokerExecution:
                 decision = h.timestamp(row.get('decisionAtJst'), self.session)
                 now = h.timestamp(at, self.session)
                 need(decision <= now, 'CANDIDATE_FROM_FUTURE')
-                if decisions.candidate_current_for_funding(row, at, self.session):
+                if h.minute(decision) == h.minute(now) and (now - decision).total_seconds() <= 90:
                     fresh.append(row)
                 changed[key] = sha
         if not fresh:
